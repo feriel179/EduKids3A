@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS">
+    <VBox styleClass="front-hero">
+        <Label text="Nos événements" styleClass="hero-title"/>
+        <Label text="Accueil • Événements" styleClass="hero-breadcrumb"/>
+    </VBox>
+    <HBox styleClass="front-toolbar">
+        <TextField fx:id="tfFrontSearchEvenements" promptText="Rechercher un événement..."
+                   styleClass="search-field" HBox.hgrow="SOMETIMES"/>
+        <Button onAction="#onFrontRechercheEvenements" text="🔍" styleClass="btn-search"/>
+        <ComboBox fx:id="cbFrontSortEvenements" styleClass="sort-combo" prefWidth="160.0"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lblFrontEvenementsCount" text="0 événement(s)" styleClass="front-counter"/>
+    </HBox>
+    <StackPane VBox.vgrow="ALWAYS">
+        <VBox fx:id="boxFrontEvList" spacing="0" VBox.vgrow="ALWAYS">
+            <StackPane VBox.vgrow="ALWAYS">
+                <ScrollPane fitToWidth="true" styleClass="cards-scroll" VBox.vgrow="ALWAYS">
+                    <FlowPane fx:id="flowEvenementsCards" styleClass="cards-flow"/>
+                </ScrollPane>
+                <Label fx:id="lblEmptyFrontEvenements" managed="false" visible="false"
+                       text="Aucun événement à afficher."
+                       styleClass="empty-state-overlay" wrapText="true" maxWidth="420.0"
+                       textAlignment="CENTER" mouseTransparent="true"
+                       StackPane.alignment="CENTER"/>
+            </StackPane>
+        </VBox>
+        <VBox fx:id="boxFrontEvDetail" visible="false" managed="false" spacing="0"
+              styleClass="detail-root-outer" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="spFrontEvDetail" fitToWidth="true" pannable="false"
+                        styleClass="detail-scroll-pane" VBox.vgrow="ALWAYS">
+                <VBox fx:id="boxFrontDetailScrollContent" spacing="16" styleClass="detail-content">
+                    <Button text="← Retour aux événements" onAction="#onFrontRetourListeEvenements"
+                            styleClass="detail-back"/>
+                    <StackPane fx:id="detailHeroImgWrap" styleClass="detail-hero-img-wrap">
+                        <ImageView fx:id="imgFrontDetailEvenement" fitWidth="900.0"
+                                   fitHeight="280.0" preserveRatio="true" smooth="true"/>
+                        <Label fx:id="lblFrontDetailImagePlaceholder"
+                               text="Pas d'image pour cet événement"
+                               styleClass="detail-hero-placeholder" wrapText="true"
+                               maxWidth="480.0" textAlignment="CENTER"
+                               mouseTransparent="true" StackPane.alignment="CENTER"/>
+                    </StackPane>
+                    <Label fx:id="lblFrontDetailTitre" styleClass="detail-title" wrapText="true"/>
+                    <FlowPane fx:id="boxFrontDetailBadges" hgap="10" vgap="10"
+                              styleClass="detail-badges-flow"/>
+                    <VBox styleClass="detail-section" spacing="10">
+                        <Label text="Description de l'événement" styleClass="detail-section-title"/>
+                        <Label fx:id="lblFrontDetailDescription" wrapText="true"
+                               styleClass="detail-description"/>
+                    </VBox>
+                    <Label fx:id="lblFrontDetailProgrammeInfo" wrapText="true"
+                           styleClass="detail-info-banner"/>
+                    <VBox fx:id="boxFrontDetailProgramme" visible="false" managed="false"
+                          spacing="14" styleClass="detail-section">
+                        <Label text="Programme" styleClass="detail-section-title"/>
+                        <Label fx:id="lblFrontDetailPause" wrapText="true"
+                               styleClass="detail-programme-pause"/>
+                        <VBox spacing="6" styleClass="detail-field-block">
+                            <Label text="Activités" styleClass="detail-field-label"/>
+                            <Label fx:id="lblFrontDetailActivites" wrapText="true"
+                                   styleClass="detail-description"/>
+                        </VBox>
+                        <VBox spacing="6" styleClass="detail-field-block">
+                            <Label text="Documents requis" styleClass="detail-field-label"/>
+                            <Label fx:id="lblFrontDetailDocs" wrapText="true"
+                                   styleClass="detail-description"/>
+                        </VBox>
+                        <VBox spacing="6" styleClass="detail-field-block">
+                            <Label text="Matériels requis" styleClass="detail-field-label"/>
+                            <Label fx:id="lblFrontDetailMateriels" wrapText="true"
+                                   styleClass="detail-description"/>
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </StackPane>
+</VBox>
