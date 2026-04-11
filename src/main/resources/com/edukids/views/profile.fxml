@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane" spacing="0" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="com.edukids.controllers.ProfileController"
+      styleClass="main-content" prefWidth="900" prefHeight="700">
+    <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Button text="Back" onAction="#handleBack" styleClass="btn-secondary"/>
+        <Label text="Edit Profile" styleClass="page-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Manage your account settings" styleClass="text-muted"/>
+    </HBox>
+
+    <Separator>
+        <VBox.margin><Insets top="15" bottom="20"/></VBox.margin>
+    </Separator>
+
+    <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" VBox.vgrow="ALWAYS">
+        <HBox spacing="20">
+
+            <!-- Left Column - Main Form -->
+            <VBox spacing="20" HBox.hgrow="ALWAYS">
+
+                <!-- Avatar + Profile Info -->
+                <VBox styleClass="edit-form" spacing="15">
+                    <HBox styleClass="card-header" alignment="CENTER_LEFT">
+                        <Label text="Personal Information" styleClass="card-header-label"/>
+                    </HBox>
+
+                    <VBox spacing="15">
+                        <padding><Insets top="10" right="25" bottom="20" left="25"/></padding>
+
+                        <!-- Avatar Section -->
+                        <HBox spacing="20" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Label fx:id="avatarInitials" text="?" styleClass="avatar-circle-lg"
+                                       alignment="CENTER"/>
+                                <ImageView fx:id="avatarImageView" fitWidth="100" fitHeight="100"
+                                           preserveRatio="true" visible="false"/>
+                            </StackPane>
+                            <VBox spacing="8">
+                                <Label text="Profile Photo" styleClass="field-label"/>
+                                <Label text="Max 2MB (JPEG, PNG, GIF, WebP)" styleClass="text-muted"/>
+                                <Button text="Choose Image" onAction="#handleChooseAvatar"
+                                        styleClass="btn-outline-primary,btn-sm"/>
+                            </VBox>
+                        </HBox>
+
+                        <Separator/>
+
+                        <!-- Form Fields -->
+                        <HBox spacing="15">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="First Name *" styleClass="field-label"/>
+                                <TextField fx:id="firstNameField" styleClass="text-input"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Last Name *" styleClass="field-label"/>
+                                <TextField fx:id="lastNameField" styleClass="text-input"/>
+                            </VBox>
+                        </HBox>
+
+                        <Label text="Email *" styleClass="field-label"/>
+                        <TextField fx:id="emailField" styleClass="text-input"/>
+
+                        <Label fx:id="errorLabel" styleClass="error-label" wrapText="true"/>
+
+                        <Button text="Update Profile" onAction="#handleUpdateProfile" styleClass="btn-primary"/>
+                    </VBox>
+                </VBox>
+
+                <!-- Change Password Section -->
+                <VBox styleClass="edit-form" spacing="15">
+                    <HBox styleClass="card-header" style="-fx-background-color: #17a2b8;" alignment="CENTER_LEFT">
+                        <Label text="Security Settings" styleClass="card-header-label"/>
+                    </HBox>
+
+                    <VBox spacing="12">
+                        <padding><Insets top="10" right="25" bottom="20" left="25"/></padding>
+
+                        <Label text="Current Password *" styleClass="field-label"/>
+                        <PasswordField fx:id="currentPasswordField" promptText="Enter current password"
+                                       styleClass="text-input" maxWidth="400"/>
+
+                        <Label text="New Password *" styleClass="field-label"/>
+                        <PasswordField fx:id="newPasswordField" promptText="Min 8 characters"
+                                       styleClass="text-input" maxWidth="400"/>
+
+                        <Label text="Confirm New Password *" styleClass="field-label"/>
+                        <PasswordField fx:id="confirmNewPasswordField" promptText="Confirm new password"
+                                       styleClass="text-input" maxWidth="400"/>
+
+                        <Label fx:id="passwordErrorLabel" styleClass="error-label" wrapText="true"/>
+
+                        <Button text="Change Password" onAction="#handleChangePassword" styleClass="btn-info"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+
+            <!-- Right Column - Info + Danger Zone -->
+            <VBox spacing="20" prefWidth="280">
+
+                <!-- Profile Info Card -->
+                <VBox styleClass="edit-form" spacing="10">
+                    <HBox styleClass="card-header" alignment="CENTER_LEFT">
+                        <Label text="Account Info" styleClass="card-header-label"/>
+                    </HBox>
+                    <VBox spacing="12">
+                        <padding><Insets top="10" right="20" bottom="20" left="20"/></padding>
+
+                        <Label text="Role" styleClass="field-label"/>
+                        <Label fx:id="roleLabel" text="" styleClass="badge"/>
+
+                        <Label text="Status" styleClass="field-label"/>
+                        <Label fx:id="statusLabel" text="" styleClass="badge"/>
+
+                        <Label text="Member Since" styleClass="field-label"/>
+                        <Label fx:id="memberSinceLabel" text="-" styleClass="text-muted"/>
+                    </VBox>
+                </VBox>
+
+                <!-- Danger Zone -->
+                <VBox styleClass="edit-form" spacing="10">
+                    <HBox styleClass="card-header" style="-fx-background-color: #d6293e;" alignment="CENTER_LEFT">
+                        <Label text="Danger Zone" styleClass="card-header-label"/>
+                    </HBox>
+                    <VBox spacing="10">
+                        <padding><Insets top="10" right="20" bottom="20" left="20"/></padding>
+
+                        <Label text="Permanently delete your account and all associated data."
+                               styleClass="text-muted" wrapText="true"/>
+
+                        <Button text="Delete My Account" onAction="#handleDeleteAccount"
+                                styleClass="btn-outline-danger" maxWidth="Infinity"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </ScrollPane>
+</VBox>

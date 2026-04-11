@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox fx:id="rootPane" spacing="0" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="com.edukids.controllers.DashboardController"
+      prefWidth="1200" prefHeight="750">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <VBox styleClass="sidebar" prefWidth="230" spacing="3">
+        <padding><Insets top="20" right="12" bottom="20" left="12"/></padding>
+
+        <Label text="EduKids" styleClass="sidebar-logo"/>
+        <Label text="Admin Panel" styleClass="sidebar-subtitle"/>
+        <Separator styleClass="sidebar-separator"/>
+
+        <!-- Navigation -->
+        <Button text="Dashboard" onAction="#handleDashboardNav"
+                styleClass="sidebar-btn,sidebar-btn-active" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Label text="USER MANAGEMENT" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 12 0 4 8;"/>
+
+        <Button text="All Users" onAction="#handleAllUsersNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Admins" onAction="#handleAdminsNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Students" onAction="#handleStudentsNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Parents" onAction="#handleParentsNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Label text="MODULES" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 12 0 4 8;"/>
+
+        <Button text="Cours" onAction="#handleCoursNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Events" onAction="#handleEventsNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Produits" onAction="#handleProduitsNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Chat" onAction="#handleChatNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Separator styleClass="sidebar-separator"/>
+        <Button text="Profile" onAction="#handleProfileNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Label fx:id="currentUserLabel" text="Admin" styleClass="sidebar-user"/>
+        <Button text="Logout" onAction="#handleLogout"
+                styleClass="sidebar-btn-logout" maxWidth="Infinity"/>
+    </VBox>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" HBox.hgrow="ALWAYS">
+        <StackPane fx:id="contentArea">
+
+            <!-- ==================== DASHBOARD VIEW ==================== -->
+            <VBox fx:id="dashboardView" spacing="20">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+                <Label text="Dashboard" styleClass="page-title"/>
+
+                <!-- Stats Row 1 -->
+                <HBox spacing="15">
+                    <VBox styleClass="stat-card,stat-card-primary" HBox.hgrow="ALWAYS" spacing="5">
+                        <Label text="Total Users" styleClass="stat-label"/>
+                        <Label fx:id="totalUsersLabel" text="0" styleClass="stat-value,stat-value-primary"/>
+                    </VBox>
+                    <VBox styleClass="stat-card,stat-card-info" HBox.hgrow="ALWAYS" spacing="5">
+                        <Label text="Students" styleClass="stat-label"/>
+                        <Label fx:id="studentsLabel" text="0" styleClass="stat-value,stat-value-info"/>
+                    </VBox>
+                    <VBox styleClass="stat-card,stat-card-success" HBox.hgrow="ALWAYS" spacing="5">
+                        <Label text="Parents" styleClass="stat-label"/>
+                        <Label fx:id="parentsLabel" text="0" styleClass="stat-value,stat-value-success"/>
+                    </VBox>
+                    <VBox styleClass="stat-card,stat-card-danger" HBox.hgrow="ALWAYS" spacing="5">
+                        <Label text="Admins" styleClass="stat-label"/>
+                        <Label fx:id="adminsLabel" text="0" styleClass="stat-value,stat-value-danger"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Stats Row 2 -->
+                <HBox spacing="15">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="Active Users" styleClass="stat-label"/>
+                        <Label fx:id="activeUsersLabel" text="0 / 0" styleClass="section-title"/>
+                        <ProgressBar fx:id="activeProgressBar" progress="0" maxWidth="Infinity" prefHeight="8"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="Quick Actions" styleClass="stat-label"/>
+                        <HBox spacing="8">
+                            <Button text="+ Student" onAction="#handleStudentsNav" styleClass="btn-info,btn-sm"/>
+                            <Button text="+ Parent" onAction="#handleParentsNav" styleClass="btn-success,btn-sm"/>
+                            <Button text="+ Admin" onAction="#handleAdminsNav" styleClass="btn-danger,btn-sm"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- Chart + Recent Users -->
+                <HBox spacing="15">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="5">
+                        <PieChart fx:id="roleChart" prefHeight="250" legendSide="BOTTOM"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="10" prefWidth="400">
+                        <Label text="Recent Users" styleClass="section-title"/>
+                        <VBox fx:id="recentUsersBox" spacing="6"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- ==================== USER MANAGEMENT VIEW ==================== -->
+            <VBox fx:id="userManagementView" spacing="15" visible="false" managed="false">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label fx:id="userMgmtTitle" text="Users Management" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Add New User" onAction="#handleAddNewUser" styleClass="btn-success"/>
+                </HBox>
+
+                <!-- Filter Bar -->
+                <HBox spacing="10" styleClass="filter-bar" alignment="CENTER_LEFT">
+                    <TextField fx:id="searchField" promptText="Search by name or email..."
+                               styleClass="search-input" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="roleFilterCombo" styleClass="combo-input" prefWidth="160"/>
+                    <ComboBox fx:id="sortCombo" styleClass="combo-input" prefWidth="150"/>
+                </HBox>
+
+                <!-- Content: List + Edit Form -->
+                <HBox spacing="15" VBox.vgrow="ALWAYS">
+                    <ListView fx:id="userListView" styleClass="user-list" HBox.hgrow="ALWAYS"/>
+
+                    <!-- Edit / Create Form -->
+                    <VBox fx:id="editFormPane" spacing="10" styleClass="edit-form" prefWidth="320"
+                          visible="false" managed="false">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+                        <Label fx:id="editFormTitle" text="Edit User" styleClass="section-title"/>
+                        <Separator/>
+
+                        <Label text="First Name *" styleClass="field-label"/>
+                        <TextField fx:id="editFirstName" promptText="First name" styleClass="text-input"/>
+
+                        <Label text="Last Name *" styleClass="field-label"/>
+                        <TextField fx:id="editLastName" promptText="Last name" styleClass="text-input"/>
+
+                        <Label text="Email *" styleClass="field-label"/>
+                        <TextField fx:id="editEmail" promptText="Email" styleClass="text-input"/>
+
+                        <Label text="Role" styleClass="field-label"/>
+                        <ComboBox fx:id="editRole" styleClass="combo-input" maxWidth="Infinity"/>
+
+                        <HBox spacing="15">
+                            <CheckBox fx:id="editActiveCheck" text="Active" styleClass="check-input"/>
+                            <CheckBox fx:id="editVerifiedCheck" text="Verified" styleClass="check-input"/>
+                        </HBox>
+
+                        <!-- Password Section (create mode only) -->
+                        <VBox fx:id="passwordSection" spacing="8">
+                            <Separator/>
+                            <Label text="Password *" styleClass="field-label"/>
+                            <PasswordField fx:id="editPassword" promptText="Min 8 characters" styleClass="text-input"/>
+                            <Label text="Confirm Password *" styleClass="field-label"/>
+                            <PasswordField fx:id="editConfirmPassword" promptText="Confirm password" styleClass="text-input"/>
+                        </VBox>
+
+                        <Separator/>
+
+                        <HBox spacing="8">
+                            <Button text="Save" onAction="#handleSaveUser" styleClass="btn-primary"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button text="Cancel" onAction="#handleCancelEdit" styleClass="btn-secondary"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </StackPane>
+    </ScrollPane>
+</HBox>

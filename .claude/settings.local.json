@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(java|fxml|css\\)$\")",
+      "Bash(cd:*)",
+      "Bash(mvn compile:*)",
+      "Bash(where mvn:*)",
+      "Bash(where mvn.cmd)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)"
+    ]
+  }
+}

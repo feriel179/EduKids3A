@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane" alignment="CENTER" spacing="0" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="com.edukids.controllers.RegisterController"
+      styleClass="login-root" prefWidth="950" prefHeight="700">
+
+    <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
+
+        <!-- Left Panel - Branding -->
+        <VBox alignment="CENTER" spacing="20" styleClass="login-brand-panel" HBox.hgrow="ALWAYS"
+              prefWidth="400">
+            <Label text="EduKids" styleClass="brand-title"/>
+            <Label text="Join our community" styleClass="brand-subtitle"/>
+            <Label text="4k+ Students already joined" styleClass="brand-tagline"/>
+        </VBox>
+
+        <!-- Right Panel - Register Form -->
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" HBox.hgrow="ALWAYS" prefWidth="550">
+            <VBox alignment="CENTER" spacing="15" styleClass="login-form-panel">
+                <padding><Insets top="25" right="45" bottom="25" left="45"/></padding>
+
+                <Label text="Create Account" styleClass="form-title"/>
+                <Label text="Nice to see you! Please create your account." styleClass="form-subtitle"/>
+
+                <VBox spacing="10" maxWidth="400">
+
+                    <!-- Name Fields -->
+                    <HBox spacing="10">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="First Name *" styleClass="field-label"/>
+                            <TextField fx:id="firstNameField" promptText="First name" styleClass="text-input"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Last Name *" styleClass="field-label"/>
+                            <TextField fx:id="lastNameField" promptText="Last name" styleClass="text-input"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Email -->
+                    <Label text="Email *" styleClass="field-label"/>
+                    <TextField fx:id="emailField" promptText="E-mail" styleClass="text-input"/>
+
+                    <!-- Role -->
+                    <Label text="Register as *" styleClass="field-label"/>
+                    <ComboBox fx:id="roleComboBox" styleClass="combo-input" maxWidth="Infinity"/>
+
+                    <!-- Password -->
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Password *" styleClass="field-label"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Suggest Password" onAction="#handleSuggestPassword"
+                                styleClass="btn-outline-primary,btn-sm"/>
+                    </HBox>
+
+                    <HBox spacing="5">
+                        <PasswordField fx:id="passwordField" promptText="Min 8 characters"
+                                       styleClass="text-input" HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="passwordVisibleField" promptText="Min 8 characters"
+                                   styleClass="text-input" HBox.hgrow="ALWAYS"
+                                   visible="false" managed="false"/>
+                        <Button fx:id="togglePasswordBtn" text="Show" onAction="#handleTogglePassword"
+                                styleClass="btn-secondary,btn-sm" minWidth="55"/>
+                    </HBox>
+
+                    <!-- Suggested Password Box -->
+                    <HBox fx:id="suggestBox" spacing="10" alignment="CENTER_LEFT"
+                          styleClass="password-suggest-box" visible="false" managed="false">
+                        <Label fx:id="suggestedPasswordLabel" text="" style="-fx-font-weight: bold;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Use" onAction="#handleUseSuggestedPassword"
+                                styleClass="btn-success,btn-sm"/>
+                    </HBox>
+
+                    <!-- Confirm Password -->
+                    <Label text="Confirm Password *" styleClass="field-label"/>
+                    <PasswordField fx:id="confirmPasswordField" promptText="Confirm password" styleClass="text-input"/>
+
+                    <!-- Terms -->
+                    <CheckBox fx:id="termsCheckBox" text="I agree to the Terms of Service" styleClass="check-input"/>
+
+                    <!-- Error -->
+                    <Label fx:id="errorLabel" styleClass="error-label" wrapText="true"/>
+
+                    <!-- Submit -->
+                    <Button text="Create Account" onAction="#handleRegister" styleClass="btn-primary" maxWidth="Infinity"/>
+
+                    <Separator/>
+
+                    <HBox alignment="CENTER" spacing="5">
+                        <Label text="Already have an account?" styleClass="text-muted"/>
+                        <Hyperlink text="Sign In" onAction="#handleGoToLogin" styleClass="link-accent"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </HBox>
+</VBox>

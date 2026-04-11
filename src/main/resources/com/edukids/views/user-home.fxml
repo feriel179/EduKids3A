@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox fx:id="rootPane" spacing="0" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="com.edukids.controllers.UserHomeController"
+      prefWidth="1000" prefHeight="650">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <VBox styleClass="sidebar" prefWidth="220" spacing="3">
+        <padding><Insets top="20" right="12" bottom="20" left="12"/></padding>
+
+        <Label text="EduKids" styleClass="sidebar-logo"/>
+        <Label fx:id="roleLabel" text="" styleClass="sidebar-subtitle"/>
+        <Separator styleClass="sidebar-separator"/>
+
+        <!-- Navigation -->
+        <Label text="LEARNING" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 8;"/>
+
+        <Button text="Cours" onAction="#handleCoursNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Quiz" onAction="#handleQuizNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Label text="COMMUNITY" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 8;"/>
+
+        <Button text="Events" onAction="#handleEventsNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Chat" onAction="#handleChatNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Label text="STORE" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 8;"/>
+
+        <Button text="Shop" onAction="#handleShopNav"
+                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Separator styleClass="sidebar-separator"/>
+        <Button text="Profile" onAction="#handleProfileNav"
+                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+        <Button text="Logout" onAction="#handleLogout"
+                styleClass="sidebar-btn-logout" maxWidth="Infinity"/>
+    </VBox>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <VBox HBox.hgrow="ALWAYS" spacing="25" styleClass="main-content">
+        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+        <Label fx:id="welcomeLabel" text="Welcome" styleClass="page-title"/>
+
+        <!-- Feature Cards Row 1 -->
+        <HBox spacing="15" alignment="CENTER">
+            <VBox styleClass="stat-card,stat-card-primary" prefWidth="200" prefHeight="140"
+                  alignment="CENTER" spacing="10">
+                <Label text="Cours" styleClass="stat-value,stat-value-primary"/>
+                <Label text="Coming Soon" styleClass="text-muted"/>
+            </VBox>
+            <VBox styleClass="stat-card,stat-card-info" prefWidth="200" prefHeight="140"
+                  alignment="CENTER" spacing="10">
+                <Label text="Quiz" styleClass="stat-value,stat-value-info"/>
+                <Label text="Coming Soon" styleClass="text-muted"/>
+            </VBox>
+            <VBox styleClass="stat-card,stat-card-success" prefWidth="200" prefHeight="140"
+                  alignment="CENTER" spacing="10">
+                <Label text="Events" styleClass="stat-value,stat-value-success"/>
+                <Label text="Coming Soon" styleClass="text-muted"/>
+            </VBox>
+        </HBox>
+
+        <!-- Feature Cards Row 2 -->
+        <HBox spacing="15" alignment="CENTER">
+            <VBox styleClass="stat-card,stat-card-warning" prefWidth="200" prefHeight="140"
+                  alignment="CENTER" spacing="10">
+                <Label text="Shop" styleClass="stat-value"/>
+                <Label text="Coming Soon" styleClass="text-muted"/>
+            </VBox>
+            <VBox styleClass="stat-card,stat-card-danger" prefWidth="200" prefHeight="140"
+                  alignment="CENTER" spacing="10">
+                <Label text="Chat" styleClass="stat-value,stat-value-danger"/>
+                <Label text="Coming Soon" styleClass="text-muted"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</HBox>
