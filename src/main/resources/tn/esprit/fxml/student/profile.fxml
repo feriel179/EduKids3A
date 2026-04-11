@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.ProfileController">
+    <children>
+        <VBox AnchorPane.leftAnchor="24.0" AnchorPane.topAnchor="24.0" spacing="18.0">
+            <children>
+                <Label styleClass="page-title" text="Student Profile" />
+                <VBox spacing="14.0" styleClass="card">
+                    <padding><Insets bottom="24.0" left="24.0" right="24.0" top="24.0" /></padding>
+                    <children>
+                        <Label styleClass="section-title" text="Personal Information" />
+                        <Label text="Name" />
+                        <Label fx:id="nameLabel" styleClass="profile-value" text="-" />
+                        <Label text="Email" />
+                        <Label fx:id="emailLabel" styleClass="profile-value" text="-" />
+                        <Label text="Enrolled Courses" />
+                        <Label fx:id="coursesCountLabel" styleClass="profile-value" text="0" />
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

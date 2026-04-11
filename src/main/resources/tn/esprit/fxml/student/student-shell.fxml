@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<VBox prefHeight="900.0" prefWidth="1440.0" styleClass="student-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.StudentShellController">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="18.0" styleClass="student-topbar">
+            <padding>
+                <Insets bottom="16.0" left="28.0" right="28.0" top="16.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="student-brand-wrap">
+                    <children>
+                        <ImageView fitHeight="56.0" fitWidth="56.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                            <image>
+                                <Image url="@/tn/esprit/images/edukids-logo.png" />
+                            </image>
+                        </ImageView>
+                        <TextFlow styleClass="student-brand-flow">
+                            <children>
+                                <Text styleClass="student-brand-accent" text="Edu" />
+                                <Text styleClass="student-brand-light" text="Kids" />
+                            </children>
+                        </TextFlow>
+                    </children>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="student-nav-shell">
+                    <children>
+                        <Button fx:id="catalogButton" mnemonicParsing="false" onAction="#showCatalog" styleClass="student-nav-button" text="Courses" />
+                        <Button fx:id="myCoursesButton" mnemonicParsing="false" onAction="#showMyCourses" styleClass="student-nav-button" text="My Courses" />
+                        <Button fx:id="profileButton" mnemonicParsing="false" onAction="#showProfile" styleClass="student-nav-button" text="Profile" />
+                    </children>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="topbar-profile-chip">
+                    <children>
+                        <VBox spacing="2.0">
+                            <children>
+                                <Label styleClass="topbar-profile-role" text="Student" />
+                                <Label fx:id="studentNameLabel" styleClass="topbar-profile-name" text="EduKids Learner" />
+                                <Label fx:id="studentEmailLabel" styleClass="student-profile-email" text="student@edukids.local" />
+                            </children>
+                        </VBox>
+                        <StackPane styleClass="topbar-avatar">
+                            <children>
+                                <Label fx:id="studentAvatarLabel" styleClass="topbar-avatar-text" text="ST" />
+                            </children>
+                        </StackPane>
+                    </children>
+                </HBox>
+
+                <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="ghost-button" text="Sign Out" />
+            </children>
+        </HBox>
+
+        <StackPane fx:id="contentPane" styleClass="student-content-area" VBox.vgrow="ALWAYS" />
+    </children>
+</VBox>

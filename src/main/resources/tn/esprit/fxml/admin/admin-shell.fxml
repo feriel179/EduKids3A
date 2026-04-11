@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<HBox prefHeight="820.0" prefWidth="1380.0" styleClass="admin-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.admin.AdminShellController">
+    <children>
+        <VBox maxWidth="320.0" minWidth="320.0" prefWidth="320.0" styleClass="admin-sidebar">
+            <padding>
+                <Insets bottom="24.0" left="22.0" right="22.0" top="22.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="sidebar-brand-wrap">
+                    <children>
+                        <StackPane maxHeight="88.0" maxWidth="88.0" minHeight="88.0" minWidth="88.0" prefHeight="88.0" prefWidth="88.0" styleClass="sidebar-logo-frame">
+                            <children>
+                                <ImageView fitHeight="88.0" fitWidth="88.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                                    <image>
+                                        <Image url="@/tn/esprit/images/edukids-logo.png" />
+                                    </image>
+                                </ImageView>
+                            </children>
+                        </StackPane>
+                        <TextFlow maxWidth="184.0" minWidth="184.0" prefWidth="184.0" styleClass="sidebar-brand-flow" translateY="3.0">
+                            <children>
+                                <Text styleClass="sidebar-brand-accent" text="Edu" />
+                                <Text styleClass="sidebar-brand-light" text="Kids" />
+                            </children>
+                        </TextFlow>
+                    </children>
+                </HBox>
+
+                <Label styleClass="sidebar-section" text="Navigation" />
+
+                <Button fx:id="dashboardButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showDashboard" styleClass="shell-nav-button" text="Dashboard" />
+                <Button fx:id="coursesButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCourses" styleClass="shell-nav-button" text="Courses" />
+                <Button fx:id="createCourseButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCreateCourse" styleClass="shell-nav-button" text="Create Course" />
+                <Button fx:id="lessonsButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showLessons" styleClass="shell-nav-button" text="Lessons" />
+                <Button fx:id="createLessonButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCreateLesson" styleClass="shell-nav-button" text="Create Lesson" />
+
+                <VBox VBox.vgrow="ALWAYS" />
+
+                <VBox spacing="8.0" styleClass="sidebar-footer-card">
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <Label styleClass="sidebar-footer-title" text="Learning first" />
+                        <Label styleClass="sidebar-footer-text" text="Manage courses and lessons with the same modern interface across every page." wrapText="true" />
+                    </children>
+                </VBox>
+
+                <Button fx:id="logoutButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLogout" styleClass="shell-logout-button" text="Sign Out" />
+            </children>
+        </VBox>
+
+        <VBox minWidth="0.0" styleClass="admin-main" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets bottom="18.0" left="18.0" right="18.0" top="18.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="18.0" styleClass="admin-topbar">
+                    <padding>
+                        <Insets bottom="16.0" left="22.0" right="22.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label fx:id="contextKickerLabel" styleClass="topbar-kicker" text="EduKids control center" />
+                                <Label fx:id="contextTitleLabel" styleClass="topbar-title" text="Dashboard" />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="admin-search-shell">
+                            <children>
+                                <Label styleClass="admin-search-prefix" text="Search" />
+                                <TextField promptText="Find a page or a section" styleClass="admin-search-field" />
+                            </children>
+                        </HBox>
+                        <StackPane styleClass="topbar-circle-button">
+                            <children>
+                                <Label styleClass="topbar-circle-text" text="1" />
+                            </children>
+                        </StackPane>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="topbar-profile-chip">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label styleClass="topbar-profile-role" text="Administrator" />
+                                        <Label styleClass="topbar-profile-name" text="EduKids Team" />
+                                    </children>
+                                </VBox>
+                                <StackPane styleClass="topbar-avatar">
+                                    <children>
+                                        <Label styleClass="topbar-avatar-text" text="EK" />
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+
+                <StackPane fx:id="contentPane" styleClass="admin-content-area" VBox.vgrow="ALWAYS" />
+            </children>
+        </VBox>
+    </children>
+</HBox>

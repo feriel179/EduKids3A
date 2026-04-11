@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.admin.LessonSuccessController">
+    <children>
+        <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <content>
+                <VBox alignment="TOP_CENTER" spacing="22.0" styleClass="eduport-page">
+                    <padding>
+                        <Insets bottom="28.0" left="24.0" right="24.0" top="24.0" />
+                    </padding>
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="eduport-strip">
+                            <padding>
+                                <Insets bottom="16.0" left="20.0" right="20.0" top="16.0" />
+                            </padding>
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label styleClass="eduport-brand" text="EduKids" />
+                                        <Label styleClass="eduport-mini-text" text="Lesson confirmation" />
+                                    </children>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button mnemonicParsing="false" onAction="#handleBackToLessons" styleClass="secondary-button" text="Back to Lessons" />
+                            </children>
+                        </HBox>
+
+                        <VBox alignment="CENTER" maxWidth="780.0" spacing="18.0" styleClass="success-wrapper">
+                            <padding>
+                                <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                            </padding>
+                            <children>
+                                <StackPane prefHeight="220.0" prefWidth="260.0">
+                                    <children>
+                                    <Region prefHeight="180.0" prefWidth="180.0" styleClass="success-orb-back" />
+                                    <Region prefHeight="132.0" prefWidth="132.0" styleClass="success-orb-mid" />
+                                        <StackPane prefHeight="92.0" prefWidth="92.0" styleClass="success-check-wrap">
+                                            <children>
+                                                <Label styleClass="success-check-label" text="OK" />
+                                            </children>
+                                        </StackPane>
+                                    </children>
+                                </StackPane>
+
+                                <Label fx:id="titleLabel" styleClass="success-title" text="Your lesson has been submitted successfully." wrapText="true" />
+                                <Label fx:id="subtitleLabel" styleClass="success-text" text="The new lesson has been added to EduKids and is ready to appear in the selected course flow." wrapText="true" />
+                                <Label fx:id="lessonMetaLabel" styleClass="success-meta" text="Lesson details are ready." wrapText="true" />
+                                <Label fx:id="helperLabel" styleClass="success-helper" text="Continue by reviewing the lesson list, creating another lesson, or going back to course management." wrapText="true" />
+
+                                <HBox alignment="CENTER" spacing="12.0">
+                                    <children>
+                                        <Button mnemonicParsing="false" onAction="#handleBackToLessons" styleClass="secondary-button" text="Back to Lesson List" />
+                                        <Button mnemonicParsing="false" onAction="#handleCreateAnother" styleClass="primary-button" text="Create Another Lesson" />
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                        <HBox spacing="60.0" styleClass="eduport-footer">
+                            <padding>
+                                <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
+                            </padding>
+                            <children>
+                                <VBox spacing="8.0">
+                                    <children>
+                                        <Label styleClass="footer-title" text="EduKids" />
+                                        <Label styleClass="footer-text" text="Adapted for lesson management inside the EduKids admin workflow." wrapText="true" />
+                                    </children>
+                                </VBox>
+                                <VBox spacing="6.0">
+                                    <children>
+                                        <Label styleClass="footer-title" text="Next Steps" />
+                                        <Label styleClass="footer-link" text="Return to lessons" />
+                                        <Label styleClass="footer-link" text="Create another lesson" />
+                                        <Label styleClass="footer-link" text="Manage courses" />
+                                    </children>
+                                </VBox>
+                                <VBox spacing="6.0">
+                                    <children>
+                                        <Label styleClass="footer-title" text="Status" />
+                                        <Label styleClass="footer-link" text="Saved to EduKids" />
+                                        <Label styleClass="footer-link" text="Attached to course" />
+                                        <Label styleClass="footer-link" text="Ready in admin flow" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>
