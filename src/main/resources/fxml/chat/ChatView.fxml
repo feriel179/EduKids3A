@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.edukids.edukids3a.controller.ChatController"
+           stylesheets="@../../css/chat.css"
+           styleClass="chat-root">
+    <BorderPane styleClass="chat-shell" StackPane.alignment="CENTER">
+        <top>
+            <HBox styleClass="chat-topbar" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Messagerie EduKids" styleClass="chat-title"/>
+                    <Label fx:id="lblChatStatus" text="Module de messagerie" styleClass="chat-subtitle"/>
+                </VBox>
+                <Label fx:id="lblCurrentUser" text="Utilisateur connecté" styleClass="chat-user-pill"/>
+                <Button fx:id="btnRefreshConversations" text="Rafraîchir" onAction="#onRefreshConversations"
+                        styleClass="button-ghost chat-toolbar-button"/>
+                <Button fx:id="btnNewConversation" text="+ Nouvelle conversation" onAction="#onNewConversation"
+                        styleClass="button-primary chat-toolbar-button"/>
+                <Button fx:id="btnConversationMenu" text="⋮" onAction="#onConversationMenu"
+                        visible="false" managed="false" styleClass="button-secondary chat-menu-button"/>
+            </HBox>
+        </top>
+        <left>
+            <VBox styleClass="chat-sidebar" spacing="12" prefWidth="340">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Conversations" styleClass="chat-panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblConversationCount" text="0 conversation" styleClass="chat-counter"/>
+                </HBox>
+                <TextField fx:id="tfConversationSearch" promptText="Rechercher une conversation..."
+                           styleClass="chat-search-field"/>
+                <ListView fx:id="lvConversations" VBox.vgrow="ALWAYS" styleClass="chat-conversation-list">
+                    <placeholder>
+                        <Label text="Aucune conversation." styleClass="chat-empty-inline"/>
+                    </placeholder>
+                </ListView>
+            </VBox>
+        </left>
+        <center>
+            <VBox styleClass="chat-thread" spacing="14">
+                <VBox styleClass="chat-thread-header" spacing="4">
+                    <Label fx:id="lblConversationTitle" text="Sélectionnez une conversation"
+                           styleClass="chat-thread-title"/>
+                    <Label fx:id="lblConversationSubtitle"
+                           text="Choisissez une conversation à gauche ou créez-en une nouvelle."
+                           styleClass="chat-thread-subtitle"/>
+                </VBox>
+                <StackPane VBox.vgrow="ALWAYS" styleClass="chat-message-stack">
+                    <ListView fx:id="lvMessages" styleClass="chat-message-list"/>
+                    <Label fx:id="lblMessagesEmpty" text="Sélectionnez une conversation." wrapText="true"
+                           styleClass="chat-empty-overlay" StackPane.alignment="CENTER"/>
+                </StackPane>
+                <VBox styleClass="chat-compose" spacing="10">
+                    <Separator/>
+                    <HBox fx:id="boxAttachmentPreview" visible="false" managed="false" spacing="10"
+                          alignment="CENTER_LEFT" styleClass="chat-attachment-bar">
+                        <Label text="Fichier joint :" styleClass="chat-attachment-label"/>
+                        <Label fx:id="lblSelectedAttachment" text="" styleClass="chat-attachment-file"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnClearAttachment" text="Supprimer" onAction="#onClearAttachment"
+                                styleClass="button-ghost chat-attachment-clear"/>
+                    </HBox>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Button fx:id="btnEmoji" text="☺" onAction="#onEmojiPicker"
+                                styleClass="button-secondary chat-icon-button"/>
+                        <Button fx:id="btnAttachFile" text="📎" onAction="#onAttachFile"
+                                styleClass="button-secondary chat-icon-button"/>
+                        <TextArea fx:id="taMessageDraft" promptText="Écrire un message..."
+                                  styleClass="chat-compose-field chat-compose-input" VBox.vgrow="NEVER"
+                                  prefRowCount="2" wrapText="true" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnSendMessage" text="Envoyer" onAction="#onSendMessage"
+                                styleClass="button-primary chat-send-button"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </center>
+    </BorderPane>
+
+    <VBox fx:id="paneCreateConversation" visible="false" managed="false" alignment="CENTER"
+          styleClass="chat-overlay">
+        <VBox styleClass="chat-create-card" spacing="16" maxWidth="720">
+            <VBox spacing="4">
+                <Label text="Nouvelle conversation" styleClass="chat-create-title"/>
+                <Label text="Créez une conversation privée ou un groupe, puis ajoutez des utilisateurs par recherche."
+                       wrapText="true" styleClass="chat-create-subtitle"/>
+            </VBox>
+
+            <VBox spacing="10" styleClass="chat-create-section">
+                <Label text="Type de conversation" styleClass="chat-section-label"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <RadioButton fx:id="rbPrivateConversation" text="Privée" onAction="#onConversationModeChanged"/>
+                    <RadioButton fx:id="rbGroupConversation" text="Groupe" onAction="#onConversationModeChanged"/>
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="boxGroupName" spacing="10" visible="false" managed="false" styleClass="chat-create-section">
+                <Label text="Nom du groupe" styleClass="chat-section-label"/>
+                <TextField fx:id="tfConversationGroupName" promptText="Ex. Parents de la classe A"
+                           styleClass="chat-search-field"/>
+            </VBox>
+
+            <VBox spacing="10" styleClass="chat-create-section">
+                <Label text="Ajouter des utilisateurs" styleClass="chat-section-label"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="tfUserSearch" promptText="Rechercher par nom ou email..."
+                               styleClass="chat-search-field" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnAddSelectedUser" text="Ajouter" onAction="#onAddSelectedUser"
+                            styleClass="button-secondary"/>
+                </HBox>
+                <ListView fx:id="lvUserSearchResults" prefHeight="180" styleClass="chat-user-results">
+                    <placeholder>
+                        <Label text="Tapez un nom ou une adresse email pour rechercher un utilisateur."
+                               wrapText="true" styleClass="chat-empty-inline"/>
+                    </placeholder>
+                </ListView>
+            </VBox>
+
+            <VBox spacing="10" styleClass="chat-create-section">
+                <Label text="Participants sélectionnés" styleClass="chat-section-label"/>
+                <FlowPane fx:id="fpSelectedParticipants" hgap="10" vgap="10" styleClass="chat-chip-flow"/>
+            </VBox>
+
+            <Label fx:id="lblCreateHint" text="Sélectionnez un seul destinataire pour une conversation privée."
+                   wrapText="true" styleClass="chat-create-hint"/>
+
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="btnCancelCreate" text="Annuler" onAction="#onCancelNewConversation"
+                        styleClass="button-ghost"/>
+                <Button fx:id="btnCreateConversation" text="Créer la conversation"
+                        onAction="#onCreateConversation" styleClass="button-primary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

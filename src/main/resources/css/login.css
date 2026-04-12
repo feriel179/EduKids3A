@@ -1,0 +1,88 @@
+.root {
+    -fx-font-family: "Segoe UI", "SF Pro Display", "Inter", sans-serif;
+    -fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);
+}
+
+.login-shell {
+    -fx-background-color: radial-gradient(center 50% 40%, radius 80%, rgba(59, 130, 246, 0.15), transparent 60%),
+                          linear-gradient(to bottom right, #0f172a, #111827);
+}
+
+.login-card {
+    -fx-background-color: rgba(255, 255, 255, 0.96);
+    -fx-background-radius: 24;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.30), 30, 0.2, 0, 12);
+}
+
+.login-brand {
+    -fx-font-size: 36px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f172a;
+}
+
+.login-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #475569;
+    -fx-text-alignment: center;
+}
+
+.login-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #334155;
+}
+
+.login-field {
+    -fx-background-color: white;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 10 14;
+    -fx-pref-height: 42;
+}
+
+.login-field:focused {
+    -fx-border-color: #2563eb;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.16), 10, 0.2, 0, 0);
+}
+
+.login-error {
+    -fx-text-fill: #dc2626;
+    -fx-font-weight: 700;
+}
+
+.login-button {
+    -fx-background-color: linear-gradient(to right, #2563eb, #1d4ed8);
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-background-radius: 14;
+    -fx-padding: 12 26;
+    -fx-cursor: hand;
+}
+
+.login-button:hover {
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #1e40af);
+}
+
+.role-header {
+    -fx-alignment: center-left;
+}
+
+.role-header-front {
+    -fx-background-color: linear-gradient(to right, #0b5ed7, #1345a3);
+}
+
+.role-header-back {
+    -fx-background-color: linear-gradient(to right, #1f2937, #0f172a);
+}
+
+.role-header-title {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+}
+
+.role-header-user {
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 13px;
+}
