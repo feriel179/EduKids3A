@@ -1,0 +1,7 @@
+# Copiez vers auth-jdbc.properties (non versionné) pour surcharger l’URL JDBC
+# utilisée uniquement par la table `user` (connexion Rami).
+# Par défaut : même base que persistence.xml (edukidsj, root, mot de passe vide).
+#
+# jdbc.url=jdbc:mysql://localhost:3306/edukidsj?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+# jdbc.user=root
+# jdbc.password=

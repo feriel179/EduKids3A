@@ -1,5 +1,6 @@
 package com.edukids.edukids3a.ui;
 
+import com.edukids.edukids3a.EduKidsApplication;
 import com.edukids.edukids3a.model.Evenement;
 import com.edukids.edukids3a.model.Programme;
 import com.edukids.edukids3a.model.TypeEvenement;
@@ -25,7 +26,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableCell;
@@ -49,6 +49,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,13 @@ public class MainController {
     private static final double IMG_TABLE_THUMB_W = 96;
     private static final double IMG_TABLE_THUMB_H = 96;
 
+    private static final int PG_BACK_EV_LISTE = 0;
+    private static final int PG_BACK_EV_FORM = 1;
+    private static final int PG_BACK_EV_DETAIL = 2;
+    private static final int PG_BACK_PR_LISTE = 3;
+    private static final int PG_BACK_PR_FORM = 4;
+    private static final int PG_BACK_STATS = 5;
+
     private final EvenementService evenementService = new EvenementService();
     private final ProgrammeService programmeService = new ProgrammeService();
 
@@ -107,21 +115,27 @@ public class MainController {
     private ToggleButton toggleFrontOffice;
     @FXML
     private ToggleButton toggleBackOffice;
+    private final ToggleGroup backNavGroup = new ToggleGroup();
     @FXML
-    private TabPane tabPaneBack;
-    private final ToggleGroup backEvViewGroup = new ToggleGroup();
+    private ToggleButton toggleBackNavEvListe;
     @FXML
-    private ToggleButton toggleBackEvListe;
+    private ToggleButton toggleBackNavEvForm;
     @FXML
-    private ToggleButton toggleBackEvForm;
+    private ToggleButton toggleBackNavPrListe;
     @FXML
-    private ToggleButton toggleBackEvDetail;
+    private ToggleButton toggleBackNavPrForm;
     @FXML
-    private VBox paneBackEvListe;
+    private ToggleButton toggleBackNavStats;
     @FXML
-    private VBox paneBackEvFormulaire;
+    private VBox paneBackPageEvListe;
     @FXML
-    private VBox paneBackEvDetail;
+    private VBox paneBackPageEvForm;
+    @FXML
+    private VBox paneBackPageEvDetail;
+    @FXML
+    private VBox paneBackPagePrListe;
+    @FXML
+    private VBox paneBackPagePrForm;
     @FXML
     private Label lblBackEvDetailTitre;
     @FXML
@@ -146,15 +160,46 @@ public class MainController {
     private StackPane backEvDetailImgWrap;
     @FXML
     private ImageView imgBackEvDetailEvenement;
-    private final ToggleGroup backPrViewGroup = new ToggleGroup();
     @FXML
-    private ToggleButton toggleBackPrListe;
+    private ScrollPane paneBackPageStats;
     @FXML
-    private ToggleButton toggleBackPrForm;
+    private Label lblStatsTotalEvenements;
     @FXML
-    private VBox paneBackPrListe;
+    private Label lblStatsTotalProgrammes;
     @FXML
-    private VBox paneBackPrFormulaire;
+    private Label lblStatsEvenementsAvecProgramme;
+    @FXML
+    private Label lblStatsSansProgramme;
+    @FXML
+    private Label lblStatsCouvertureProgrammes;
+    @FXML
+    private TableView<LigneStatsParType> tableStatsParType;
+    @FXML
+    private TableColumn<LigneStatsParType, String> colStatsType;
+    @FXML
+    private TableColumn<LigneStatsParType, Integer> colStatsNombre;
+    @FXML
+    private TableColumn<LigneStatsParType, String> colStatsPourcent;
+
+    private final ToggleGroup frontNavGroup = new ToggleGroup();
+    @FXML
+    private ToggleButton toggleFrontNavAccueil;
+    @FXML
+    private ToggleButton toggleFrontNavEv;
+    @FXML
+    private ToggleButton toggleFrontNavPr;
+    @FXML
+    private VBox paneFrontPageAccueil;
+    @FXML
+    private Label lblAccueilNbEvenements;
+    @FXML
+    private Label lblAccueilNbProgrammes;
+    @FXML
+    private Label lblAccueilNbAvecProgramme;
+    @FXML
+    private VBox paneFrontPageEv;
+    @FXML
+    private VBox paneFrontPagePr;
 
     @FXML
     private FlowPane flowEvenementsCards;
@@ -289,15 +334,22 @@ public class MainController {
     private Programme programmeEnEdition;
     private Evenement evenementEnEdition;
 
-    @FXML
-    private void initialize() {
+    /**
+     * À appeler une fois après {@link javafx.fxml.FXMLLoader#load()} sur MainView.
+     * Ne pas utiliser le hook {@code initialize()} : avec le même contrôleur sur plusieurs {@code fx:include},
+     * JavaFX l’exécuterait trop tôt (champs d’autres pages encore null).
+     */
+    public void initialiserApresChargementFxml() {
         toggleFrontOffice.setToggleGroup(modeGroup);
         toggleBackOffice.setToggleGroup(modeGroup);
-        toggleBackEvListe.setToggleGroup(backEvViewGroup);
-        toggleBackEvForm.setToggleGroup(backEvViewGroup);
-        toggleBackEvDetail.setToggleGroup(backEvViewGroup);
-        toggleBackPrListe.setToggleGroup(backPrViewGroup);
-        toggleBackPrForm.setToggleGroup(backPrViewGroup);
+        toggleBackNavEvListe.setToggleGroup(backNavGroup);
+        toggleBackNavEvForm.setToggleGroup(backNavGroup);
+        toggleBackNavPrListe.setToggleGroup(backNavGroup);
+        toggleBackNavPrForm.setToggleGroup(backNavGroup);
+        toggleBackNavStats.setToggleGroup(backNavGroup);
+        toggleFrontNavAccueil.setToggleGroup(frontNavGroup);
+        toggleFrontNavEv.setToggleGroup(frontNavGroup);
+        toggleFrontNavPr.setToggleGroup(frontNavGroup);
 
         cbEvType.setItems(FXCollections.observableArrayList(TypeEvenement.values()));
         cbEvType.setConverter(new javafx.util.StringConverter<>() {
@@ -398,8 +450,8 @@ public class MainController {
         modeGroup.selectedToggleProperty().addListener((obs, old, t) -> appliquerMode(t));
         appliquerMode(modeGroup.getSelectedToggle());
 
-        backEvViewGroup.selectedToggleProperty().addListener((obs, o, n) -> syncVueBackEvenements(n));
-        backPrViewGroup.selectedToggleProperty().addListener((obs, o, n) -> syncVueBackProgrammes(n));
+        backNavGroup.selectedToggleProperty().addListener((obs, o, n) -> syncPageBackOffice(n));
+        frontNavGroup.selectedToggleProperty().addListener((obs, o, n) -> syncPageFrontOffice(n));
 
         tfFrontSearchEvenements.textProperty().addListener((o, a, b) -> rafraichirCartesEvenementsFront());
         tfFrontSearchProgrammes.textProperty().addListener((o, a, b) -> rafraichirCartesProgrammesFront());
@@ -432,8 +484,20 @@ public class MainController {
             apercuImageDebounce.playFromStart();
         });
 
+        if (tableStatsParType != null) {
+            tableStatsParType.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            colStatsType.setCellValueFactory(new PropertyValueFactory<>("libelleType"));
+            colStatsNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+            if (colStatsPourcent != null) {
+                colStatsPourcent.setCellValueFactory(new PropertyValueFactory<>("pourcentage"));
+            }
+        }
+
         onRafraichirEvenements();
         onRafraichirProgrammes();
+
+        syncPageBackOffice(backNavGroup.getSelectedToggle());
+        syncPageFrontOffice(frontNavGroup.getSelectedToggle());
 
         Platform.runLater(this::installerRaccourcisScene);
     }
@@ -445,57 +509,175 @@ public class MainController {
         paneBackOffice.setVisible(!front);
         paneBackOffice.setManaged(!front);
         if (front) {
+            if (toggleFrontNavAccueil != null) {
+                toggleFrontNavAccueil.setSelected(true);
+            }
             rafraichirCartesEvenementsFront();
             rafraichirCartesProgrammesFront();
         } else {
-            allerVueListeEvenements();
-            allerVueListeProgrammes();
-        }
-    }
-
-    private void syncVueBackEvenements(Toggle t) {
-        if (paneBackEvListe == null || paneBackEvFormulaire == null || paneBackEvDetail == null) {
-            return;
-        }
-        boolean liste = t == toggleBackEvListe;
-        boolean form = t == toggleBackEvForm;
-        boolean detail = t == toggleBackEvDetail;
-        paneBackEvListe.setVisible(liste);
-        paneBackEvListe.setManaged(liste);
-        paneBackEvFormulaire.setVisible(form);
-        paneBackEvFormulaire.setManaged(form);
-        paneBackEvDetail.setVisible(detail);
-        paneBackEvDetail.setManaged(detail);
-        if (detail) {
-            Evenement sel = tableEvenements.getSelectionModel().getSelectedItem();
-            if (sel != null) {
-                remplirVueDetailEvenementBack(sel);
-            } else {
-                viderVueDetailEvenementBack();
+            if (toggleBackNavEvListe != null) {
+                toggleBackNavEvListe.setSelected(true);
             }
         }
     }
 
-    private void syncVueBackProgrammes(Toggle t) {
-        if (paneBackPrListe == null || paneBackPrFormulaire == null) {
+    private void montrerSeulementPageBack(int index) {
+        List<Node> pages = List.of(
+                paneBackPageEvListe,
+                paneBackPageEvForm,
+                paneBackPageEvDetail,
+                paneBackPagePrListe,
+                paneBackPagePrForm,
+                paneBackPageStats);
+        for (int i = 0; i < pages.size(); i++) {
+            Node n = pages.get(i);
+            if (n == null) {
+                continue;
+            }
+            boolean show = (i == index);
+            n.setVisible(show);
+            n.setManaged(show);
+        }
+        if (index == PG_BACK_STATS) {
+            rafraichirPageStatistiques();
+        }
+    }
+
+    private void syncPageBackOffice(Toggle t) {
+        if (paneBackPageEvListe == null) {
             return;
         }
-        boolean liste = t == toggleBackPrListe;
-        paneBackPrListe.setVisible(liste);
-        paneBackPrListe.setManaged(liste);
-        paneBackPrFormulaire.setVisible(!liste);
-        paneBackPrFormulaire.setManaged(!liste);
+        if (t == null) {
+            return;
+        }
+        if (t == toggleBackNavEvListe) {
+            montrerSeulementPageBack(PG_BACK_EV_LISTE);
+        } else if (t == toggleBackNavEvForm) {
+            montrerSeulementPageBack(PG_BACK_EV_FORM);
+        } else if (t == toggleBackNavPrListe) {
+            montrerSeulementPageBack(PG_BACK_PR_LISTE);
+        } else if (t == toggleBackNavPrForm) {
+            montrerSeulementPageBack(PG_BACK_PR_FORM);
+        } else if (t == toggleBackNavStats) {
+            montrerSeulementPageBack(PG_BACK_STATS);
+        }
+    }
+
+    private void syncPageFrontOffice(Toggle t) {
+        if (paneFrontPageAccueil == null || t == null) {
+            return;
+        }
+        boolean acc = t == toggleFrontNavAccueil;
+        boolean ev = t == toggleFrontNavEv;
+        boolean pr = t == toggleFrontNavPr;
+        paneFrontPageAccueil.setVisible(acc);
+        paneFrontPageAccueil.setManaged(acc);
+        paneFrontPageEv.setVisible(ev);
+        paneFrontPageEv.setManaged(ev);
+        paneFrontPagePr.setVisible(pr);
+        paneFrontPagePr.setManaged(pr);
+        if (ev) {
+            onFrontRetourListeEvenements();
+            rafraichirCartesEvenementsFront();
+        }
+        if (pr) {
+            rafraichirCartesProgrammesFront();
+        }
+        if (acc) {
+            majInfosAccueil();
+        }
+    }
+
+    private void rafraichirPageStatistiques() {
+        if (lblStatsTotalEvenements == null || tableStatsParType == null) {
+            return;
+        }
+        int nEv = evenementsData.size();
+        int nPr = programmesData.size();
+        long avecPr = evenementsData.stream().filter(e -> e.getProgramme() != null).count();
+        lblStatsTotalEvenements.setText(String.valueOf(nEv));
+        lblStatsTotalProgrammes.setText(String.valueOf(nPr));
+        lblStatsEvenementsAvecProgramme.setText(String.valueOf(avecPr));
+        long sansPr = nEv - avecPr;
+        if (lblStatsSansProgramme != null) {
+            lblStatsSansProgramme.setText(String.valueOf(sansPr));
+        }
+        if (lblStatsCouvertureProgrammes != null) {
+            if (nEv > 0) {
+                lblStatsCouvertureProgrammes.setText(String.format(Locale.FRENCH, "%.1f %%", 100.0 * avecPr / nEv));
+            } else {
+                lblStatsCouvertureProgrammes.setText("—");
+            }
+        }
+
+        int[] counts = new int[TypeEvenement.values().length];
+        int sansType = 0;
+        for (Evenement e : evenementsData) {
+            TypeEvenement te = TypeEvenement.fromCode(e.getTypeEvenement());
+            if (te != null) {
+                counts[te.ordinal()]++;
+            } else {
+                sansType++;
+            }
+        }
+        ObservableList<LigneStatsParType> lignes = FXCollections.observableArrayList();
+        for (TypeEvenement te : TypeEvenement.values()) {
+            int c = counts[te.ordinal()];
+            lignes.add(new LigneStatsParType(te.getLibelle(), c, nEv));
+        }
+        if (sansType > 0) {
+            lignes.add(new LigneStatsParType("Non renseigné / autre", sansType, nEv));
+        }
+        lignes.sort(Comparator.comparing(LigneStatsParType::getLibelleType, String.CASE_INSENSITIVE_ORDER));
+        tableStatsParType.setItems(lignes);
+    }
+
+    private void majInfosAccueil() {
+        if (lblAccueilNbEvenements == null) {
+            return;
+        }
+        int nEv = evenementsData.size();
+        int nPr = programmesData.size();
+        long avecPr = evenementsData.stream().filter(e -> e.getProgramme() != null).count();
+        lblAccueilNbEvenements.setText(String.valueOf(nEv));
+        lblAccueilNbProgrammes.setText(String.valueOf(nPr));
+        if (lblAccueilNbAvecProgramme != null) {
+            lblAccueilNbAvecProgramme.setText(String.valueOf(avecPr));
+        }
+    }
+
+    @FXML
+    private void onAccueilVersEvenements() {
+        if (toggleFrontNavEv != null) {
+            toggleFrontNavEv.setSelected(true);
+        }
+    }
+
+    @FXML
+    private void onAccueilVersProgrammes() {
+        if (toggleFrontNavPr != null) {
+            toggleFrontNavPr.setSelected(true);
+        }
+    }
+
+    @FXML
+    private void onDeconnexion() {
+        Node n = toggleFrontOffice != null ? toggleFrontOffice : paneFrontOffice;
+        Window w = n != null && n.getScene() != null ? n.getScene().getWindow() : null;
+        if (w instanceof Stage st) {
+            EduKidsApplication.afficherSceneConnexion(st);
+        }
     }
 
     private void allerVueListeEvenements() {
-        if (toggleBackEvListe != null) {
-            toggleBackEvListe.setSelected(true);
+        if (toggleBackNavEvListe != null) {
+            toggleBackNavEvListe.setSelected(true);
         }
     }
 
     private void allerVueListeProgrammes() {
-        if (toggleBackPrListe != null) {
-            toggleBackPrListe.setSelected(true);
+        if (toggleBackNavPrListe != null) {
+            toggleBackNavPrListe.setSelected(true);
         }
     }
 
@@ -576,6 +758,9 @@ public class MainController {
             if (e.getCode() == KeyCode.F5) {
                 onRafraichirEvenements();
                 onRafraichirProgrammes();
+                if (toggleBackNavStats != null && toggleBackNavStats.isSelected()) {
+                    rafraichirPageStatistiques();
+                }
                 e.consume();
                 return;
             }
@@ -585,7 +770,7 @@ public class MainController {
                     e.consume();
                     return;
                 }
-                if (paneBackEvDetail != null && paneBackEvDetail.isVisible()) {
+                if (paneBackPageEvDetail != null && paneBackPageEvDetail.isVisible()) {
                     allerVueListeEvenements();
                     e.consume();
                 }
@@ -719,9 +904,8 @@ public class MainController {
         }
         tableEvenements.getSelectionModel().select(e);
         remplirVueDetailEvenementBack(e);
-        if (toggleBackEvDetail != null) {
-            toggleBackEvDetail.setSelected(true);
-        }
+        backNavGroup.selectToggle(null);
+        montrerSeulementPageBack(PG_BACK_EV_DETAIL);
     }
 
     private void remplirVueDetailEvenementBack(Evenement e) {
@@ -992,8 +1176,8 @@ public class MainController {
 
     @FXML
     private void onBackEvNouveauVersFormulaire() {
-        if (toggleBackEvForm != null) {
-            toggleBackEvForm.setSelected(true);
+        if (toggleBackNavEvForm != null) {
+            toggleBackNavEvForm.setSelected(true);
         }
         onNouveauEvenement();
     }
@@ -1004,8 +1188,8 @@ public class MainController {
             erreur("Sélectionnez un événement dans la liste pour le modifier.");
             return;
         }
-        if (toggleBackEvForm != null) {
-            toggleBackEvForm.setSelected(true);
+        if (toggleBackNavEvForm != null) {
+            toggleBackNavEvForm.setSelected(true);
         }
     }
 
@@ -1016,8 +1200,8 @@ public class MainController {
 
     @FXML
     private void onBackPrNouveauVersFormulaire() {
-        if (toggleBackPrForm != null) {
-            toggleBackPrForm.setSelected(true);
+        if (toggleBackNavPrForm != null) {
+            toggleBackNavPrForm.setSelected(true);
         }
         onNouveauProgramme();
     }
@@ -1028,8 +1212,8 @@ public class MainController {
             erreur("Sélectionnez un programme dans la liste pour le modifier.");
             return;
         }
-        if (toggleBackPrForm != null) {
-            toggleBackPrForm.setSelected(true);
+        if (toggleBackNavPrForm != null) {
+            toggleBackNavPrForm.setSelected(true);
         }
     }
 
@@ -1498,6 +1682,12 @@ public class MainController {
         rafraichirComboEvenementsPourProgramme();
         rafraichirCartesEvenementsFront();
         mettreAJourCompteurEvenementsBack();
+        if (toggleBackNavStats != null && toggleBackNavStats.isSelected()) {
+            rafraichirPageStatistiques();
+        }
+        if (toggleFrontNavAccueil != null && toggleFrontNavAccueil.isSelected()) {
+            majInfosAccueil();
+        }
     }
 
     @FXML
@@ -1574,6 +1764,12 @@ public class MainController {
         rafraichirComboEvenementsPourProgramme();
         rafraichirCartesProgrammesFront();
         majEtatVideBackProgrammes();
+        if (toggleBackNavStats != null && toggleBackNavStats.isSelected()) {
+            rafraichirPageStatistiques();
+        }
+        if (toggleFrontNavAccueil != null && toggleFrontNavAccueil.isSelected()) {
+            majInfosAccueil();
+        }
     }
 
     private void remplirFormulaireEvenement(Evenement e) {
@@ -1724,4 +1920,34 @@ public class MainController {
         Optional<ButtonType> r = a.showAndWait();
         return r.isPresent() && r.get() == ButtonType.YES;
     }
+
+    /** Ligne du tableau des statistiques par type (JavaBean pour {@link PropertyValueFactory}). */
+    public static class LigneStatsParType {
+        private final String libelleType;
+        private final int nombre;
+        private final String pourcentage;
+
+        public LigneStatsParType(String libelleType, int nombre, int totalEvenements) {
+            this.libelleType = libelleType;
+            this.nombre = nombre;
+            if (totalEvenements > 0) {
+                this.pourcentage = String.format(Locale.FRENCH, "%.1f %%", 100.0 * nombre / totalEvenements);
+            } else {
+                this.pourcentage = "—";
+            }
+        }
+
+        public String getLibelleType() {
+            return libelleType;
+        }
+
+        public int getNombre() {
+            return nombre;
+        }
+
+        public String getPourcentage() {
+            return pourcentage;
+        }
+    }
 }
+

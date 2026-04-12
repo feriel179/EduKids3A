@@ -1,5 +1,7 @@
 /target/
 /data/
+_rami_extract/
+/src/main/resources/config/auth-jdbc.properties
 .idea/
 *.iml
 .classpath

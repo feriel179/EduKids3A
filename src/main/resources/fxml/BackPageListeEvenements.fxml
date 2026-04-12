@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneBackPageEvListe" spacing="12.0" fillWidth="true" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets bottom="20.0" left="24.0" right="24.0" top="16.0"/>
+    </padding>
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="back-list-toolbar">
+        <TextField fx:id="tfBackEvSearch" promptText="Rechercher par titre ou description…"
+                   styleClass="search-field" HBox.hgrow="ALWAYS" minWidth="200.0"/>
+        <Button mnemonicParsing="false" onAction="#onBackEvResetFiltre" text="Réinitialiser"
+                styleClass="button-ghost"/>
+        <Region HBox.hgrow="SOMETIMES" minWidth="12.0"/>
+        <Label fx:id="lblBackEvResultCount" text="0 résultat(s)"
+               styleClass="back-list-count"/>
+    </HBox>
+    <Label fx:id="lblEmptyBackEvenements" managed="false" visible="false"
+           text="Aucun événement." styleClass="empty-state-banner" wrapText="true"/>
+    <TableView fx:id="tableEvenements" minHeight="200.0" styleClass="table-view-dark"
+               VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colEvEvenement" prefWidth="240.0" text="Événement"/>
+            <TableColumn fx:id="colEvDescription" prefWidth="280.0" text="Description"/>
+            <TableColumn fx:id="colEvDateAff" prefWidth="110.0" text="Date"/>
+            <TableColumn fx:id="colEvHorairesAff" prefWidth="150.0" text="Horaires"/>
+            <TableColumn fx:id="colEvProgrammeAff" prefWidth="120.0" text="Programme"/>
+            <TableColumn fx:id="colEvActions" prefWidth="200.0" text="Action"/>
+        </columns>
+    </TableView>
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="form-actions-bar">
+        <Button mnemonicParsing="false" onAction="#onBackEvNouveauVersFormulaire"
+                text="+ Nouvel événement" styleClass="button-secondary"/>
+        <Button mnemonicParsing="false" onAction="#onBackEvModifierVersFormulaire"
+                text="Modifier la sélection" styleClass="button-secondary"/>
+        <Button mnemonicParsing="false" onAction="#onSupprimerEvenement"
+                text="Supprimer la sélection" styleClass="button-danger"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button mnemonicParsing="false" onAction="#onRafraichirEvenements"
+                text="Rafraîchir" styleClass="button-ghost"/>
+    </HBox>
+</VBox>

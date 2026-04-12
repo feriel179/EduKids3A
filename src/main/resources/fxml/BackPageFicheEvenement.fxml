@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneBackPageEvForm" spacing="14.0" fillWidth="true" visible="false"
+      managed="false" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets bottom="12.0" left="24.0" right="24.0" top="16.0"/>
+    </padding>
+        <ScrollPane fitToWidth="true" styleClass="form-scroll-dark" VBox.vgrow="ALWAYS"
+                    minHeight="120.0">
+            <VBox styleClass="back-form-panel">
+                <VBox styleClass="back-form-header">
+                    <Label text="Fiche événement" styleClass="back-form-title"/>
+                    <Label styleClass="back-form-subtitle"
+                           text="Utilisez la barre latérale « Liste des événements » puis Modifier, ou le bouton Nouveau. Champs * obligatoires."/>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Présentation" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="12.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="140.0"
+                                             prefWidth="160.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints minHeight="40.0" valignment="CENTER"/>
+                            <RowConstraints minHeight="128.0" valignment="TOP"
+                                            vgrow="NEVER"/>
+                        </rowConstraints>
+                        <Label text="Titre *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0" GridPane.valignment="CENTER"/>
+                        <TextField fx:id="tfEvTitre" promptText="Ex. Stage sport et nature"
+                                   styleClass="text-field-dark" GridPane.columnIndex="1"
+                                   GridPane.rowIndex="0"/>
+                        <Label text="Description *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1" GridPane.hgrow="ALWAYS"
+                               minHeight="128.0" prefHeight="140.0">
+                            <TextArea fx:id="taEvDescription" prefRowCount="5"
+                                      wrapText="true" styleClass="text-area-dark"
+                                      minHeight="120.0" prefHeight="120.0"
+                                      maxHeight="240.0" VBox.vgrow="NEVER"/>
+                            <Label text="Minimum 10 caractères" styleClass="form-hint"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Date &amp; horaires" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="12.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="140.0"
+                                             prefWidth="160.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <Label text="Date *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0"/>
+                        <DatePicker fx:id="dpEvDate" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="0"/>
+                        <Label text="Horaires *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                        <VBox spacing="10.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1">
+                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                                  styleClass="form-time-spin-row">
+                                <Label text="Début" styleClass="form-inline-label"
+                                       minWidth="42.0"/>
+                                <Spinner fx:id="spEvDebutHeure" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="h" styleClass="form-inline-label"/>
+                                <Spinner fx:id="spEvDebutMinute" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="min" styleClass="form-inline-label"/>
+                            </HBox>
+                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                                  styleClass="form-time-spin-row">
+                                <Label text="Fin" styleClass="form-inline-label"
+                                       minWidth="42.0"/>
+                                <Spinner fx:id="spEvFinHeure" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="h" styleClass="form-inline-label"/>
+                                <Spinner fx:id="spEvFinMinute" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="min" styleClass="form-inline-label"/>
+                            </HBox>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Type d'événement" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="12.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="140.0"
+                                             prefWidth="160.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <Label text="Type" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="cbEvType" editable="false"
+                                  maxWidth="1.7976931348623157E308"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    </GridPane>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Média &amp; lieu" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="12.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="140.0"
+                                             prefWidth="160.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <Label text="Image" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0"/>
+                        <VBox spacing="10.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="0">
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <TextField fx:id="tfEvImage" promptText="URL ou chemin fichier…"
+                                           styleClass="text-field-dark" HBox.hgrow="ALWAYS"/>
+                                <Button mnemonicParsing="false" onAction="#onParcourirImageEvenement"
+                                        text="Parcourir…" styleClass="button-file-browse"/>
+                            </HBox>
+                            <Label text="URL web, ou bouton Parcourir pour choisir un fichier image"
+                                   styleClass="form-hint"/>
+                            <StackPane styleClass="back-office-img-preview-wrap">
+                                <ImageView fx:id="imgBackOfficeEvenementPreview"
+                                           fitWidth="520.0" fitHeight="220.0"
+                                           preserveRatio="true" smooth="true"/>
+                                <Label fx:id="lblBackOfficeImagePlaceholder"
+                                       text="Aucun aperçu — saisissez une URL ou choisissez un fichier"
+                                       styleClass="back-office-img-placeholder"
+                                       mouseTransparent="true"/>
+                            </StackPane>
+                        </VBox>
+                        <Label text="Localisation" GridPane.columnIndex="0"
+                               GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfEvLocalisation"
+                                   promptText="Adresse ou lieu"
+                                   styleClass="text-field-dark" GridPane.columnIndex="1"
+                                   GridPane.rowIndex="1"/>
+                        <Label text="Places" GridPane.columnIndex="0"
+                               GridPane.rowIndex="2"/>
+                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2">
+                            <TextField fx:id="tfEvPlaces"
+                                       promptText="Nombre de places (optionnel)"
+                                       styleClass="text-field-dark"/>
+                            <Label text="Laisser vide si non applicable"
+                                   styleClass="form-hint"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="form-actions-bar">
+            <Button mnemonicParsing="false" onAction="#onBackEvRetourListe"
+                    text="← Retour à la liste" styleClass="button-ghost"/>
+            <Button defaultButton="true" mnemonicParsing="false"
+                    onAction="#onEnregistrerEvenement" text="Enregistrer"
+                    styleClass="button-primary"/>
+            <Button mnemonicParsing="false" onAction="#onSupprimerEvenement"
+                    text="Supprimer" styleClass="button-danger"/>
+        </HBox>
+</VBox>

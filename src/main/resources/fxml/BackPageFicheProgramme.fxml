@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneBackPagePrForm" spacing="14.0" fillWidth="true" visible="false"
+      managed="false" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets bottom="12.0" left="24.0" right="24.0" top="16.0"/>
+    </padding>
+        <ScrollPane fitToWidth="true" styleClass="form-scroll-dark" VBox.vgrow="ALWAYS"
+                    minHeight="120.0">
+            <VBox styleClass="back-form-panel">
+                <VBox styleClass="back-form-header">
+                    <Label text="Fiche programme" styleClass="back-form-title"/>
+                    <Label styleClass="back-form-subtitle"
+                           text="Un seul programme par événement. Passez par « Liste des programmes » dans la barre latérale pour créer ou modifier."/>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Événement &amp; pause" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="12.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="150.0"
+                                             prefWidth="170.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <Label text="Événement *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="cbPrEvenement" maxWidth="1.7976931348623157E308"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label text="Pause *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                        <VBox spacing="10.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1">
+                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                                  styleClass="form-time-spin-row">
+                                <Label text="Début" styleClass="form-inline-label"
+                                       minWidth="42.0"/>
+                                <Spinner fx:id="spPrPauseDebutHeure" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="h" styleClass="form-inline-label"/>
+                                <Spinner fx:id="spPrPauseDebutMinute" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="min" styleClass="form-inline-label"/>
+                            </HBox>
+                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                                  styleClass="form-time-spin-row">
+                                <Label text="Fin" styleClass="form-inline-label"
+                                       minWidth="42.0"/>
+                                <Spinner fx:id="spPrPauseFinHeure" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="h" styleClass="form-inline-label"/>
+                                <Spinner fx:id="spPrPauseFinMinute" editable="false"
+                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                <Label text="min" styleClass="form-inline-label"/>
+                            </HBox>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+                <VBox styleClass="form-section-card">
+                    <Label text="Contenu du programme" styleClass="form-section-title"/>
+                    <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="14.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="150.0"
+                                             prefWidth="170.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints minHeight="108.0" valignment="TOP"
+                                            vgrow="NEVER"/>
+                            <RowConstraints minHeight="108.0" valignment="TOP"
+                                            vgrow="NEVER"/>
+                            <RowConstraints minHeight="108.0" valignment="TOP"
+                                            vgrow="NEVER"/>
+                        </rowConstraints>
+                        <Label text="Activités *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="0" GridPane.valignment="TOP"/>
+                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="0" GridPane.hgrow="ALWAYS"
+                               minHeight="100.0" prefHeight="108.0">
+                            <TextArea fx:id="taPrActivites" prefRowCount="4"
+                                      wrapText="true" styleClass="text-area-dark"
+                                      minHeight="100.0" prefHeight="100.0"
+                                      maxHeight="200.0" VBox.vgrow="NEVER"/>
+                            <Label text="Détail des activités prévues" styleClass="form-hint"/>
+                        </VBox>
+                        <Label text="Documents requis *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1" GridPane.hgrow="ALWAYS"
+                               minHeight="100.0" prefHeight="108.0">
+                            <TextArea fx:id="taPrDocuments" prefRowCount="4"
+                                      wrapText="true" styleClass="text-area-dark"
+                                      minHeight="100.0" prefHeight="100.0"
+                                      maxHeight="200.0" VBox.vgrow="NEVER"/>
+                            <Label text="Liste des documents à fournir" styleClass="form-hint"/>
+                        </VBox>
+                        <Label text="Matériels requis *" GridPane.columnIndex="0"
+                               GridPane.rowIndex="2" GridPane.valignment="TOP"/>
+                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2" GridPane.hgrow="ALWAYS"
+                               minHeight="100.0" prefHeight="108.0">
+                            <TextArea fx:id="taPrMateriels" prefRowCount="4"
+                                      wrapText="true" styleClass="text-area-dark"
+                                      minHeight="100.0" prefHeight="100.0"
+                                      maxHeight="200.0" VBox.vgrow="NEVER"/>
+                            <Label text="Matériel à prévoir" styleClass="form-hint"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="form-actions-bar">
+            <Button mnemonicParsing="false" onAction="#onBackPrRetourListe"
+                    text="← Retour à la liste" styleClass="button-ghost"/>
+            <Button defaultButton="true" mnemonicParsing="false"
+                    onAction="#onEnregistrerProgramme" text="Enregistrer"
+                    styleClass="button-primary"/>
+            <Button mnemonicParsing="false" onAction="#onSupprimerProgramme"
+                    text="Supprimer" styleClass="button-danger"/>
+        </HBox>
+</VBox>

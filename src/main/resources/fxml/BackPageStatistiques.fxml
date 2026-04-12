@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.edukids.edukids3a.ui.MainController"
+            fx:id="paneBackPageStats" fitToWidth="true" visible="false" managed="false"
+            styleClass="form-scroll-dark" maxHeight="1.7976931348623157E308">
+    <VBox spacing="18.0" styleClass="back-form-panel">
+        <padding>
+            <Insets bottom="24.0" left="24.0" right="24.0" top="24.0"/>
+        </padding>
+        <Label text="Statistiques" styleClass="back-form-title"/>
+        <Label text="Vue d'ensemble : totaux, couverture programme, puis chaque type d'événement avec part du total (tri par libellé)."
+               styleClass="back-form-subtitle" wrapText="true"/>
+        <GridPane hgap="24.0" vgap="12.0" fx:id="gridStatsCartes">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0"/>
+            </columnConstraints>
+            <Label text="Événements" styleClass="stats-card-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Label fx:id="lblStatsTotalEvenements" text="—" styleClass="stats-card-value" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <Label text="Programmes" styleClass="stats-card-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <Label fx:id="lblStatsTotalProgrammes" text="—" styleClass="stats-card-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <Label text="Événements avec programme" styleClass="stats-card-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+            <Label fx:id="lblStatsEvenementsAvecProgramme" text="—" styleClass="stats-card-value" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <Label text="Événements sans programme" styleClass="stats-card-label" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+            <Label fx:id="lblStatsSansProgramme" text="—" styleClass="stats-card-value" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+            <Label text="Couverture (évén. avec programme)" styleClass="stats-card-label" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
+            <Label fx:id="lblStatsCouvertureProgrammes" text="—" styleClass="stats-card-value" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+        </GridPane>
+        <Label text="Détail par type (tous les types, y compris à 0)" styleClass="form-section-title"/>
+        <TableView fx:id="tableStatsParType" prefHeight="280.0" minHeight="160.0" styleClass="table-view-dark">
+            <columns>
+                <TableColumn fx:id="colStatsType" prefWidth="240.0" text="Type d'événement"/>
+                <TableColumn fx:id="colStatsNombre" prefWidth="90.0" text="Nombre"/>
+                <TableColumn fx:id="colStatsPourcent" prefWidth="130.0" text="Part du total (%)"/>
+            </columns>
+        </TableView>
+    </VBox>
+</ScrollPane>

@@ -6,6 +6,15 @@
     -fx-background-color: #121212;
 }
 
+/* Racine + zone centrale : fond opaque pour toute la hiérarchie (fx:include sous MainView). */
+.app-root {
+    -fx-background-color: #121212;
+}
+
+.main-center-stack {
+    -fx-background-color: #121212;
+}
+
 /* ——— Navigation principale ——— */
 .app-nav {
     -fx-background-color: #1a1a1a;
@@ -14,6 +23,11 @@
     -fx-alignment: center-left;
     -fx-border-color: #2a2a2a;
     -fx-border-width: 0 0 1 0;
+}
+
+.app-nav .button {
+    -fx-padding: 8px 14px;
+    -fx-font-size: 13px;
 }
 
 .nav-logo {
@@ -478,6 +492,96 @@
 
 .tab-content-dark {
     -fx-background-color: #121212;
+}
+
+/* Back-office : barre latérale (une page par entrée) */
+.back-sidebar {
+    -fx-background-color: #161616;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.back-sidebar-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+.back-sidebar-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #737373;
+    -fx-padding: 0 0 4 0;
+}
+
+.back-sidebar-nav {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c4c4c4;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 12px;
+    -fx-alignment: center-left;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.back-sidebar-nav:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.back-sidebar-nav:hover {
+    -fx-background-color: #252525;
+}
+
+.back-sidebar-nav:selected:hover {
+    -fx-background-color: #0066dd;
+}
+
+.back-office-main {
+    -fx-background-color: #121212;
+}
+
+/* Front-office : navbar secondaire (Accueil / Événements / Programmes) */
+.front-navbar {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 0 0 1 0;
+}
+
+.front-nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #a3a3a3;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 18px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.front-nav-item:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.front-nav-item:hover {
+    -fx-background-color: #2a2a2a;
+}
+
+.front-nav-item:selected:hover {
+    -fx-background-color: #0066dd;
+}
+
+.front-pages-stack {
+    -fx-background-color: #121212;
+}
+
+.stats-card-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #a3a3a3;
+}
+
+.stats-card-value {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
 }
 
 /* Navigation liste / formulaire — back office */
@@ -1016,4 +1120,144 @@
 
 .scroll-pane {
     -fx-background-color: transparent;
+}
+
+/* ========== Connexion (interface type projet Rami / ZIP — thème clair) ========== */
+.root.login-rami-root {
+    -fx-background-color: #f5f7f9;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.login-brand-panel {
+    -fx-background-color: linear-gradient(to bottom right, #066ac9, #1d3b53);
+    -fx-padding: 40px;
+}
+
+.login-rami-root .brand-title {
+    -fx-text-fill: white;
+    -fx-font-size: 42px;
+    -fx-font-weight: bold;
+}
+
+.login-rami-root .brand-subtitle {
+    -fx-text-fill: #cfe2ff;
+    -fx-font-size: 18px;
+}
+
+.login-rami-root .brand-tagline {
+    -fx-text-fill: #a8c7f0;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
+}
+
+.login-form-panel {
+    -fx-background-color: #ffffff;
+}
+
+.login-rami-root .form-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #24292d;
+}
+
+.login-rami-root .form-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #9a9ea4;
+}
+
+.login-rami-root .login-dev-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #747579;
+}
+
+.login-rami-root .field-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #24292d;
+}
+
+.login-rami-root .text-input {
+    -fx-background-color: #f5f7f9;
+    -fx-border-color: #dde0e3;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 14px;
+    -fx-font-size: 14px;
+    -fx-text-fill: #24292d;
+    -fx-prompt-text-fill: #9a9ea4;
+}
+
+.login-rami-root .text-input:focused {
+    -fx-border-color: #066ac9;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(6, 106, 201, 0.15), 8, 0, 0, 0);
+}
+
+.login-rami-root .check-input {
+    -fx-text-fill: #24292d;
+    -fx-font-size: 13px;
+}
+
+.login-rami-root .check-input .box {
+    -fx-background-color: #f5f7f9;
+    -fx-border-color: #dde0e3;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.login-rami-root .check-input:selected .box {
+    -fx-background-color: #066ac9;
+    -fx-border-color: #066ac9;
+}
+
+.login-rami-root .btn-primary {
+    -fx-background-color: #066ac9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 24px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.login-rami-root .btn-primary:hover {
+    -fx-background-color: #0556a8;
+    -fx-effect: dropshadow(gaussian, rgba(6, 106, 201, 0.3), 10, 0, 0, 2);
+}
+
+.login-rami-root .btn-primary:pressed {
+    -fx-background-color: #044a91;
+}
+
+.login-rami-root .link {
+    -fx-text-fill: #9a9ea4;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+}
+
+.login-rami-root .link:hover {
+    -fx-text-fill: #066ac9;
+}
+
+.login-rami-root .link-accent {
+    -fx-text-fill: #066ac9;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+}
+
+.login-rami-root .link-accent:hover {
+    -fx-text-fill: #0556a8;
+}
+
+.login-rami-root .text-muted {
+    -fx-text-fill: #9a9ea4;
+    -fx-font-size: 13px;
+}
+
+.login-rami-root .error-label {
+    -fx-text-fill: #d6293e;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
 }

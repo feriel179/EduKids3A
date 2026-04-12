@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.ui.MainController"
+      spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS">
+    <HBox styleClass="front-navbar" alignment="CENTER_LEFT" spacing="8.0">
+        <padding>
+            <Insets bottom="0.0" left="20.0" right="20.0" top="12.0"/>
+        </padding>
+        <ToggleButton fx:id="toggleFrontNavAccueil" mnemonicParsing="false" text="Accueil" selected="true" styleClass="front-nav-item"/>
+        <ToggleButton fx:id="toggleFrontNavEv" mnemonicParsing="false" text="Événements" styleClass="front-nav-item"/>
+        <ToggleButton fx:id="toggleFrontNavPr" mnemonicParsing="false" text="Programmes" styleClass="front-nav-item"/>
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <StackPane VBox.vgrow="ALWAYS" styleClass="front-pages-stack">
+        <fx:include source="FrontPageAccueil.fxml"/>
+        <fx:include source="FrontPageEvenements.fxml"/>
+        <fx:include source="FrontPageProgrammes.fxml"/>
+    </StackPane>
+</VBox>
