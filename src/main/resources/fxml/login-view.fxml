@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="760.0" prefWidth="1180.0" stylesheets="@../css/app.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ecom.ui.LoginController">
+    <VBox prefWidth="560.0" styleClass="login-left-panel">
+        <padding>
+            <Insets bottom="40.0" left="46.0" right="46.0" top="40.0" />
+        </padding>
+        <Region VBox.vgrow="ALWAYS" />
+        <VBox alignment="CENTER_LEFT" spacing="24.0">
+            <Label styleClass="login-brand-title" text="EduKids" />
+            <Label styleClass="login-brand-subtitle" text="Bienvenue !" />
+            <Label styleClass="login-brand-caption" text="Plateforme educative" />
+        </VBox>
+        <Region VBox.vgrow="ALWAYS" />
+        <Label styleClass="login-brand-footer" text="Evenements &amp; programmes" />
+    </VBox>
+
+    <StackPane HBox.hgrow="ALWAYS" styleClass="login-right-panel">
+        <VBox maxWidth="410.0" spacing="18.0">
+            <Label styleClass="login-form-title" text="Connexion" />
+            <Label styleClass="login-form-subtitle" text="Connectez-vous avec votre compte (e-mail et mot de passe)." wrapText="true" />
+            <Label fx:id="loginHintLabel" styleClass="login-hint" text="Comptes de test : admin@edukids.local ou parent@edukids.local - mot de passe : edukids" wrapText="true" />
+
+            <VBox spacing="10.0">
+                <Label styleClass="login-field-label" text="Adresse e-mail" />
+                <TextField fx:id="emailField" promptText="vous@exemple.com" styleClass="login-input" />
+            </VBox>
+
+            <VBox spacing="10.0">
+                <Label styleClass="login-field-label" text="Mot de passe" />
+                <PasswordField fx:id="passwordField" promptText="Mot de passe" styleClass="login-input" />
+            </VBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <CheckBox mnemonicParsing="false" text="Se souvenir de moi" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="login-link-muted" text="Mot de passe oublie ?" />
+            </HBox>
+
+            <Button mnemonicParsing="false" onAction="#handleLogin" styleClass="login-submit-button" text="Se connecter" />
+
+            <HBox alignment="CENTER" spacing="8.0">
+                <Label styleClass="login-link-muted" text="Pas encore de compte ?" />
+                <Label styleClass="login-link-strong" text="Creer un compte" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</HBox>
