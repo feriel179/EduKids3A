@@ -14,9 +14,16 @@ public class Lesson {
     private String videoUrl;
     private String youtubeUrl;
     private String image;
+    private String status;
+    private int durationMinutes;
 
     public Lesson(long id, Course course, int order, String title, String mediaType,
                   String mediaUrl, String videoUrl, String youtubeUrl, String image) {
+        this(id, course, order, title, mediaType, mediaUrl, videoUrl, youtubeUrl, image, "DRAFT", 10);
+    }
+
+    public Lesson(long id, Course course, int order, String title, String mediaType,
+                  String mediaUrl, String videoUrl, String youtubeUrl, String image, String status, int durationMinutes) {
         this.id = id;
         this.course = course;
         this.order = order;
@@ -26,6 +33,8 @@ public class Lesson {
         this.videoUrl = videoUrl;
         this.youtubeUrl = youtubeUrl;
         this.image = image;
+        this.status = normalizeStatus(status);
+        this.durationMinutes = Math.max(0, durationMinutes);
     }
 
     public long getId() {
@@ -104,6 +113,22 @@ public class Lesson {
         this.image = image;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = normalizeStatus(status);
+    }
+
+    public int getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(int durationMinutes) {
+        this.durationMinutes = Math.max(0, durationMinutes);
+    }
+
     public String getActiveUrl() {
         return switch (normalizeMediaType(mediaType)) {
             case "VIDEO" -> firstNonBlank(videoUrl, mediaUrl);
@@ -148,8 +173,36 @@ public class Lesson {
         return "[MEDIA]";
     }
 
+    public boolean isPublished() {
+        return "PUBLISHED".equals(status);
+    }
+
+    public String getStatusLabel() {
+        return switch (status) {
+            case "PUBLISHED" -> "Published";
+            case "HIDDEN" -> "Hidden";
+            default -> "Draft";
+        };
+    }
+
+    public String getDurationLabel() {
+        return Course.formatDuration(durationMinutes);
+    }
+
     private String normalizeMediaType(String value) {
         return value == null ? "PDF" : value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeStatus(String value) {
+        if (value == null) {
+            return "DRAFT";
+        }
+
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        return switch (normalized) {
+            case "PUBLISHED", "HIDDEN" -> normalized;
+            default -> "DRAFT";
+        };
     }
 
     private List<String> getAvailableMediaLabels() {

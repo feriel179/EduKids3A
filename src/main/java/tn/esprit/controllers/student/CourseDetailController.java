@@ -63,7 +63,7 @@ public class CourseDetailController {
         levelBadgeLabel.setText(course.getLevelText());
         levelBadgeLabel.setStyle("-fx-background-color: " + course.getLevelColor() + ";");
         descriptionLabel.setText(course.getDescription());
-        lessonListView.setItems(lessonService.getLessonsByCourse(course));
+        lessonListView.setItems(lessonService.getPublishedLessonsByCourse(course));
     }
 
     private VBox createLessonCard(Lesson lesson) {

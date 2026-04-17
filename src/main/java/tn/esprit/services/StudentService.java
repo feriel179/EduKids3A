@@ -193,7 +193,8 @@ public class StudentService {
     private List<Course> loadEnrolledCourses(long userId) {
         List<Course> courses = new ArrayList<>();
         String sql = """
-                SELECT c.id, c.titre, c.description, c.niveau, c.matiere, c.image, c.likes, c.dislikes
+                SELECT c.id, c.titre, c.description, c.niveau, c.matiere, c.image, c.likes, c.dislikes,
+                       c.status, c.lesson_count, c.total_duration_minutes
                 FROM user_cours_progress progress
                 INNER JOIN cours c ON c.id = progress.cours_id
                 WHERE progress.user_id = ?
@@ -232,7 +233,10 @@ public class StudentService {
                 resultSet.getString("matiere"),
                 resultSet.getString("image"),
                 resultSet.getInt("likes"),
-                resultSet.getInt("dislikes")
+                resultSet.getInt("dislikes"),
+                resultSet.getString("status"),
+                resultSet.getInt("lesson_count"),
+                resultSet.getInt("total_duration_minutes")
         );
     }
 

@@ -39,9 +39,9 @@ public class LessonController {
     @FXML
     private Label totalLessonsMetricLabel;
     @FXML
-    private Label pdfLessonsMetricLabel;
+    private Label publishedLessonsMetricLabel;
     @FXML
-    private Label videoLessonsMetricLabel;
+    private Label totalDurationMetricLabel;
     @FXML
     private Label pageSummaryLabel;
     @FXML
@@ -56,6 +56,10 @@ public class LessonController {
     private TableColumn<Lesson, String> titleColumn;
     @FXML
     private TableColumn<Lesson, String> courseColumn;
+    @FXML
+    private TableColumn<Lesson, String> statusColumn;
+    @FXML
+    private TableColumn<Lesson, String> durationColumn;
     @FXML
     private TableColumn<Lesson, String> mediaTypeColumn;
     @FXML
@@ -77,11 +81,15 @@ public class LessonController {
         courseColumn.setCellValueFactory(data -> new SimpleStringProperty(
                 data.getValue().getCourse() == null ? "" : data.getValue().getCourse().getTitle()
         ));
+        statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatusLabel()));
+        durationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDurationLabel()));
         mediaTypeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDisplayMediaType()));
         urlColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getUrlSummary()));
 
         titleColumn.setCellFactory(column -> createTextCell("table-course-title"));
         courseColumn.setCellFactory(column -> createTextCell("table-subtle-text"));
+        statusColumn.setCellFactory(column -> createStatusCell());
+        durationColumn.setCellFactory(column -> createTextCell("table-subtle-text"));
         mediaTypeColumn.setCellFactory(column -> createMediaCell());
         urlColumn.setCellFactory(column -> createUrlCell());
 
@@ -154,12 +162,8 @@ public class LessonController {
 
     private void updateMetrics() {
         totalLessonsMetricLabel.setText(String.valueOf(allLessons.size()));
-        pdfLessonsMetricLabel.setText(String.valueOf(
-                allLessons.stream().filter(lesson -> hasText(lesson.getPdfUrl())).count()
-        ));
-        videoLessonsMetricLabel.setText(String.valueOf(
-                allLessons.stream().filter(lesson -> hasText(lesson.getVideoUrl()) || hasText(lesson.getYoutubeUrl())).count()
-        ));
+        publishedLessonsMetricLabel.setText(String.valueOf(allLessons.stream().filter(Lesson::isPublished).count()));
+        totalDurationMetricLabel.setText(Course.formatDuration(allLessons.stream().mapToInt(Lesson::getDurationMinutes).sum()));
     }
 
     private void loadCoursesPreservingSelection(Course preferredCourse) {
@@ -209,6 +213,7 @@ public class LessonController {
         String courseTitle = lesson.getCourse() == null ? "" : lesson.getCourse().getTitle().toLowerCase(Locale.ROOT);
         return String.valueOf(lesson.getId()).contains(searchValue)
                 || lesson.getTitle().toLowerCase(Locale.ROOT).contains(searchValue)
+                || lesson.getStatusLabel().toLowerCase(Locale.ROOT).contains(searchValue)
                 || lesson.getDisplayMediaType().toLowerCase(Locale.ROOT).contains(searchValue)
                 || courseTitle.contains(searchValue);
     }
@@ -369,6 +374,50 @@ public class LessonController {
                 if (!getStyleClass().contains("table-link-text")) {
                     getStyleClass().add("table-link-text");
                 }
+            }
+        };
+    }
+
+    private TableCell<Lesson, String> createStatusCell() {
+        return new TableCell<>() {
+            private final Label badge = new Label();
+            private final StackPane wrapper = new StackPane(badge);
+
+            {
+                wrapper.getStyleClass().add("table-badge-wrap");
+                badge.getStyleClass().add("table-badge");
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                badge.getStyleClass().removeAll(
+                        "table-badge-draft",
+                        "table-badge-published",
+                        "table-badge-hidden"
+                );
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                Lesson lesson = getTableRow() == null ? null : (Lesson) getTableRow().getItem();
+                badge.setText(item);
+                if (lesson != null) {
+                    if (lesson.isPublished()) {
+                        badge.getStyleClass().add("table-badge-published");
+                    } else if ("HIDDEN".equals(lesson.getStatus())) {
+                        badge.getStyleClass().add("table-badge-hidden");
+                    } else {
+                        badge.getStyleClass().add("table-badge-draft");
+                    }
+                }
+
+                setText(null);
+                setGraphic(wrapper);
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
         };
     }

@@ -74,6 +74,7 @@ public class CatalogController {
 
     @FXML
     private void initialize() {
+        courseService.refreshCourses();
         configureFilters();
         refreshStudentSnapshot();
         applyFilters();
@@ -86,7 +87,7 @@ public class CatalogController {
         String level = levelFilterComboBox.getValue();
         Comparator<Course> comparator = resolveComparator(sortComboBox.getValue());
 
-        filteredCourses = courseService.getAllCourses().stream()
+        filteredCourses = courseService.getPublishedCourses().stream()
                 .filter(course -> matchesKeyword(course, keyword))
                 .filter(course -> subject == null
                         || subject.equals("All Subjects")
@@ -132,7 +133,7 @@ public class CatalogController {
         Set<String> subjects = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         Set<String> levels = new TreeSet<>(Comparator.comparingInt(this::extractLevelNumber));
 
-        courseService.getAllCourses().forEach(course -> {
+        courseService.getPublishedCourses().forEach(course -> {
             subjects.add(buildDisplaySubjectName(course.getSubject(), "Unknown Subject"));
             levels.add(safeText(course.getLevelText(), "Unknown Level"));
         });
@@ -311,7 +312,7 @@ public class CatalogController {
     }
 
     private void updateMetrics() {
-        List<Course> allCourses = courseService.getAllCourses();
+        List<Course> allCourses = courseService.getPublishedCourses();
         totalCoursesValueLabel.setText(String.valueOf(allCourses.size()));
         subjectsValueLabel.setText(String.valueOf(allCourses.stream()
                 .map(course -> buildDisplaySubjectName(course.getSubject()))

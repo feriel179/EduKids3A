@@ -20,7 +20,7 @@ public class MainFX extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) throws IOException { 
         instance = this;
         this.primaryStage = stage;
         initializeDatabase();

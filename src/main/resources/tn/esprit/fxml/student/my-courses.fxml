@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.MyCourseController">
     <children>
-        <VBox AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" AnchorPane.topAnchor="24.0" spacing="18.0">
+        <VBox AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" AnchorPane.topAnchor="24.0" spacing="22.0" styleClass="my-courses-page">
             <children>
-                <Label styleClass="page-title" text="My Courses" />
-                <Label styleClass="section-subtitle" text="All courses currently added to your personal learning list." />
+                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                    <children>
+                        <VBox spacing="6.0">
+                            <children>
+                                <Label styleClass="page-title" text="My Courses" />
+                                <Label styleClass="section-subtitle" text="All courses currently added to your personal learning list." />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox spacing="8.0">
+                            <children>
+                                <Label fx:id="savedCountLabel" styleClass="student-mini-badge" text="0 courses" />
+                                <Label fx:id="savedDurationLabel" styleClass="student-mini-badge" text="0 min" />
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                     <content>
-                        <FlowPane fx:id="myCoursesContainer" hgap="16.0" prefWrapLength="980.0" vgap="16.0">
+                        <FlowPane fx:id="myCoursesContainer" hgap="18.0" prefWrapLength="1100.0" styleClass="my-courses-grid" vgap="18.0">
                             <padding><Insets bottom="8.0" left="4.0" right="4.0" top="4.0" /></padding>
                         </FlowPane>
                     </content>

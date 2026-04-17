@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -68,8 +69,29 @@
                                                         <TextField fx:id="subjectField" promptText="Example: Mathematics" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                                         <Label text="Level" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                                                         <ComboBox fx:id="levelComboBox" prefWidth="220.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                        <Label text="Description" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                                                        <TextArea fx:id="descriptionArea" prefRowCount="7" promptText="Describe the objectives, the audience, and the learning outcomes." GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                        <Label text="Status" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                                        <ComboBox fx:id="statusComboBox" prefWidth="220.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                        <Label text="Description" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                                        <TextArea fx:id="descriptionArea" prefRowCount="7" promptText="Describe the objectives, the audience, and the learning outcomes." GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                        <Label text="AI Tools" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                                        <VBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                                            <children>
+                                                                <HBox spacing="10.0">
+                                                                    <children>
+                                                                        <Button fx:id="generateDescriptionButton" mnemonicParsing="false" onAction="#handleGenerateDescription" styleClass="secondary-button" text="Generate Description" />
+                                                                        <Button fx:id="suggestObjectivesButton" mnemonicParsing="false" onAction="#handleSuggestObjectives" styleClass="secondary-button" text="Suggest Objectives" />
+                                                                    </children>
+                                                                </HBox>
+                                                                <HBox spacing="10.0">
+                                                                    <children>
+                                                                        <ComboBox fx:id="translationLanguageComboBox" prefWidth="160.0" />
+                                                                        <Button fx:id="translateButton" mnemonicParsing="false" onAction="#handleTranslateCourse" styleClass="ghost-button" text="Translate" />
+                                                                    </children>
+                                                                </HBox>
+                                                                <Button fx:id="generateImageButton" mnemonicParsing="false" onAction="#handleGenerateImage" styleClass="primary-button" text="Generate Cover Image" />
+                                                                <Label fx:id="aiStatusLabel" text="AI assistant ready." wrapText="true" />
+                                                            </children>
+                                                        </VBox>
                                                     </children>
                                                     <columnConstraints>
                                                         <javafx.scene.layout.ColumnConstraints minWidth="120.0" />
@@ -96,9 +118,16 @@
                                             </padding>
                                             <children>
                                                 <Label styleClass="preview-kicker" text="Live Preview" />
+                                                <Label fx:id="previewImageStatusLabel" styleClass="preview-image-status" text="No cover image generated yet." wrapText="true" />
+                                                <ImageView fx:id="previewImageView" fitHeight="168.0" fitWidth="276.0" managed="false" pickOnBounds="true" preserveRatio="true" smooth="true" styleClass="preview-cover-image" visible="false" />
                                                 <Label fx:id="previewTitleLabel" styleClass="preview-title" text="Your course title will appear here" wrapText="true" />
-                                                <Label fx:id="previewSubjectLabel" styleClass="preview-chip" text="Select a subject" />
-                                                <Label fx:id="previewLevelLabel" styleClass="preview-chip-alt" text="Niveau 1" />
+                                                <HBox spacing="8.0">
+                                                    <children>
+                                                        <Label fx:id="previewSubjectLabel" styleClass="preview-chip" text="Select a subject" />
+                                                        <Label fx:id="previewLevelLabel" styleClass="preview-chip-alt" text="Niveau 1" />
+                                                        <Label fx:id="previewStatusLabel" styleClass="lesson-chip-dark" text="Draft" />
+                                                    </children>
+                                                </HBox>
                                                 <Label fx:id="previewDescriptionLabel" styleClass="hero-text" text="A short and engaging summary will help parents and students understand the value of the course." wrapText="true" />
                                             </children>
                                         </VBox>

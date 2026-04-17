@@ -34,9 +34,9 @@ public class CourseController {
     @FXML
     private Label totalCoursesMetricLabel;
     @FXML
-    private Label totalLikesMetricLabel;
+    private Label publishedCoursesMetricLabel;
     @FXML
-    private Label totalDislikesMetricLabel;
+    private Label totalLessonsMetricLabel;
     @FXML
     private Label pageSummaryLabel;
     @FXML
@@ -52,9 +52,11 @@ public class CourseController {
     @FXML
     private TableColumn<Course, String> levelColumn;
     @FXML
-    private TableColumn<Course, Number> likesColumn;
+    private TableColumn<Course, String> statusColumn;
     @FXML
-    private TableColumn<Course, Number> dislikesColumn;
+    private TableColumn<Course, Number> lessonCountColumn;
+    @FXML
+    private TableColumn<Course, String> durationColumn;
 
     private final CourseService courseService = new CourseService();
     private final ObservableList<Course> allCourses = FXCollections.observableArrayList();
@@ -67,12 +69,15 @@ public class CourseController {
         titleColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTitle()));
         subjectColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getSubject()));
         levelColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getLevelText()));
-        likesColumn.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getLikes()));
-        dislikesColumn.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getDislikes()));
+        statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatusLabel()));
+        lessonCountColumn.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getLessonCount()));
+        durationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTotalDurationLabel()));
 
         titleColumn.setCellFactory(column -> createTextCell("table-course-title"));
         subjectColumn.setCellFactory(column -> createTextCell("table-subtle-text"));
         levelColumn.setCellFactory(column -> createLevelCell());
+        statusColumn.setCellFactory(column -> createStatusCell());
+        durationColumn.setCellFactory(column -> createTextCell("table-subtle-text"));
 
         courseTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         courseTable.setPlaceholder(new Label("No courses found."));
@@ -140,8 +145,8 @@ public class CourseController {
 
     private void updateMetrics() {
         totalCoursesMetricLabel.setText(String.valueOf(allCourses.size()));
-        totalLikesMetricLabel.setText(String.valueOf(allCourses.stream().mapToInt(Course::getLikes).sum()));
-        totalDislikesMetricLabel.setText(String.valueOf(allCourses.stream().mapToInt(Course::getDislikes).sum()));
+        publishedCoursesMetricLabel.setText(String.valueOf(allCourses.stream().filter(Course::isPublished).count()));
+        totalLessonsMetricLabel.setText(String.valueOf(allCourses.stream().mapToInt(Course::getLessonCount).sum()));
     }
 
     private void applyFiltersAndSort(boolean resetPage) {
@@ -166,7 +171,8 @@ public class CourseController {
         return String.valueOf(course.getId()).contains(searchValue)
                 || course.getTitle().toLowerCase(Locale.ROOT).contains(searchValue)
                 || course.getSubject().toLowerCase(Locale.ROOT).contains(searchValue)
-                || course.getLevelText().toLowerCase(Locale.ROOT).contains(searchValue);
+                || course.getLevelText().toLowerCase(Locale.ROOT).contains(searchValue)
+                || course.getStatusLabel().toLowerCase(Locale.ROOT).contains(searchValue);
     }
 
     private Comparator<Course> resolveComparator() {
@@ -311,6 +317,50 @@ public class CourseController {
                         badge.getStyleClass().add("table-badge-intermediate");
                     } else {
                         badge.getStyleClass().add("table-badge-advanced");
+                    }
+                }
+
+                setText(null);
+                setGraphic(wrapper);
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+        };
+    }
+
+    private TableCell<Course, String> createStatusCell() {
+        return new TableCell<>() {
+            private final Label badge = new Label();
+            private final StackPane wrapper = new StackPane(badge);
+
+            {
+                wrapper.getStyleClass().add("table-badge-wrap");
+                badge.getStyleClass().add("table-badge");
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                badge.getStyleClass().removeAll(
+                        "table-badge-draft",
+                        "table-badge-published",
+                        "table-badge-archived"
+                );
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                Course course = getTableRow() == null ? null : (Course) getTableRow().getItem();
+                badge.setText(item);
+                if (course != null) {
+                    if (course.isPublished()) {
+                        badge.getStyleClass().add("table-badge-published");
+                    } else if (course.isArchived()) {
+                        badge.getStyleClass().add("table-badge-archived");
+                    } else {
+                        badge.getStyleClass().add("table-badge-draft");
                     }
                 }
 

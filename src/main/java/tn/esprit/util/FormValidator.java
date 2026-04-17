@@ -79,9 +79,10 @@ public final class FormValidator {
         return null;
     }
 
-    public static String validateLesson(String lessonTitle, String order, String pdfUrl, String videoUrl, String youtubeUrl) {
+    public static String validateLesson(String lessonTitle, String order, String duration, String pdfUrl, String videoUrl, String youtubeUrl) {
         String cleanLessonTitle = clean(lessonTitle);
         String cleanOrder = clean(order);
+        String cleanDuration = clean(duration);
         String cleanPdfUrl = clean(pdfUrl);
         String cleanVideoUrl = clean(videoUrl);
         String cleanYoutubeUrl = clean(youtubeUrl);
@@ -115,6 +116,21 @@ public final class FormValidator {
         }
         if (parsedOrder > 999) {
             return "Order is too large.";
+        }
+
+        if (cleanDuration.isBlank()) {
+            return "Duration is required.";
+        }
+        if (!cleanDuration.matches("\\d+")) {
+            return "Duration must be a whole number.";
+        }
+
+        int parsedDuration = Integer.parseInt(cleanDuration);
+        if (parsedDuration <= 0) {
+            return "Duration must be greater than 0.";
+        }
+        if (parsedDuration > 1440) {
+            return "Duration is too large.";
         }
 
         if (cleanPdfUrl.isBlank() && cleanVideoUrl.isBlank() && cleanYoutubeUrl.isBlank()) {

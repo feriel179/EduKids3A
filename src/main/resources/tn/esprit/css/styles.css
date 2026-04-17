@@ -664,21 +664,21 @@
     -fx-background-color: linear-gradient(to bottom right, #f7fbff 0%, #ebf3ff 100%);
     -fx-border-color: #b9d3ff;
     -fx-min-height: 152px;
-    -fx-alignment: center-left;
+    -fx-alignment: center;
 }
 
 .metric-card-green {
     -fx-background-color: linear-gradient(to bottom right, #f6fffb 0%, #e8faf4 100%);
     -fx-border-color: #bfe9d7;
     -fx-min-height: 152px;
-    -fx-alignment: center-left;
+    -fx-alignment: center;
 }
 
 .metric-card-gold {
     -fx-background-color: linear-gradient(to bottom right, #fffdf5 0%, #fff5dd 100%);
     -fx-border-color: #f6d88a;
     -fx-min-height: 152px;
-    -fx-alignment: center-left;
+    -fx-alignment: center;
 }
 
 .metric-title {
@@ -686,6 +686,8 @@
     -fx-font-size: 14px;
     -fx-font-weight: 800;
     -fx-padding: 0 0 2 0;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
 }
 
 .metric-value,
@@ -694,6 +696,8 @@
 .metric-value-gold {
     -fx-font-size: 40px;
     -fx-font-weight: 900;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
 }
 
 .metric-value-blue {
@@ -837,6 +841,26 @@
     -fx-text-fill: #ff8b1f;
 }
 
+.table-badge-draft {
+    -fx-background-color: #eef2f7;
+    -fx-text-fill: #51657e;
+}
+
+.table-badge-published {
+    -fx-background-color: #e8fbf2;
+    -fx-text-fill: #17925f;
+}
+
+.table-badge-archived {
+    -fx-background-color: #fff0da;
+    -fx-text-fill: #d97706;
+}
+
+.table-badge-hidden {
+    -fx-background-color: #f4ebff;
+    -fx-text-fill: #7e4dd2;
+}
+
 .dashboard-spotlight-card {
     -fx-background-color: linear-gradient(to bottom right, #ffffff 0%, #f4f8ff 60%, #e6efff 100%);
 }
@@ -885,6 +909,16 @@
     -fx-font-weight: 900;
 }
 
+.preview-image-status {
+    -fx-text-fill: #d6e7ff;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.preview-cover-image {
+    -fx-effect: dropshadow(gaussian, rgba(8, 18, 37, 0.28), 26, 0.22, 0, 10);
+}
+
 .preview-title {
     -fx-text-fill: white;
     -fx-font-size: 25px;
@@ -920,6 +954,28 @@
 .preview-card .hero-text,
 .lesson-preview-card .hero-text {
     -fx-text-fill: #eef6ff;
+}
+
+.ai-status-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-line-spacing: 2px;
+}
+
+.ai-status-idle {
+    -fx-text-fill: #6280a7;
+}
+
+.ai-status-running {
+    -fx-text-fill: #2563eb;
+}
+
+.ai-status-success {
+    -fx-text-fill: #15803d;
+}
+
+.ai-status-error {
+    -fx-text-fill: #c2410c;
 }
 
 .footer-mini-card,
@@ -1213,6 +1269,14 @@
     -fx-font-weight: 900;
 }
 
+.my-courses-page {
+    -fx-padding: 2 0 0 0;
+}
+
+.my-courses-grid {
+    -fx-alignment: top-left;
+}
+
 .course-card {
     -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #fbfdff 100%);
     -fx-background-radius: 26px;
@@ -1229,6 +1293,71 @@
 
 .student-course-card {
     -fx-padding: 0;
+}
+
+.my-course-card {
+    -fx-padding: 0;
+    -fx-pref-height: 520px;
+    -fx-min-height: 520px;
+    -fx-max-height: 520px;
+}
+
+.my-course-card-header {
+    -fx-min-height: 126px;
+    -fx-alignment: center-left;
+}
+
+.my-course-header-kicker {
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+}
+
+.my-course-status-badge {
+    -fx-padding: 6 12 6 12;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+}
+
+.my-course-status-published {
+    -fx-text-fill: #effff8;
+    -fx-background-color: rgba(12, 86, 63, 0.34);
+    -fx-border-color: rgba(220, 255, 238, 0.3);
+}
+
+.my-course-status-draft {
+    -fx-text-fill: #fff8ef;
+    -fx-background-color: rgba(149, 72, 22, 0.34);
+    -fx-border-color: rgba(255, 230, 204, 0.3);
+}
+
+.my-course-status-archived {
+    -fx-text-fill: #fffaf0;
+    -fx-background-color: rgba(92, 64, 8, 0.34);
+    -fx-border-color: rgba(255, 236, 184, 0.3);
+}
+
+.my-course-card-body {
+    -fx-spacing: 12px;
+    -fx-fill-width: true;
+}
+
+.my-course-summary {
+    -fx-text-fill: #607390;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 2px;
+}
+
+.my-course-meta {
+    -fx-text-fill: #5f7390;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.my-course-open-button {
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+    -fx-max-width: 1.7976931348623157E308;
 }
 
 .student-course-media {

@@ -48,8 +48,8 @@
                                 <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
                             </padding>
                             <children>
-                                <Label styleClass="metric-title" text="PDF Resources" />
-                                <Label fx:id="pdfLessonsMetricLabel" styleClass="metric-value-green" text="0" />
+                                <Label styleClass="metric-title" text="Published Lessons" />
+                                <Label fx:id="publishedLessonsMetricLabel" styleClass="metric-value-green" text="0" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
@@ -57,8 +57,8 @@
                                 <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
                             </padding>
                             <children>
-                                <Label styleClass="metric-title" text="Video or YouTube" />
-                                <Label fx:id="videoLessonsMetricLabel" styleClass="metric-value-gold" text="0" />
+                                <Label styleClass="metric-title" text="Total Duration" />
+                                <Label fx:id="totalDurationMetricLabel" styleClass="metric-value-gold" text="0" />
                             </children>
                         </VBox>
                     </children>
@@ -85,6 +85,8 @@
                                 <TableColumn fx:id="orderColumn" prefWidth="90.0" text="Order" />
                                 <TableColumn fx:id="titleColumn" prefWidth="260.0" text="Lesson Title" />
                                 <TableColumn fx:id="courseColumn" prefWidth="220.0" text="Course" />
+                                <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status" />
+                                <TableColumn fx:id="durationColumn" prefWidth="130.0" text="Duration" />
                                 <TableColumn fx:id="mediaTypeColumn" prefWidth="170.0" text="Media" />
                                 <TableColumn fx:id="urlColumn" prefWidth="420.0" text="Resource Links" />
                             </columns>

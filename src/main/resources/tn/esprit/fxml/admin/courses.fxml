@@ -48,8 +48,8 @@
                                 <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
                             </padding>
                             <children>
-                                <Label styleClass="metric-title" text="Total Likes" />
-                                <Label fx:id="totalLikesMetricLabel" styleClass="metric-value-green" text="0" />
+                                <Label styleClass="metric-title" text="Published Courses" />
+                                <Label fx:id="publishedCoursesMetricLabel" styleClass="metric-value-green" text="0" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
@@ -57,8 +57,8 @@
                                 <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
                             </padding>
                             <children>
-                                <Label styleClass="metric-title" text="Total Dislikes" />
-                                <Label fx:id="totalDislikesMetricLabel" styleClass="metric-value-gold" text="0" />
+                                <Label styleClass="metric-title" text="Course Lessons" />
+                                <Label fx:id="totalLessonsMetricLabel" styleClass="metric-value-gold" text="0" />
                             </children>
                         </VBox>
                     </children>
@@ -84,8 +84,9 @@
                                 <TableColumn fx:id="titleColumn" prefWidth="300.0" text="Course Name" />
                                 <TableColumn fx:id="subjectColumn" prefWidth="200.0" text="Subject" />
                                 <TableColumn fx:id="levelColumn" prefWidth="180.0" text="Level" />
-                                <TableColumn fx:id="likesColumn" prefWidth="120.0" text="Likes" />
-                                <TableColumn fx:id="dislikesColumn" prefWidth="130.0" text="Dislikes" />
+                                <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status" />
+                                <TableColumn fx:id="lessonCountColumn" prefWidth="120.0" text="Lessons" />
+                                <TableColumn fx:id="durationColumn" prefWidth="150.0" text="Duration" />
                             </columns>
                         </TableView>
 

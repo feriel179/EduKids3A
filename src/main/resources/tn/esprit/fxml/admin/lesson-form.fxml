@@ -68,22 +68,26 @@
                                                         <TextField fx:id="lessonTitleField" promptText="Example: Introduction to Fractions" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                                         <Label text="Order" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                                                         <TextField fx:id="orderField" promptText="1" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                        <Label text="PDF / Main URL" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                                        <Label text="Status" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                                        <ComboBox fx:id="statusComboBox" prefWidth="220.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                        <Label text="Duration (min)" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                                        <TextField fx:id="durationField" promptText="10" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                        <Label text="PDF / Main URL" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                                                             <children>
                                                                 <TextField fx:id="pdfUrlField" promptText="https://example.com/file.pdf" HBox.hgrow="ALWAYS" />
                                                                 <Button mnemonicParsing="false" onAction="#handleChoosePdfFile" styleClass="secondary-button" text="Choose PDF" />
                                                             </children>
                                                         </HBox>
-                                                        <Label text="Video URL" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                                        <Label text="Video URL" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                                             <children>
                                                                 <TextField fx:id="videoUrlField" promptText="https://example.com/video.mp4" HBox.hgrow="ALWAYS" />
                                                                 <Button mnemonicParsing="false" onAction="#handleChooseVideoFile" styleClass="secondary-button" text="Choose Video" />
                                                             </children>
                                                         </HBox>
-                                                        <Label text="YouTube URL" GridPane.columnIndex="0" GridPane.rowIndex="5" />
-                                                        <TextField fx:id="youtubeUrlField" promptText="https://youtube.com/watch?v=..." GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                                        <Label text="YouTube URL" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                                                        <TextField fx:id="youtubeUrlField" promptText="https://youtube.com/watch?v=..." GridPane.columnIndex="1" GridPane.rowIndex="7" />
                                                     </children>
                                                     <columnConstraints>
                                                         <javafx.scene.layout.ColumnConstraints minWidth="130.0" />
@@ -116,6 +120,8 @@
                                                     <children>
                                                         <Label fx:id="previewOrderLabel" styleClass="preview-chip-alt" text="Lesson 1" />
                                                         <Label fx:id="previewMediaLabel" styleClass="lesson-chip-dark" text="MEDIA" />
+                                                        <Label fx:id="previewStatusLabel" styleClass="preview-chip" text="Draft" />
+                                                        <Label fx:id="previewDurationLabel" styleClass="preview-chip-alt" text="10 min" />
                                                     </children>
                                                 </HBox>
                                                 <Label fx:id="previewUrlLabel" styleClass="hero-text" text="Add one or more lesson links here." wrapText="true" />

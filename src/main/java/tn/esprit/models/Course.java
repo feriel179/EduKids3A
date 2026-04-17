@@ -9,8 +9,16 @@ public class Course {
     private String image;
     private int likes;
     private int dislikes;
+    private String status;
+    private int lessonCount;
+    private int totalDurationMinutes;
 
     public Course(long id, String title, String description, int level, String subject, String image, int likes, int dislikes) {
+        this(id, title, description, level, subject, image, likes, dislikes, "DRAFT", 0, 0);
+    }
+
+    public Course(long id, String title, String description, int level, String subject, String image, int likes, int dislikes,
+                  String status, int lessonCount, int totalDurationMinutes) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -19,6 +27,9 @@ public class Course {
         this.image = image;
         this.likes = likes;
         this.dislikes = dislikes;
+        this.status = normalizeStatus(status);
+        this.lessonCount = Math.max(0, lessonCount);
+        this.totalDurationMinutes = Math.max(0, totalDurationMinutes);
     }
 
     public long getId() {
@@ -81,6 +92,30 @@ public class Course {
         this.dislikes = dislikes;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = normalizeStatus(status);
+    }
+
+    public int getLessonCount() {
+        return lessonCount;
+    }
+
+    public void setLessonCount(int lessonCount) {
+        this.lessonCount = Math.max(0, lessonCount);
+    }
+
+    public int getTotalDurationMinutes() {
+        return totalDurationMinutes;
+    }
+
+    public void setTotalDurationMinutes(int totalDurationMinutes) {
+        this.totalDurationMinutes = Math.max(0, totalDurationMinutes);
+    }
+
     public String getLevelText() {
         return level > 0 ? "Niveau " + level : "Niveau inconnu";
     }
@@ -93,6 +128,52 @@ public class Course {
             return "#f59e0b";
         }
         return "#ef4444";
+    }
+
+    public boolean isPublished() {
+        return "PUBLISHED".equals(status);
+    }
+
+    public boolean isArchived() {
+        return "ARCHIVED".equals(status);
+    }
+
+    public String getStatusLabel() {
+        return switch (status) {
+            case "PUBLISHED" -> "Published";
+            case "ARCHIVED" -> "Archived";
+            default -> "Draft";
+        };
+    }
+
+    public String getTotalDurationLabel() {
+        return formatDuration(totalDurationMinutes);
+    }
+
+    public static String formatDuration(int totalMinutes) {
+        int safeMinutes = Math.max(0, totalMinutes);
+        if (safeMinutes < 60) {
+            return safeMinutes + " min";
+        }
+
+        int hours = safeMinutes / 60;
+        int minutes = safeMinutes % 60;
+        if (minutes == 0) {
+            return hours + " h";
+        }
+        return hours + " h " + minutes + " min";
+    }
+
+    private String normalizeStatus(String value) {
+        if (value == null) {
+            return "DRAFT";
+        }
+
+        String normalized = value.trim().toUpperCase();
+        return switch (normalized) {
+            case "PUBLISHED", "ARCHIVED" -> normalized;
+            default -> "DRAFT";
+        };
     }
 
     @Override

@@ -32,6 +32,10 @@ public class LessonFormController {
     @FXML
     private Label previewMediaLabel;
     @FXML
+    private Label previewStatusLabel;
+    @FXML
+    private Label previewDurationLabel;
+    @FXML
     private Label previewUrlLabel;
     @FXML
     private ComboBox<Course> courseComboBox;
@@ -39,6 +43,10 @@ public class LessonFormController {
     private TextField lessonTitleField;
     @FXML
     private TextField orderField;
+    @FXML
+    private ComboBox<String> statusComboBox;
+    @FXML
+    private TextField durationField;
     @FXML
     private TextField pdfUrlField;
     @FXML
@@ -59,15 +67,25 @@ public class LessonFormController {
     private void initialize() {
         lessonTitleField.setTextFormatter(FormValidator.createLengthFormatter(120));
         orderField.setTextFormatter(FormValidator.createDigitsFormatter(3));
+        durationField.setTextFormatter(FormValidator.createDigitsFormatter(4));
         pdfUrlField.setTextFormatter(FormValidator.createLengthFormatter(255));
         videoUrlField.setTextFormatter(FormValidator.createLengthFormatter(255));
         youtubeUrlField.setTextFormatter(FormValidator.createLengthFormatter(255));
 
         loadCourses();
+        statusComboBox.getItems().setAll("DRAFT", "PUBLISHED", "HIDDEN");
+        statusComboBox.setValue("DRAFT");
 
-        courseComboBox.valueProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
+        courseComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!editMode && newValue != null) {
+                orderField.setText(String.valueOf(lessonService.getNextOrderForCourse(newValue)));
+            }
+            refreshPreview();
+        });
         lessonTitleField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         orderField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
+        statusComboBox.valueProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
+        durationField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         pdfUrlField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         videoUrlField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         youtubeUrlField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
@@ -103,6 +121,8 @@ public class LessonFormController {
             courseComboBox.setValue(findMatchingCourse(lesson.getCourse()));
             lessonTitleField.setText(lesson.getTitle());
             orderField.setText(String.valueOf(lesson.getOrder()));
+            statusComboBox.setValue(lesson.getStatus());
+            durationField.setText(String.valueOf(lesson.getDurationMinutes()));
             pdfUrlField.setText(safeValue(lesson.getPdfUrl(), ""));
             videoUrlField.setText(safeValue(lesson.getVideoUrl(), ""));
             youtubeUrlField.setText(safeValue(lesson.getYoutubeUrl(), ""));
@@ -120,6 +140,8 @@ public class LessonFormController {
         Course course = courseComboBox.getValue();
         String title = lessonTitleField.getText().trim();
         int order = Integer.parseInt(orderField.getText().trim());
+        int durationMinutes = Integer.parseInt(durationField.getText().trim());
+        String status = safeValue(statusComboBox.getValue(), "DRAFT");
         String pdfUrl = safeValue(pdfUrlField.getText(), "");
         String videoUrl = safeValue(videoUrlField.getText(), "");
         String youtubeUrl = safeValue(youtubeUrlField.getText(), "");
@@ -127,11 +149,10 @@ public class LessonFormController {
         try {
             Lesson lesson;
             if (editMode && selectedLesson != null) {
-                selectedLesson.setCourse(course);
-                lessonService.updateLesson(selectedLesson, order, title, pdfUrl, videoUrl, youtubeUrl);
+                lessonService.updateLesson(selectedLesson, course, order, title, pdfUrl, videoUrl, youtubeUrl, status, durationMinutes);
                 lesson = selectedLesson;
             } else {
-                lesson = lessonService.addLesson(course, order, title, pdfUrl, videoUrl, youtubeUrl);
+                lesson = lessonService.addLesson(course, order, title, pdfUrl, videoUrl, youtubeUrl, status, durationMinutes);
             }
 
             String actionLabel = editMode ? "Lesson updated" : "Lesson added";
@@ -153,6 +174,8 @@ public class LessonFormController {
             courseComboBox.setValue(findMatchingCourse(selectedLesson.getCourse()));
             lessonTitleField.setText(selectedLesson.getTitle());
             orderField.setText(String.valueOf(selectedLesson.getOrder()));
+            statusComboBox.setValue(selectedLesson.getStatus());
+            durationField.setText(String.valueOf(selectedLesson.getDurationMinutes()));
             pdfUrlField.setText(safeValue(selectedLesson.getPdfUrl(), ""));
             videoUrlField.setText(safeValue(selectedLesson.getVideoUrl(), ""));
             youtubeUrlField.setText(safeValue(selectedLesson.getYoutubeUrl(), ""));
@@ -164,10 +187,12 @@ public class LessonFormController {
             }
 
             lessonTitleField.clear();
-            orderField.setText("1");
+            statusComboBox.setValue("DRAFT");
+            durationField.setText("10");
             pdfUrlField.clear();
             videoUrlField.clear();
             youtubeUrlField.clear();
+            updateSuggestedOrder();
         }
 
         refreshPreview();
@@ -211,12 +236,16 @@ public class LessonFormController {
         String selectedCourse = courseComboBox.getValue() == null ? "Select a course" : courseComboBox.getValue().getTitle();
         String lessonOrder = safeValue(orderField.getText(), "1");
         String mediaType = buildMediaLabel(pdfUrlField.getText(), videoUrlField.getText(), youtubeUrlField.getText());
+        String status = safeValue(statusComboBox.getValue(), "DRAFT");
+        String duration = safeValue(durationField.getText(), "10");
         String activeUrl = buildUrlSummary(pdfUrlField.getText(), videoUrlField.getText(), youtubeUrlField.getText());
 
         previewLessonTitleLabel.setText(lessonTitle);
         previewCourseLabel.setText(selectedCourse);
         previewOrderLabel.setText("Lesson " + lessonOrder);
         previewMediaLabel.setText(mediaType);
+        previewStatusLabel.setText(toDisplayStatus(status));
+        previewDurationLabel.setText(duration + " min");
         previewUrlLabel.setText(activeUrl.isBlank() ? "Add one or more lesson links here." : activeUrl);
     }
 
@@ -229,6 +258,7 @@ public class LessonFormController {
         String validationMessage = FormValidator.validateLesson(
                 lessonTitleField.getText(),
                 orderField.getText(),
+                durationField.getText(),
                 pdfUrlField.getText(),
                 videoUrlField.getText(),
                 youtubeUrlField.getText()
@@ -291,5 +321,22 @@ public class LessonFormController {
 
     private String safeValue(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
+    private void updateSuggestedOrder() {
+        Course course = courseComboBox.getValue();
+        if (course == null) {
+            orderField.setText("1");
+            return;
+        }
+        orderField.setText(String.valueOf(lessonService.getNextOrderForCourse(course)));
+    }
+
+    private String toDisplayStatus(String value) {
+        return switch (safeValue(value, "DRAFT")) {
+            case "PUBLISHED" -> "Published";
+            case "HIDDEN" -> "Hidden";
+            default -> "Draft";
+        };
     }
 }
