@@ -25,7 +25,7 @@ public class Evenement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_evenement")
     private Integer id;
-
+    /// maps
     @Column(nullable = false, length = 255)
     private String titre;
 
