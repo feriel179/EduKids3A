@@ -1294,6 +1294,71 @@
     -fx-alignment: top-left;
 }
 
+.my-courses-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 2 0 0 0;
+}
+
+.my-courses-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.my-courses-scroll .scroll-bar:vertical {
+    -fx-pref-width: 14px;
+}
+
+.my-courses-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #bdd0ea;
+    -fx-background-radius: 999px;
+    -fx-min-height: 72px;
+}
+
+.my-courses-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9ebce5;
+}
+
+.my-course-stats-row {
+    -fx-alignment: center-left;
+}
+
+.my-course-stat-card {
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #fbfdff 100%);
+    -fx-background-radius: 24px;
+    -fx-border-radius: 24px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1px;
+    -fx-padding: 18 20 18 20;
+    -fx-effect: dropshadow(gaussian, rgba(18, 40, 75, 0.08), 18, 0.16, 0, 5);
+}
+
+.my-course-stat-primary {
+    -fx-background-color: linear-gradient(to bottom right, #f4f9ff 0%, #eaf3ff 100%);
+    -fx-border-color: #cfe0fb;
+}
+
+.my-course-stat-title {
+    -fx-text-fill: #6a7e9a;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.my-course-stat-value {
+    -fx-text-fill: #173762;
+    -fx-font-size: 30px;
+    -fx-font-weight: 900;
+}
+
+.my-course-stat-value-primary {
+    -fx-text-fill: #1f73ff;
+}
+
+.my-course-stat-meta {
+    -fx-text-fill: #607390;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
 .course-card {
     -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #fbfdff 100%);
     -fx-background-radius: 26px;
@@ -1314,9 +1379,9 @@
 
 .my-course-card {
     -fx-padding: 0;
-    -fx-pref-height: 520px;
-    -fx-min-height: 520px;
-    -fx-max-height: 520px;
+    -fx-pref-height: 500px;
+    -fx-min-height: 500px;
+    -fx-max-height: 500px;
 }
 
 .my-course-card-header {
@@ -1369,6 +1434,47 @@
     -fx-text-fill: #5f7390;
     -fx-font-size: 12px;
     -fx-font-weight: 800;
+}
+
+.my-course-reading-badge,
+.student-progress-complete-badge,
+.student-progress-todo-badge {
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-padding: 7 10 7 10;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+}
+
+.my-course-reading-completed {
+    -fx-background-color: #e8fff2;
+    -fx-text-fill: #15803d;
+    -fx-border-color: #b8ebca;
+}
+
+.my-course-reading-progress {
+    -fx-background-color: #eff6ff;
+    -fx-text-fill: #1f73ff;
+    -fx-border-color: #cfe0fb;
+}
+
+.my-course-reading-idle {
+    -fx-background-color: #f5f7fb;
+    -fx-text-fill: #5f7390;
+    -fx-border-color: #dce4ef;
+}
+
+.student-progress-complete-badge {
+    -fx-background-color: #e8fff2;
+    -fx-text-fill: #15803d;
+    -fx-border-color: #b8ebca;
+}
+
+.student-progress-todo-badge {
+    -fx-background-color: #eef4ff;
+    -fx-text-fill: #47678b;
+    -fx-border-color: #d7e4f7;
 }
 
 .my-course-open-button {
@@ -1467,6 +1573,35 @@
     -fx-border-color: rgba(193, 208, 231, 0.9);
     -fx-border-width: 1px;
     -fx-effect: dropshadow(gaussian, rgba(18, 40, 75, 0.16), 24, 0.18, 0, 8);
+}
+
+.student-detail-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.student-detail-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.student-progress-bar {
+    -fx-pref-height: 10px;
+    -fx-min-height: 10px;
+    -fx-max-height: 10px;
+    -fx-background-color: transparent;
+}
+
+.student-progress-bar > .track {
+    -fx-background-color: #e8f0fb;
+    -fx-background-radius: 999px;
+    -fx-background-insets: 0;
+}
+
+.student-progress-bar > .bar {
+    -fx-background-color: linear-gradient(to right, #22c55e 0%, #1f73ff 100%);
+    -fx-background-radius: 999px;
+    -fx-background-insets: 0;
 }
 
 .student-detail-hero-overlay {
@@ -1569,6 +1704,11 @@
 
 .student-lesson-action-button:hover {
     -fx-opacity: 0.94;
+}
+
+.student-lesson-progress-button {
+    -fx-font-size: 12px;
+    -fx-padding: 9 14 9 14;
 }
 
 .student-lesson-action-pdf {

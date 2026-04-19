@@ -74,6 +74,19 @@ public final class DatabaseInitializer {
                         KEY idx_progress_course (cours_id)
                     )
                     """);
+
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS user_lecon_progress (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        user_id INT NOT NULL,
+                        lesson_id INT NOT NULL,
+                        completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (id),
+                        UNIQUE KEY uniq_user_lesson (user_id, lesson_id),
+                        KEY idx_lesson_progress_user (user_id),
+                        KEY idx_lesson_progress_lesson (lesson_id)
+                    )
+                    """);
         } catch (SQLException exception) {
             throw new IllegalStateException("Impossible d'initialiser les tables EduKids.", exception);
         }

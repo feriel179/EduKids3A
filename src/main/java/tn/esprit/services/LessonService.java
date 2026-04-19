@@ -17,6 +17,7 @@ import java.util.Locale;
 
 public class LessonService {
     private final Connection cnx = MyConnection.getInstance().getCnx();
+    private final StudentService studentService = new StudentService();
 
     public ObservableList<Lesson> getLessonsByCourse(Course course) {
         return loadLessonsByCourse(course, false);
@@ -159,6 +160,7 @@ public class LessonService {
 
             long generatedId = insertLessonRecord(lesson);
             refreshCourseStats(courseId);
+            studentService.refreshProgressForCourse(courseId);
             ensurePublishedCourseHasPublishedLesson(courseId);
             cnx.commit();
 
@@ -210,8 +212,10 @@ public class LessonService {
 
             updateLessonRecord(updatedLesson);
             refreshCourseStats(previousCourseId);
+            studentService.refreshProgressForCourse(previousCourseId);
             if (targetCourseId != previousCourseId) {
                 refreshCourseStats(targetCourseId);
+                studentService.refreshProgressForCourse(targetCourseId);
             }
             ensurePublishedCourseHasPublishedLesson(previousCourseId);
             if (targetCourseId != previousCourseId) {
@@ -243,13 +247,18 @@ public class LessonService {
         try {
             cnx.setAutoCommit(false);
 
-            try (PreparedStatement preparedStatement = cnx.prepareStatement("DELETE FROM lecon WHERE id = ?")) {
+            try (PreparedStatement deleteLessonProgress = cnx.prepareStatement("DELETE FROM user_lecon_progress WHERE lesson_id = ?");
+                 PreparedStatement preparedStatement = cnx.prepareStatement("DELETE FROM lecon WHERE id = ?")) {
+                deleteLessonProgress.setLong(1, lesson.getId());
+                deleteLessonProgress.executeUpdate();
+
                 preparedStatement.setLong(1, lesson.getId());
                 preparedStatement.executeUpdate();
             }
 
             closeOrderGap(courseId, order);
             refreshCourseStats(courseId);
+            studentService.refreshProgressForCourse(courseId);
             ensurePublishedCourseHasPublishedLesson(courseId);
             cnx.commit();
         } catch (SQLException exception) {

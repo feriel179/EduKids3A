@@ -18,8 +18,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import tn.esprit.models.Course;
+import tn.esprit.models.CourseProgressSummary;
 import tn.esprit.models.Lesson;
 import tn.esprit.services.LessonService;
+import tn.esprit.services.StudentService;
 import tn.esprit.util.SweetAlert;
 
 import java.awt.Desktop;
@@ -31,11 +33,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
 public class CourseDetailController {
     private static final double HERO_HEIGHT = 270;
+    private static final double LESSON_LIST_MIN_HEIGHT = 220;
+    private static final double LESSON_CARD_ESTIMATED_HEIGHT = 190;
 
     @FXML
     private StackPane courseHeroPane;
@@ -63,7 +68,10 @@ public class CourseDetailController {
     private ListView<Lesson> lessonListView;
 
     private final LessonService lessonService = new LessonService();
+    private final StudentService studentService = new StudentService();
     private final Rectangle heroClip = new Rectangle();
+    private Course currentCourse;
+    private Set<Long> completedLessonIds = Set.of();
 
     @FXML
     private void initialize() {
@@ -102,7 +110,9 @@ public class CourseDetailController {
     }
 
     public void setCourse(Course course) {
+        currentCourse = course;
         ObservableList<Lesson> lessons = lessonService.getPublishedLessonsByCourse(course);
+        completedLessonIds = studentService.getCompletedLessonIds(course);
 
         courseTitleLabel.setText(safeText(course.getTitle(), "Untitled course"));
         subjectLabel.setText(safeText(course.getSubject(), "General"));
@@ -117,9 +127,12 @@ public class CourseDetailController {
         courseHeroPane.setStyle(buildHeroStyle(course));
         updateHeroImage(course);
         lessonListView.setItems(lessons);
+        updateLessonListHeight(lessons.size());
     }
 
     private VBox createLessonCard(Lesson lesson) {
+        boolean completed = completedLessonIds.contains(lesson.getId());
+
         Label lessonOrderBadge = new Label("Lesson " + lesson.getOrder());
         lessonOrderBadge.getStyleClass().add("student-mini-badge");
 
@@ -129,7 +142,10 @@ public class CourseDetailController {
         Label mediaBadge = new Label(lesson.getDisplayMediaType());
         mediaBadge.getStyleClass().add("student-mini-badge");
 
-        HBox badgeRow = new HBox(8, lessonOrderBadge, durationBadge, mediaBadge);
+        Label completionBadge = new Label(completed ? "Completed" : "To do");
+        completionBadge.getStyleClass().add(completed ? "student-progress-complete-badge" : "student-progress-todo-badge");
+
+        HBox badgeRow = new HBox(8, lessonOrderBadge, durationBadge, mediaBadge, completionBadge);
         badgeRow.setAlignment(Pos.CENTER_LEFT);
 
         Label titleLabel = new Label(lesson.getTitle());
@@ -143,12 +159,14 @@ public class CourseDetailController {
         FlowPane actions = new FlowPane();
         actions.setHgap(10);
         actions.setVgap(10);
-        addResourceButton(actions, "Open PDF", lesson.getPdfUrl(), "PDF");
-        addResourceButton(actions, "Open Video", lesson.getVideoUrl(), "Video");
-        addResourceButton(actions, "Open YouTube", lesson.getYoutubeUrl(), "YouTube");
+        boolean hasResource = false;
+        hasResource = addResourceButton(actions, "Open PDF", lesson.getPdfUrl(), "PDF") || hasResource;
+        hasResource = addResourceButton(actions, "Open Video", lesson.getVideoUrl(), "Video") || hasResource;
+        hasResource = addResourceButton(actions, "Open YouTube", lesson.getYoutubeUrl(), "YouTube") || hasResource;
+        actions.getChildren().add(createCompletionButton(lesson, completed));
 
-        if (actions.getChildren().isEmpty()) {
-            helperLabel.setText("No PDF, video, or YouTube resource is available for this lesson yet.");
+        if (!hasResource) {
+            helperLabel.setText("No PDF, video, or YouTube resource is available yet. You can still update your progress.");
         }
 
         VBox card = new VBox(12, badgeRow, titleLabel, helperLabel, actions);
@@ -168,10 +186,42 @@ public class CourseDetailController {
         return button;
     }
 
-    private void addResourceButton(FlowPane actions, String text, String location, String resourceType) {
+    private Button createCompletionButton(Lesson lesson, boolean completed) {
+        Button button = new Button(completed ? "Mark as Not Done" : "Mark Complete");
+        button.getStyleClass().addAll(completed ? "ghost-button" : "primary-button", "student-lesson-progress-button");
+        button.setOnAction(event -> handleToggleLessonCompletion(lesson, !completed));
+        return button;
+    }
+
+    private boolean addResourceButton(FlowPane actions, String text, String location, String resourceType) {
         Button button = createResourceButton(text, location, resourceType);
         if (button != null) {
             actions.getChildren().add(button);
+            return true;
+        }
+        return false;
+    }
+
+    private void handleToggleLessonCompletion(Lesson lesson, boolean completed) {
+        if (currentCourse == null || lesson == null) {
+            return;
+        }
+
+        CourseProgressSummary summary = studentService.updateLessonCompletion(currentCourse, lesson, completed);
+        completedLessonIds = studentService.getCompletedLessonIds(currentCourse);
+        updateCurrentCourseProgress(summary);
+        lessonListView.refresh();
+    }
+
+    private void updateCurrentCourseProgress(CourseProgressSummary summary) {
+        if (summary == null) {
+            return;
+        }
+
+        if (currentCourse != null) {
+            currentCourse.setCompletedLessonCount(summary.getCompletedLessons());
+            currentCourse.setProgressPercent(summary.getProgressPercent());
+            currentCourse.setLessonCount(summary.getTotalLessons());
         }
     }
 
@@ -313,6 +363,13 @@ public class CourseDetailController {
             totalDuration = course.getTotalDurationMinutes();
         }
         return Course.formatDuration(totalDuration);
+    }
+
+    private void updateLessonListHeight(int lessonCount) {
+        double visibleRows = Math.max(1, lessonCount);
+        double computedHeight = Math.max(LESSON_LIST_MIN_HEIGHT, 22 + (visibleRows * LESSON_CARD_ESTIMATED_HEIGHT));
+        lessonListView.setPrefHeight(computedHeight);
+        lessonListView.setMinHeight(LESSON_LIST_MIN_HEIGHT);
     }
 
     private String summarize(String text, int maxLength) {

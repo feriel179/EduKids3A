@@ -1,6 +1,8 @@
 package tn.esprit.services;
 
+import tn.esprit.models.CourseProgressSummary;
 import tn.esprit.models.Course;
+import tn.esprit.models.Lesson;
 import tn.esprit.models.Student;
 import tn.esprit.util.MyConnection;
 import javafx.collections.FXCollections;
@@ -12,8 +14,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class StudentService {
     private static Student currentStudent;
@@ -42,7 +46,7 @@ public class StudentService {
 
     public Student getCurrentStudent() {
         if (currentStudent != null) {
-            currentStudent.replaceEnrolledCourses(loadEnrolledCourses(currentStudent.getId()));
+            refreshCurrentStudentCourses();
         }
         return currentStudent;
     }
@@ -62,10 +66,138 @@ public class StudentService {
             preparedStatement.setLong(2, course.getId());
             preparedStatement.setInt(3, 0);
             preparedStatement.executeUpdate();
-            currentStudent.replaceEnrolledCourses(loadEnrolledCourses(currentStudent.getId()));
+            refreshCurrentStudentCourses();
             return true;
         } catch (SQLException exception) {
             throw new IllegalStateException("Impossible d'inscrire l'etudiant au cours EduKids.", exception);
+        }
+    }
+
+    public CourseProgressSummary getCourseProgress(Course course) {
+        if (currentStudent == null || course == null) {
+            return new CourseProgressSummary(course == null ? 0 : course.getId(), 0, 0, 0, 0, 0, List.of());
+        }
+
+        String sql = """
+                SELECT c.id AS course_id,
+                       COUNT(l.id) AS total_lessons,
+                       COALESCE(SUM(CASE WHEN lp.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS completed_lessons,
+                       COALESCE(SUM(l.duration_minutes), 0) AS total_minutes,
+                       COALESCE(SUM(CASE WHEN lp.id IS NOT NULL THEN l.duration_minutes ELSE 0 END), 0) AS completed_minutes
+                FROM cours c
+                LEFT JOIN lecon l ON l.cours_id = c.id AND l.status = 'PUBLISHED'
+                LEFT JOIN user_lecon_progress lp ON lp.lesson_id = l.id AND lp.user_id = ?
+                WHERE c.id = ?
+                GROUP BY c.id
+                """;
+
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setLong(1, currentStudent.getId());
+            preparedStatement.setLong(2, course.getId());
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return new CourseProgressSummary(course.getId(), 0, 0, 0, 0, 0, List.of());
+                }
+
+                int totalLessons = resultSet.getInt("total_lessons");
+                int completedLessons = resultSet.getInt("completed_lessons");
+                int totalMinutes = resultSet.getInt("total_minutes");
+                int completedMinutes = resultSet.getInt("completed_minutes");
+                int progressPercent = totalLessons == 0 ? 0 : (int) Math.round((completedLessons * 100.0) / totalLessons);
+
+                return new CourseProgressSummary(
+                        course.getId(),
+                        completedLessons,
+                        totalLessons,
+                        progressPercent,
+                        completedMinutes,
+                        totalMinutes,
+                        loadRemainingLessonTitles(currentStudent.getId(), course.getId())
+                );
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Impossible de charger la progression du cours.", exception);
+        }
+    }
+
+    public Set<Long> getCompletedLessonIds(Course course) {
+        if (currentStudent == null || course == null) {
+            return Set.of();
+        }
+
+        String sql = """
+                SELECT lp.lesson_id
+                FROM user_lecon_progress lp
+                INNER JOIN lecon l ON l.id = lp.lesson_id
+                WHERE lp.user_id = ? AND l.cours_id = ? AND l.status = 'PUBLISHED'
+                """;
+
+        Set<Long> lessonIds = new LinkedHashSet<>();
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setLong(1, currentStudent.getId());
+            preparedStatement.setLong(2, course.getId());
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    lessonIds.add(resultSet.getLong("lesson_id"));
+                }
+            }
+            return lessonIds;
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Impossible de charger les lecons terminees.", exception);
+        }
+    }
+
+    public CourseProgressSummary updateLessonCompletion(Course course, Lesson lesson, boolean completed) {
+        if (currentStudent == null || course == null || lesson == null) {
+            return new CourseProgressSummary(course == null ? 0 : course.getId(), 0, 0, 0, 0, 0, List.of());
+        }
+
+        try {
+            cnx.setAutoCommit(false);
+            if (completed) {
+                try (PreparedStatement preparedStatement = cnx.prepareStatement("""
+                        INSERT INTO user_lecon_progress (user_id, lesson_id)
+                        VALUES (?, ?)
+                        ON DUPLICATE KEY UPDATE completed_at = CURRENT_TIMESTAMP
+                        """)) {
+                    preparedStatement.setLong(1, currentStudent.getId());
+                    preparedStatement.setLong(2, lesson.getId());
+                    preparedStatement.executeUpdate();
+                }
+            } else {
+                try (PreparedStatement preparedStatement = cnx.prepareStatement("DELETE FROM user_lecon_progress WHERE user_id = ? AND lesson_id = ?")) {
+                    preparedStatement.setLong(1, currentStudent.getId());
+                    preparedStatement.setLong(2, lesson.getId());
+                    preparedStatement.executeUpdate();
+                }
+            }
+
+            refreshProgressRow(currentStudent.getId(), course.getId());
+            cnx.commit();
+            refreshCurrentStudentCourses();
+            return getCourseProgress(course);
+        } catch (SQLException exception) {
+            rollbackQuietly();
+            throw new IllegalStateException("Impossible de mettre a jour la progression de la lecon.", exception);
+        } finally {
+            resetAutoCommit();
+        }
+    }
+
+    public void refreshProgressForCourse(long courseId) {
+        String sql = "SELECT user_id FROM user_cours_progress WHERE cours_id = ?";
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setLong(1, courseId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    refreshProgressRow(resultSet.getLong("user_id"), courseId);
+                }
+            }
+            if (currentStudent != null) {
+                refreshCurrentStudentCourses();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Impossible de recalculer la progression du cours.", exception);
         }
     }
 
@@ -194,9 +326,16 @@ public class StudentService {
         List<Course> courses = new ArrayList<>();
         String sql = """
                 SELECT c.id, c.titre, c.description, c.niveau, c.matiere, c.image, c.likes, c.dislikes,
-                       c.status, c.lesson_count, c.total_duration_minutes
+                       c.status, c.lesson_count, c.total_duration_minutes, progress.progress,
+                       COALESCE(completion.completed_lessons, 0) AS completed_lessons
                 FROM user_cours_progress progress
                 INNER JOIN cours c ON c.id = progress.cours_id
+                LEFT JOIN (
+                    SELECT lp.user_id, l.cours_id, COUNT(*) AS completed_lessons
+                    FROM user_lecon_progress lp
+                    INNER JOIN lecon l ON l.id = lp.lesson_id AND l.status = 'PUBLISHED'
+                    GROUP BY lp.user_id, l.cours_id
+                ) completion ON completion.user_id = progress.user_id AND completion.cours_id = progress.cours_id
                 WHERE progress.user_id = ?
                 ORDER BY c.titre
                 """;
@@ -225,7 +364,7 @@ public class StudentService {
     }
 
     private Course mapCourse(ResultSet resultSet) throws SQLException {
-        return new Course(
+        Course course = new Course(
                 resultSet.getLong("id"),
                 resultSet.getString("titre"),
                 resultSet.getString("description"),
@@ -238,6 +377,61 @@ public class StudentService {
                 resultSet.getInt("lesson_count"),
                 resultSet.getInt("total_duration_minutes")
         );
+        setCourseProgress(course, resultSet.getInt("completed_lessons"), resultSet.getInt("progress"));
+        return course;
+    }
+
+    private void refreshCurrentStudentCourses() {
+        if (currentStudent != null) {
+            currentStudent.replaceEnrolledCourses(loadEnrolledCourses(currentStudent.getId()));
+        }
+    }
+
+    private List<String> loadRemainingLessonTitles(long userId, long courseId) throws SQLException {
+        List<String> titles = new ArrayList<>();
+        String sql = """
+                SELECT l.titre
+                FROM lecon l
+                LEFT JOIN user_lecon_progress lp ON lp.lesson_id = l.id AND lp.user_id = ?
+                WHERE l.cours_id = ? AND l.status = 'PUBLISHED' AND lp.id IS NULL
+                ORDER BY l.ordre ASC, l.id ASC
+                """;
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setLong(1, userId);
+            preparedStatement.setLong(2, courseId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    titles.add(resultSet.getString("titre"));
+                }
+            }
+        }
+        return titles;
+    }
+
+    private void refreshProgressRow(long userId, long courseId) throws SQLException {
+        String sql = """
+                UPDATE user_cours_progress progress
+                SET progress = (
+                    SELECT CASE
+                        WHEN COUNT(l.id) = 0 THEN 0
+                        ELSE ROUND(COALESCE(SUM(CASE WHEN lp.id IS NOT NULL THEN 1 ELSE 0 END), 0) * 100.0 / COUNT(l.id))
+                    END
+                    FROM lecon l
+                    LEFT JOIN user_lecon_progress lp ON lp.lesson_id = l.id AND lp.user_id = progress.user_id
+                    WHERE l.cours_id = progress.cours_id AND l.status = 'PUBLISHED'
+                )
+                WHERE progress.user_id = ? AND progress.cours_id = ?
+                """;
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setLong(1, userId);
+            preparedStatement.setLong(2, courseId);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void setCourseProgress(Course course, int completedLessons, int progressPercent) {
+        course.setCompletedLessonCount(completedLessons);
+        course.setProgressPercent(progressPercent);
     }
 
     private String buildDisplayName(String firstName, String lastName, String email) {
@@ -284,5 +478,19 @@ public class StudentService {
         }
         String normalized = value.toLowerCase(Locale.ROOT);
         return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
+    }
+
+    private void rollbackQuietly() {
+        try {
+            cnx.rollback();
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private void resetAutoCommit() {
+        try {
+            cnx.setAutoCommit(true);
+        } catch (SQLException ignored) {
+        }
     }
 }

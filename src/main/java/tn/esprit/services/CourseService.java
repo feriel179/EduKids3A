@@ -231,9 +231,18 @@ public class CourseService implements GlobalInterface<Course> {
         try {
             cnx.setAutoCommit(false);
 
-            try (PreparedStatement deleteProgress = cnx.prepareStatement("DELETE FROM user_cours_progress WHERE cours_id = ?");
+            try (PreparedStatement deleteLessonProgress = cnx.prepareStatement("""
+                        DELETE ulp
+                        FROM user_lecon_progress ulp
+                        INNER JOIN lecon l ON l.id = ulp.lesson_id
+                        WHERE l.cours_id = ?
+                        """);
+                 PreparedStatement deleteProgress = cnx.prepareStatement("DELETE FROM user_cours_progress WHERE cours_id = ?");
                  PreparedStatement deleteLessons = cnx.prepareStatement("DELETE FROM lecon WHERE cours_id = ?");
                  PreparedStatement deleteCourse = cnx.prepareStatement("DELETE FROM cours WHERE id = ?")) {
+                deleteLessonProgress.setLong(1, course.getId());
+                deleteLessonProgress.executeUpdate();
+
                 deleteProgress.setLong(1, course.getId());
                 deleteProgress.executeUpdate();
 

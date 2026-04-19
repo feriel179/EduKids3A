@@ -12,6 +12,8 @@ public class Course {
     private String status;
     private int lessonCount;
     private int totalDurationMinutes;
+    private int completedLessonCount;
+    private int progressPercent;
 
     public Course(long id, String title, String description, int level, String subject, String image, int likes, int dislikes) {
         this(id, title, description, level, subject, image, likes, dislikes, "DRAFT", 0, 0);
@@ -148,6 +150,26 @@ public class Course {
 
     public String getTotalDurationLabel() {
         return formatDuration(totalDurationMinutes);
+    }
+
+    public int getCompletedLessonCount() {
+        return completedLessonCount;
+    }
+
+    public void setCompletedLessonCount(int completedLessonCount) {
+        this.completedLessonCount = Math.max(0, completedLessonCount);
+    }
+
+    public int getProgressPercent() {
+        return progressPercent;
+    }
+
+    public void setProgressPercent(int progressPercent) {
+        this.progressPercent = Math.max(0, Math.min(100, progressPercent));
+    }
+
+    public int getRemainingLessonCount() {
+        return Math.max(0, lessonCount - completedLessonCount);
     }
 
     public static String formatDuration(int totalMinutes) {

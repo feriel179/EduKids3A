@@ -12,7 +12,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.MyCourseController">
     <children>
-        <VBox AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" AnchorPane.topAnchor="24.0" spacing="22.0" styleClass="my-courses-page">
+        <VBox AnchorPane.bottomAnchor="16.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="16.0" spacing="18.0" styleClass="my-courses-page">
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="16.0">
                     <children>
@@ -31,10 +31,35 @@
                         </HBox>
                     </children>
                 </HBox>
-                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                <HBox spacing="16.0" styleClass="my-course-stats-row">
+                    <children>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card my-course-stat-primary">
+                            <children>
+                                <Label styleClass="my-course-stat-title" text="Courses Read" />
+                                <Label fx:id="coursesReadPercentLabel" styleClass="my-course-stat-value my-course-stat-value-primary" text="0%" />
+                                <Label fx:id="coursesReadMetaLabel" styleClass="my-course-stat-meta" text="0 of 0 courses read" wrapText="true" />
+                            </children>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card">
+                            <children>
+                                <Label styleClass="my-course-stat-title" text="Completed" />
+                                <Label fx:id="completedCoursesValueLabel" styleClass="my-course-stat-value" text="0/0" />
+                                <Label fx:id="completedCoursesMetaLabel" styleClass="my-course-stat-meta" text="courses completed" wrapText="true" />
+                            </children>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card">
+                            <children>
+                                <Label styleClass="my-course-stat-title" text="Remaining" />
+                                <Label fx:id="remainingCoursesValueLabel" styleClass="my-course-stat-value" text="0" />
+                                <Label fx:id="remainingCoursesMetaLabel" styleClass="my-course-stat-meta" text="courses left" wrapText="true" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="my-courses-scroll" VBox.vgrow="ALWAYS">
                     <content>
                         <FlowPane fx:id="myCoursesContainer" hgap="18.0" prefWrapLength="1100.0" styleClass="my-courses-grid" vgap="18.0">
-                            <padding><Insets bottom="8.0" left="4.0" right="4.0" top="4.0" /></padding>
+                            <padding><Insets bottom="28.0" left="4.0" right="10.0" top="4.0" /></padding>
                         </FlowPane>
                     </content>
                 </ScrollPane>

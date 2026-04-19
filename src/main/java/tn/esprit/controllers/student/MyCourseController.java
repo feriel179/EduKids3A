@@ -27,6 +27,7 @@ import java.util.Locale;
 
 public class MyCourseController {
     private static final double COURSE_CARD_WIDTH = 316;
+    private static final double COURSE_CARD_HEIGHT = 500;
 
     @FXML
     private FlowPane myCoursesContainer;
@@ -34,6 +35,18 @@ public class MyCourseController {
     private Label savedCountLabel;
     @FXML
     private Label savedDurationLabel;
+    @FXML
+    private Label coursesReadPercentLabel;
+    @FXML
+    private Label coursesReadMetaLabel;
+    @FXML
+    private Label completedCoursesValueLabel;
+    @FXML
+    private Label completedCoursesMetaLabel;
+    @FXML
+    private Label remainingCoursesValueLabel;
+    @FXML
+    private Label remainingCoursesMetaLabel;
 
     private final StudentService studentService = new StudentService();
 
@@ -48,6 +61,7 @@ public class MyCourseController {
         if (student == null || student.getEnrolledCourses().isEmpty()) {
             savedCountLabel.setText("0 courses");
             savedDurationLabel.setText("0 min");
+            updateStats(List.of());
 
             Label empty = new Label("Your course list is empty. Browse the catalog to enroll.");
             empty.getStyleClass().add("empty-state");
@@ -60,6 +74,7 @@ public class MyCourseController {
         List<Course> courses = student.getEnrolledCourses();
         savedCountLabel.setText(courses.size() + (courses.size() == 1 ? " course" : " courses"));
         savedDurationLabel.setText(Course.formatDuration(courses.stream().mapToInt(Course::getTotalDurationMinutes).sum()));
+        updateStats(courses);
 
         for (Course course : courses) {
             myCoursesContainer.getChildren().add(createCourseCard(course));
@@ -71,9 +86,9 @@ public class MyCourseController {
         card.getStyleClass().addAll("card", "course-card", "my-course-card");
         card.setPrefWidth(COURSE_CARD_WIDTH);
         card.setMaxWidth(COURSE_CARD_WIDTH);
-        card.setMinHeight(520);
-        card.setPrefHeight(520);
-        card.setMaxHeight(520);
+        card.setMinHeight(COURSE_CARD_HEIGHT);
+        card.setPrefHeight(COURSE_CARD_HEIGHT);
+        card.setMaxHeight(COURSE_CARD_HEIGHT);
 
         StackPane header = new StackPane();
         header.getStyleClass().add("my-course-card-header");
@@ -154,8 +169,17 @@ public class MyCourseController {
         Label statusMeta = new Label("Status: " + course.getStatusLabel());
         statusMeta.getStyleClass().add("my-course-meta");
 
-        VBox metaBox = new VBox(6, subjectMeta, statusMeta);
-        metaBox.setMinHeight(58);
+        Label readPercentMeta = new Label("Read: " + course.getProgressPercent() + "%");
+        readPercentMeta.getStyleClass().add("my-course-meta");
+
+        Label readLessonsMeta = new Label(course.getCompletedLessonCount() + "/" + course.getLessonCount() + " lessons read");
+        readLessonsMeta.getStyleClass().add("my-course-meta");
+
+        Label readingStatusBadge = new Label(resolveReadingStatusLabel(course));
+        readingStatusBadge.getStyleClass().addAll("my-course-reading-badge", resolveReadingStatusStyleClass(course));
+
+        VBox metaBox = new VBox(8, subjectMeta, statusMeta, readPercentMeta, readLessonsMeta, readingStatusBadge);
+        metaBox.setMinHeight(108);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -169,6 +193,47 @@ public class MyCourseController {
         card.getChildren().addAll(header, body);
         card.setOnMouseClicked(event -> StudentShellController.getInstance().showCourseDetail(course));
         return card;
+    }
+
+    private void updateStats(List<Course> courses) {
+        int totalCourses = courses.size();
+        long readCourses = courses.stream().filter(course -> course.getProgressPercent() > 0).count();
+        long completedCourses = courses.stream().filter(this::isCourseCompleted).count();
+        long remainingCourses = Math.max(0, totalCourses - completedCourses);
+        int readPercent = totalCourses == 0 ? 0 : (int) Math.round((readCourses * 100.0) / totalCourses);
+
+        coursesReadPercentLabel.setText(readPercent + "%");
+        coursesReadMetaLabel.setText(readCourses + " of " + totalCourses + (totalCourses == 1 ? " course read" : " courses read"));
+
+        completedCoursesValueLabel.setText(completedCourses + "/" + totalCourses);
+        completedCoursesMetaLabel.setText(totalCourses == 1 ? "course completed" : "courses completed");
+
+        remainingCoursesValueLabel.setText(String.valueOf(remainingCourses));
+        remainingCoursesMetaLabel.setText(remainingCourses == 1 ? "course left" : "courses left");
+    }
+
+    private boolean isCourseCompleted(Course course) {
+        return course.getLessonCount() > 0 && course.getProgressPercent() >= 100;
+    }
+
+    private String resolveReadingStatusLabel(Course course) {
+        if (isCourseCompleted(course)) {
+            return "Completed";
+        }
+        if (course.getProgressPercent() > 0) {
+            return "In Progress";
+        }
+        return "Not Started";
+    }
+
+    private String resolveReadingStatusStyleClass(Course course) {
+        if (isCourseCompleted(course)) {
+            return "my-course-reading-completed";
+        }
+        if (course.getProgressPercent() > 0) {
+            return "my-course-reading-progress";
+        }
+        return "my-course-reading-idle";
     }
 
     private String buildHeaderStyle(Course course) {
