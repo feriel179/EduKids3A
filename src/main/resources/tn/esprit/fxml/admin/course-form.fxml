@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.admin.CourseFormController">
@@ -88,7 +89,12 @@
                                                                         <Button fx:id="translateButton" mnemonicParsing="false" onAction="#handleTranslateCourse" styleClass="ghost-button" text="Translate" />
                                                                     </children>
                                                                 </HBox>
-                                                                <Button fx:id="generateImageButton" mnemonicParsing="false" onAction="#handleGenerateImage" styleClass="primary-button" text="Generate Cover Image" />
+                                                                <HBox spacing="10.0">
+                                                                    <children>
+                                                                        <Button fx:id="generateImageButton" mnemonicParsing="false" onAction="#handleGenerateImage" styleClass="primary-button" text="Generate Cover Image" />
+                                                                        <Button fx:id="configureAiButton" mnemonicParsing="false" onAction="#handleConfigureAi" styleClass="secondary-button" text="Local AI Setup" />
+                                                                    </children>
+                                                                </HBox>
                                                                 <Label fx:id="aiStatusLabel" text="AI assistant ready." wrapText="true" />
                                                             </children>
                                                         </VBox>
@@ -110,7 +116,7 @@
                                     </children>
                                 </VBox>
 
-                                <VBox prefWidth="320.0" spacing="18.0">
+                                <VBox prefWidth="360.0" spacing="18.0">
                                     <children>
                                         <VBox spacing="10.0" styleClass="preview-card">
                                             <padding>
@@ -118,8 +124,12 @@
                                             </padding>
                                             <children>
                                                 <Label styleClass="preview-kicker" text="Live Preview" />
-                                                <Label fx:id="previewImageStatusLabel" styleClass="preview-image-status" text="No cover image generated yet." wrapText="true" />
-                                                <ImageView fx:id="previewImageView" fitHeight="168.0" fitWidth="276.0" managed="false" pickOnBounds="true" preserveRatio="true" smooth="true" styleClass="preview-cover-image" visible="false" />
+                                                <Label fx:id="previewImageStatusLabel" styleClass="preview-image-status" text="Generate a cover image to preview it here." wrapText="true" />
+                                                <StackPane minHeight="228.0" prefHeight="228.0" styleClass="preview-cover-frame">
+                                                    <children>
+                                                        <ImageView fx:id="previewImageView" fitHeight="208.0" fitWidth="308.0" managed="false" pickOnBounds="true" preserveRatio="true" smooth="true" styleClass="preview-cover-image" visible="false" />
+                                                    </children>
+                                                </StackPane>
                                                 <Label fx:id="previewTitleLabel" styleClass="preview-title" text="Your course title will appear here" wrapText="true" />
                                                 <HBox spacing="8.0">
                                                     <children>

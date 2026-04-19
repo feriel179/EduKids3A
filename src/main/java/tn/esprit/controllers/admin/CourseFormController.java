@@ -1,23 +1,33 @@
 package tn.esprit.controllers.admin;
 
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import tn.esprit.models.Course;
 import tn.esprit.services.CourseService;
-import tn.esprit.services.OpenAiContentService;
+import tn.esprit.services.FreeImageContentService;
+import tn.esprit.services.LocalAiContentService;
+import tn.esprit.util.AppSettings;
 import tn.esprit.util.FormValidator;
 import tn.esprit.util.SweetAlert;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -70,10 +80,13 @@ public class CourseFormController {
     @FXML
     private Button generateImageButton;
     @FXML
+    private Button configureAiButton;
+    @FXML
     private ImageView previewImageView;
 
     private final CourseService courseService = new CourseService();
-    private final OpenAiContentService openAiContentService = new OpenAiContentService();
+    private final LocalAiContentService localAiContentService = new LocalAiContentService();
+    private final FreeImageContentService freeImageContentService = new FreeImageContentService();
     private Course selectedCourse;
     private boolean editMode;
     private String courseImagePath = "course-default.png";
@@ -90,6 +103,7 @@ public class CourseFormController {
         statusComboBox.setValue("DRAFT");
         translationLanguageComboBox.getItems().setAll("French", "English", "Arabic");
         translationLanguageComboBox.setValue("French");
+        generateImageButton.setText("Generate Cover Image");
 
         titleField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         subjectField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
@@ -97,12 +111,7 @@ public class CourseFormController {
         statusComboBox.valueProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
         descriptionArea.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview());
 
-        updateAiStatus(
-                openAiContentService.hasApiKey()
-                        ? "AI assistant ready. Generate copy, translate content, or create a cover image."
-                        : "Add OPENAI_API_KEY to enable the AI tools on this page.",
-                openAiContentService.hasApiKey() ? "ai-status-idle" : "ai-status-error"
-        );
+        refreshAiState();
         refreshPreview();
     }
 
@@ -186,12 +195,7 @@ public class CourseFormController {
             courseImagePath = "course-default.png";
         }
         translationLanguageComboBox.setValue("French");
-        updateAiStatus(
-                openAiContentService.hasApiKey()
-                        ? "AI assistant ready. Generate copy, translate content, or create a cover image."
-                        : "Add OPENAI_API_KEY to enable the AI tools on this page.",
-                openAiContentService.hasApiKey() ? "ai-status-idle" : "ai-status-error"
-        );
+        refreshAiState();
         refreshPreview();
     }
 
@@ -204,7 +208,7 @@ public class CourseFormController {
 
         runAiTask(
                 "Generating a course description...",
-                () -> openAiContentService.generateCourseDescription(
+                () -> localAiContentService.generateCourseDescription(
                         titleField.getText(),
                         subjectField.getText(),
                         mapLevel(levelComboBox.getValue()),
@@ -228,7 +232,7 @@ public class CourseFormController {
 
         runAiTask(
                 "Preparing pedagogical objectives...",
-                () -> openAiContentService.suggestObjectives(
+                () -> localAiContentService.suggestObjectives(
                         titleField.getText(),
                         subjectField.getText(),
                         mapLevel(levelComboBox.getValue()),
@@ -251,7 +255,7 @@ public class CourseFormController {
 
         runAiTask(
                 "Translating the course content...",
-                () -> openAiContentService.translateCourse(
+                () -> localAiContentService.translateCourse(
                         titleField.getText(),
                         subjectField.getText(),
                         descriptionArea.getText(),
@@ -276,7 +280,7 @@ public class CourseFormController {
 
         runAiTask(
                 "Creating a course cover image...",
-                () -> openAiContentService.generateCourseImage(
+                () -> freeImageContentService.generateCourseImage(
                         titleField.getText(),
                         subjectField.getText(),
                         mapLevel(levelComboBox.getValue()),
@@ -288,6 +292,11 @@ public class CourseFormController {
                     updateAiStatus("Cover image generated and attached to this course.", "ai-status-success");
                 }
         );
+    }
+
+    @FXML
+    private void handleConfigureAi() {
+        showLocalAiSetupDialog();
     }
 
     private void refreshPreview() {
@@ -362,7 +371,13 @@ public class CourseFormController {
                     ? task.getException().getMessage()
                     : "The AI request could not be completed.";
             updateAiStatus(message, "ai-status-error");
-            SweetAlert.error("AI Assistant", message);
+            if (message.toLowerCase().contains("local ai")
+                    || message.toLowerCase().contains("ollama")
+                    || message.toLowerCase().contains("model not found")) {
+                SweetAlert.warning("AI Assistant", message);
+            } else {
+                SweetAlert.error("AI Assistant", message);
+            }
         });
 
         Thread worker = new Thread(task, "course-ai-request");
@@ -382,13 +397,82 @@ public class CourseFormController {
         }
     }
 
+    private void refreshAiState() {
+        configureAiButton.setText("Local AI Setup");
+        updateAiStatus(
+                "Text uses local Ollama. Images use the free Pollinations provider (" + freeImageContentService.getImageModel() + ").",
+                "ai-status-idle"
+        );
+    }
+
     private void updateAiStatus(String message, String variantStyle) {
         aiStatusLabel.setText(safeValue(message, "AI assistant ready."));
-        aiStatusLabel.getStyleClass().removeAll("ai-status-idle", "ai-status-running", "ai-status-success", "ai-status-error");
+        aiStatusLabel.getStyleClass().removeAll("ai-status-idle", "ai-status-warning", "ai-status-running", "ai-status-success", "ai-status-error");
         if (!aiStatusLabel.getStyleClass().contains("ai-status-label")) {
             aiStatusLabel.getStyleClass().add("ai-status-label");
         }
         aiStatusLabel.getStyleClass().add(variantStyle);
+    }
+
+    private void showLocalAiSetupDialog() {
+        Dialog<Boolean> dialog = new Dialog<>();
+        dialog.setTitle("Local AI Setup");
+        dialog.setHeaderText(null);
+
+        DialogPane pane = dialog.getDialogPane();
+        pane.getStylesheets().add(getClass().getResource("/tn/esprit/css/styles.css").toExternalForm());
+        pane.getStyleClass().addAll("sweet-alert");
+
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType saveButtonType = new ButtonType("Save Setup", ButtonBar.ButtonData.OK_DONE);
+        pane.getButtonTypes().setAll(cancelButton, saveButtonType);
+
+        TextField baseUrlField = new TextField(AppSettings.get("OLLAMA_BASE_URL", localAiContentService.getBaseUrl()));
+        baseUrlField.setPromptText("http://localhost:11434/api");
+
+        TextField modelField = new TextField(AppSettings.get("OLLAMA_TEXT_MODEL", localAiContentService.getTextModel()));
+        modelField.setPromptText("gemma3");
+
+        Label helperLabel = new Label("EduKids uses Ollama for free local text generation and Pollinations for free cover images. Install Ollama, start it, then pull a model such as: ollama pull gemma3");
+        helperLabel.setWrapText(true);
+        helperLabel.getStyleClass().add("hero-text");
+
+        Label baseUrlLabel = new Label("Base URL");
+        Label modelLabel = new Label("Text Model");
+        Label imageProviderLabel = new Label("Image Provider");
+        Label imageProviderValue = new Label(freeImageContentService.getBaseUrl() + " [" + freeImageContentService.getImageModel() + "]");
+        imageProviderValue.setWrapText(true);
+        imageProviderValue.getStyleClass().add("hero-text");
+        VBox content = new VBox(12, helperLabel, baseUrlLabel, baseUrlField, modelLabel, modelField, imageProviderLabel, imageProviderValue);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setPadding(new Insets(8, 6, 2, 6));
+        pane.setContent(content);
+
+        Button saveDialogButton = (Button) pane.lookupButton(saveButtonType);
+        Button cancelDialogButton = (Button) pane.lookupButton(cancelButton);
+        if (saveDialogButton != null) {
+            saveDialogButton.getStyleClass().add("primary-button");
+        }
+        if (cancelDialogButton != null) {
+            cancelDialogButton.getStyleClass().add("secondary-button");
+        }
+
+        dialog.setResultConverter(buttonType -> buttonType == saveButtonType ? Boolean.TRUE : null);
+
+        Optional<Boolean> result = dialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        try {
+            AppSettings.saveLocal("OLLAMA_BASE_URL", safeValue(baseUrlField.getText(), localAiContentService.getBaseUrl()));
+            AppSettings.saveLocal("OLLAMA_TEXT_MODEL", safeValue(modelField.getText(), localAiContentService.getTextModel()));
+            refreshAiState();
+            updateAiStatus("Local AI setup saved. Text tools are ready, and cover images use the free provider.", "ai-status-success");
+        } catch (RuntimeException exception) {
+            updateAiStatus(exception.getMessage(), "ai-status-error");
+            SweetAlert.error("AI Assistant", exception.getMessage());
+        }
     }
 
     private boolean hasMinimumCourseContext() {
@@ -424,13 +508,24 @@ public class CourseFormController {
             previewImageView.setImage(null);
             previewImageView.setVisible(false);
             previewImageView.setManaged(false);
-            previewImageStatusLabel.setText("No cover image generated yet.");
+            previewImageStatusLabel.setText("Generate a cover image to preview it here.");
             previewImageStatusLabel.setVisible(true);
             previewImageStatusLabel.setManaged(true);
             return;
         }
 
-        previewImageView.setImage(new Image(previewImageSource, true));
+        Image previewImage = new Image(previewImageSource, false);
+        if (previewImage.isError() || previewImage.getWidth() <= 0 || previewImage.getHeight() <= 0) {
+            previewImageView.setImage(null);
+            previewImageView.setVisible(false);
+            previewImageView.setManaged(false);
+            previewImageStatusLabel.setText("The generated image could not be previewed. Try generating it again.");
+            previewImageStatusLabel.setVisible(true);
+            previewImageStatusLabel.setManaged(true);
+            return;
+        }
+
+        previewImageView.setImage(previewImage);
         previewImageView.setVisible(true);
         previewImageView.setManaged(true);
         previewImageStatusLabel.setText("AI cover image attached.");

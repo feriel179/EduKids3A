@@ -59,8 +59,8 @@ public final class FormValidator {
         if (cleanSubject.length() > 80) {
             return "Subject is too long.";
         }
-        if (!TITLE_PATTERN.matcher(cleanSubject).matches()) {
-            return "Subject contains unsupported characters.";
+        if (containsControlCharacters(cleanSubject)) {
+            return "Subject contains unsupported control characters.";
         }
         if (cleanSubject.matches("\\d+")) {
             return "Subject cannot contain only numbers.";
@@ -186,6 +186,10 @@ public final class FormValidator {
     private static String stripQuery(String value) {
         int queryIndex = value.indexOf('?');
         return queryIndex >= 0 ? value.substring(0, queryIndex) : value;
+    }
+
+    private static boolean containsControlCharacters(String value) {
+        return value.codePoints().anyMatch(Character::isISOControl);
     }
 
     private static String clean(String value) {

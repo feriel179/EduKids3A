@@ -5,16 +5,22 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import tn.esprit.models.Course;
 import tn.esprit.models.Student;
 import tn.esprit.services.StudentService;
 
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -76,6 +82,14 @@ public class MyCourseController {
         header.setMaxWidth(Double.MAX_VALUE);
         header.setStyle(buildHeaderStyle(course));
 
+        ImageView coverImageView = createCourseCoverView(course, COURSE_CARD_WIDTH, 126, 30);
+        if (coverImageView != null) {
+            Region coverOverlay = new Region();
+            coverOverlay.getStyleClass().add("course-card-cover-overlay");
+            coverOverlay.setPrefSize(COURSE_CARD_WIDTH, 126);
+            header.getChildren().addAll(coverImageView, coverOverlay);
+        }
+
         Label subjectChip = new Label(buildDisplaySubjectName(course.getSubject(), "General"));
         subjectChip.getStyleClass().add("student-course-chip");
 
@@ -89,6 +103,8 @@ public class MyCourseController {
 
         Label initials = new Label(buildCourseInitials(course));
         initials.getStyleClass().add("student-course-media-initials");
+        initials.setVisible(coverImageView == null);
+        initials.setManaged(coverImageView == null);
 
         Label kicker = new Label("Status: " + course.getStatusLabel());
         kicker.getStyleClass().addAll("my-course-header-kicker", "my-course-status-badge");
@@ -99,6 +115,7 @@ public class MyCourseController {
 
         VBox headerContent = new VBox(10, topRow, mediaSpacer, initials, kicker);
         headerContent.setPadding(new Insets(16));
+        StackPane.setAlignment(headerContent, Pos.TOP_LEFT);
         header.getChildren().add(headerContent);
 
         VBox body = new VBox(12);
@@ -178,6 +195,50 @@ public class MyCourseController {
             return clean.substring(0, 2).toUpperCase(Locale.ROOT);
         }
         return clean.isBlank() ? "ED" : clean.toUpperCase(Locale.ROOT);
+    }
+
+    private ImageView createCourseCoverView(Course course, double width, double height, double arc) {
+        String imageSource = resolveCourseImageSource(course.getImage());
+        if (imageSource == null) {
+            return null;
+        }
+
+        Image image = new Image(imageSource, false);
+        if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
+            return null;
+        }
+
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(width);
+        imageView.setFitHeight(height);
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
+        imageView.getStyleClass().add("course-card-cover-image");
+
+        Rectangle clip = new Rectangle(width, height);
+        clip.setArcWidth(arc);
+        clip.setArcHeight(arc);
+        imageView.setClip(clip);
+        return imageView;
+    }
+
+    private String resolveCourseImageSource(String value) {
+        if (value == null || value.isBlank() || "course-default.png".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+
+        String trimmedValue = value.trim();
+        if (trimmedValue.startsWith("http://") || trimmedValue.startsWith("https://") || trimmedValue.startsWith("file:/")) {
+            return trimmedValue;
+        }
+
+        Path localPath = Path.of(trimmedValue);
+        if (Files.exists(localPath)) {
+            return localPath.toUri().toString();
+        }
+
+        URL resource = getClass().getResource("/tn/esprit/images/" + trimmedValue);
+        return resource != null ? resource.toExternalForm() : null;
     }
 
     private String buildDisplaySubjectName(String subject, String fallback) {

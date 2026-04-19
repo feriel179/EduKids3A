@@ -112,15 +112,7 @@ public final class MyConnection {
     }
 
     private String readSetting(String key, String fallback) {
-        String systemValue = System.getProperty(key);
-        if (systemValue != null && !systemValue.isBlank()) {
-            return systemValue.trim();
-        }
-        String envValue = System.getenv(key);
-        if (envValue != null && !envValue.isBlank()) {
-            return envValue.trim();
-        }
-        return fallback;
+        return AppSettings.get(key, fallback);
     }
 
     private int readIntSetting(String key, int fallback) {

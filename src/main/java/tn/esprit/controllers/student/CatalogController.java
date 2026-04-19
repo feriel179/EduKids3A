@@ -11,6 +11,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -18,7 +20,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
@@ -198,6 +204,14 @@ public class CatalogController {
         media.setPrefHeight(156);
         media.setStyle(buildMediaStyle(course));
 
+        ImageView coverImageView = createCourseCoverView(course, COURSE_CARD_WIDTH, 156, 28);
+        if (coverImageView != null) {
+            Region coverOverlay = new Region();
+            coverOverlay.getStyleClass().add("course-card-cover-overlay");
+            coverOverlay.setPrefSize(COURSE_CARD_WIDTH, 156);
+            media.getChildren().addAll(coverImageView, coverOverlay);
+        }
+
         String displaySubject = buildDisplaySubjectName(course.getSubject(), "General");
 
         Label subjectChip = new Label(displaySubject);
@@ -218,12 +232,15 @@ public class CatalogController {
 
         Label initials = new Label(buildCourseInitials(course));
         initials.getStyleClass().add("student-course-media-initials");
+        initials.setVisible(coverImageView == null);
+        initials.setManaged(coverImageView == null);
 
         Region mediaSpacer = new Region();
         VBox.setVgrow(mediaSpacer, Priority.ALWAYS);
 
         VBox mediaContent = new VBox(12, topRow, mediaSpacer, kicker, initials);
         mediaContent.setPadding(new Insets(16));
+        StackPane.setAlignment(mediaContent, Pos.TOP_LEFT);
         media.getChildren().add(mediaContent);
 
         VBox body = new VBox(10);
@@ -457,6 +474,50 @@ public class CatalogController {
             return clean.substring(0, 2).toUpperCase(Locale.ROOT);
         }
         return clean.isBlank() ? "ED" : clean.toUpperCase(Locale.ROOT);
+    }
+
+    private ImageView createCourseCoverView(Course course, double width, double height, double arc) {
+        String imageSource = resolveCourseImageSource(course.getImage());
+        if (imageSource == null) {
+            return null;
+        }
+
+        Image image = new Image(imageSource, false);
+        if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
+            return null;
+        }
+
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(width);
+        imageView.setFitHeight(height);
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
+        imageView.getStyleClass().add("course-card-cover-image");
+
+        Rectangle clip = new Rectangle(width, height);
+        clip.setArcWidth(arc);
+        clip.setArcHeight(arc);
+        imageView.setClip(clip);
+        return imageView;
+    }
+
+    private String resolveCourseImageSource(String value) {
+        if (value == null || value.isBlank() || "course-default.png".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+
+        String trimmedValue = value.trim();
+        if (trimmedValue.startsWith("http://") || trimmedValue.startsWith("https://") || trimmedValue.startsWith("file:/")) {
+            return trimmedValue;
+        }
+
+        Path localPath = Path.of(trimmedValue);
+        if (Files.exists(localPath)) {
+            return localPath.toUri().toString();
+        }
+
+        URL resource = getClass().getResource("/tn/esprit/images/" + trimmedValue);
+        return resource != null ? resource.toExternalForm() : null;
     }
 
     private String buildDisplaySubjectName(String subject) {
