@@ -7,6 +7,7 @@ import tn.esprit.models.Course;
 import tn.esprit.services.CourseService;
 import tn.esprit.services.FreeImageContentService;
 import tn.esprit.services.LocalAiContentService;
+import tn.esprit.services.PhoneNotificationService;
 import tn.esprit.util.AppSettings;
 import tn.esprit.util.FormValidator;
 import tn.esprit.util.SweetAlert;
@@ -17,7 +18,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -87,6 +90,7 @@ public class CourseFormController {
     private final CourseService courseService = new CourseService();
     private final LocalAiContentService localAiContentService = new LocalAiContentService();
     private final FreeImageContentService freeImageContentService = new FreeImageContentService();
+    private final PhoneNotificationService phoneNotificationService = new PhoneNotificationService();
     private Course selectedCourse;
     private boolean editMode;
     private String courseImagePath = "course-default.png";
@@ -157,6 +161,8 @@ public class CourseFormController {
 
         try {
             Course course;
+            PhoneNotificationService.NotificationResult notificationResult = PhoneNotificationService.NotificationResult.skipped("");
+            boolean wasPublished = editMode && selectedCourse != null && selectedCourse.isPublished();
             if (editMode && selectedCourse != null) {
                 courseService.updateCourse(selectedCourse, title, description, level, subject, status, courseImagePath);
                 course = selectedCourse;
@@ -164,8 +170,16 @@ public class CourseFormController {
                 course = courseService.addCourse(title, description, level, subject, status, courseImagePath);
             }
 
+            if (course.isPublished() && !wasPublished) {
+                notificationResult = phoneNotificationService.sendCoursePublishedNotification(course);
+            }
+
             String actionLabel = editMode ? "Course updated" : "Course added";
-            SweetAlert.success(actionLabel, "The course \"" + course.getTitle() + "\" was saved successfully.");
+            String successMessage = "The course \"" + course.getTitle() + "\" was saved successfully.";
+            if (!notificationResult.message().isBlank()) {
+                successMessage += System.lineSeparator() + System.lineSeparator() + notificationResult.message();
+            }
+            SweetAlert.success(actionLabel, successMessage);
             AdminShellController.getInstance().showCourses();
         } catch (RuntimeException exception) {
             SweetAlert.error("Database Error", exception.getMessage());
@@ -339,6 +353,16 @@ public class CourseFormController {
         return value == null || value.isBlank() ? fallback : value.trim();
     }
 
+    private String readSetting(String... keys) {
+        for (String key : keys) {
+            String value = AppSettings.get(key, "");
+            if (!value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
+
     private String toDisplayStatus(String value) {
         return switch (safeValue(value, "DRAFT")) {
             case "PUBLISHED" -> "Published";
@@ -398,10 +422,15 @@ public class CourseFormController {
     }
 
     private void refreshAiState() {
-        configureAiButton.setText("Local AI Setup");
+        configureAiButton.setText("AI & Alerts Setup");
+        String phoneStatus = phoneNotificationService.describeStatus();
+        String variant = phoneNotificationService.isEnabled() && phoneStatus.toLowerCase().contains("incomplete")
+                ? "ai-status-warning"
+                : "ai-status-idle";
         updateAiStatus(
-                "Text uses local Ollama. Images use the free Pollinations provider (" + freeImageContentService.getImageModel() + ").",
-                "ai-status-idle"
+                "Text uses local Ollama. Images use the free Pollinations provider (" + freeImageContentService.getImageModel() + "). "
+                        + phoneStatus,
+                variant
         );
     }
 
@@ -416,7 +445,7 @@ public class CourseFormController {
 
     private void showLocalAiSetupDialog() {
         Dialog<Boolean> dialog = new Dialog<>();
-        dialog.setTitle("Local AI Setup");
+        dialog.setTitle("AI and Alerts Setup");
         dialog.setHeaderText(null);
 
         DialogPane pane = dialog.getDialogPane();
@@ -433,9 +462,36 @@ public class CourseFormController {
         TextField modelField = new TextField(AppSettings.get("OLLAMA_TEXT_MODEL", localAiContentService.getTextModel()));
         modelField.setPromptText("gemma3");
 
+        CheckBox smsEnabledCheckBox = new CheckBox("Send an SMS when a course is published");
+        smsEnabledCheckBox.setSelected(phoneNotificationService.isEnabled());
+
+        TextField twilioAccountSidField = new TextField(AppSettings.get("TWILIO_ACCOUNT_SID", ""));
+        twilioAccountSidField.setPromptText("ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+
+        PasswordField twilioAuthTokenField = new PasswordField();
+        twilioAuthTokenField.setText(AppSettings.get("TWILIO_AUTH_TOKEN", ""));
+        twilioAuthTokenField.setPromptText("Twilio auth token");
+
+        TextField twilioApiKeyField = new TextField(AppSettings.get("TWILIO_API_KEY", ""));
+        twilioApiKeyField.setPromptText("Optional API key");
+
+        PasswordField twilioApiSecretField = new PasswordField();
+        twilioApiSecretField.setText(AppSettings.get("TWILIO_API_SECRET", ""));
+        twilioApiSecretField.setPromptText("Optional API key secret");
+
+        TextField twilioFromField = new TextField(readSetting("TWILIO_FROM_PHONE", "TWILIO_FROM_NUMBER"));
+        twilioFromField.setPromptText("+15551234567");
+
+        TextField twilioToField = new TextField(readSetting("STUDENT_SMS_RECIPIENTS", "TWILIO_TO_PHONE"));
+        twilioToField.setPromptText("+216xxxxxxxx or +216xxxxxxxx,+216yyyyyyyy");
+
         Label helperLabel = new Label("EduKids uses Ollama for free local text generation and Pollinations for free cover images. Install Ollama, start it, then pull a model such as: ollama pull gemma3");
         helperLabel.setWrapText(true);
         helperLabel.getStyleClass().add("hero-text");
+
+        Label smsHelperLabel = new Label("Phone alerts use Twilio SMS. A message is sent only when a course is published, not while it stays in draft. Add your Twilio Account SID, either an Auth Token or an API key pair, then fill the sender and destination phone numbers.");
+        smsHelperLabel.setWrapText(true);
+        smsHelperLabel.getStyleClass().add("hero-text");
 
         Label baseUrlLabel = new Label("Base URL");
         Label modelLabel = new Label("Text Model");
@@ -443,7 +499,40 @@ public class CourseFormController {
         Label imageProviderValue = new Label(freeImageContentService.getBaseUrl() + " [" + freeImageContentService.getImageModel() + "]");
         imageProviderValue.setWrapText(true);
         imageProviderValue.getStyleClass().add("hero-text");
-        VBox content = new VBox(12, helperLabel, baseUrlLabel, baseUrlField, modelLabel, modelField, imageProviderLabel, imageProviderValue);
+        Label smsSectionLabel = new Label("Phone Alerts");
+        smsSectionLabel.getStyleClass().add("section-title");
+        Label sidLabel = new Label("Twilio Account SID");
+        Label authTokenLabel = new Label("Twilio Auth Token");
+        Label apiKeyLabel = new Label("Twilio API Key");
+        Label apiSecretLabel = new Label("Twilio API Secret");
+        Label fromLabel = new Label("Twilio Sender Phone");
+        Label toLabel = new Label("Recipient Phone(s)");
+
+        VBox content = new VBox(
+                12,
+                helperLabel,
+                baseUrlLabel,
+                baseUrlField,
+                modelLabel,
+                modelField,
+                imageProviderLabel,
+                imageProviderValue,
+                smsSectionLabel,
+                smsHelperLabel,
+                smsEnabledCheckBox,
+                sidLabel,
+                twilioAccountSidField,
+                authTokenLabel,
+                twilioAuthTokenField,
+                apiKeyLabel,
+                twilioApiKeyField,
+                apiSecretLabel,
+                twilioApiSecretField,
+                fromLabel,
+                twilioFromField,
+                toLabel,
+                twilioToField
+        );
         content.setAlignment(Pos.CENTER_LEFT);
         content.setPadding(new Insets(8, 6, 2, 6));
         pane.setContent(content);
@@ -467,8 +556,17 @@ public class CourseFormController {
         try {
             AppSettings.saveLocal("OLLAMA_BASE_URL", safeValue(baseUrlField.getText(), localAiContentService.getBaseUrl()));
             AppSettings.saveLocal("OLLAMA_TEXT_MODEL", safeValue(modelField.getText(), localAiContentService.getTextModel()));
+            AppSettings.saveLocal("COURSE_SMS_ENABLED", String.valueOf(smsEnabledCheckBox.isSelected()));
+            AppSettings.saveLocal("TWILIO_ACCOUNT_SID", twilioAccountSidField.getText());
+            AppSettings.saveLocal("TWILIO_AUTH_TOKEN", twilioAuthTokenField.getText());
+            AppSettings.saveLocal("TWILIO_API_KEY", twilioApiKeyField.getText());
+            AppSettings.saveLocal("TWILIO_API_SECRET", twilioApiSecretField.getText());
+            AppSettings.saveLocal("TWILIO_FROM_PHONE", twilioFromField.getText());
+            AppSettings.saveLocal("TWILIO_FROM_NUMBER", twilioFromField.getText());
+            AppSettings.saveLocal("TWILIO_TO_PHONE", twilioToField.getText());
+            AppSettings.saveLocal("STUDENT_SMS_RECIPIENTS", twilioToField.getText());
             refreshAiState();
-            updateAiStatus("Local AI setup saved. Text tools are ready, and cover images use the free provider.", "ai-status-success");
+            updateAiStatus("AI and phone alert setup saved.", "ai-status-success");
         } catch (RuntimeException exception) {
             updateAiStatus(exception.getMessage(), "ai-status-error");
             SweetAlert.error("AI Assistant", exception.getMessage());
