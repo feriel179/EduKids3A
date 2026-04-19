@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -9,7 +10,10 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.web.WebView?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneFrontPageEv" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
         <VBox styleClass="front-hero">
@@ -21,6 +25,13 @@
                        styleClass="search-field" HBox.hgrow="SOMETIMES"/>
             <Button onAction="#onFrontRechercheEvenements" text="🔍" styleClass="btn-search"/>
             <ComboBox fx:id="cbFrontSortEvenements" styleClass="sort-combo" prefWidth="160.0"/>
+            <Region prefWidth="8.0"/>
+            <HBox spacing="4.0" styleClass="front-ev-view-toggles">
+                <ToggleButton fx:id="toggleFrontEvListe" mnemonicParsing="false" text="Liste"
+                              styleClass="mode-toggle" selected="true"/>
+                <ToggleButton fx:id="toggleFrontEvCalendrier" mnemonicParsing="false" text="Calendrier"
+                              styleClass="mode-toggle"/>
+            </HBox>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="lblFrontEvenementsCount" text="0 événement(s)" styleClass="front-counter"/>
         </HBox>
@@ -36,6 +47,20 @@
                            textAlignment="CENTER" mouseTransparent="true"
                            StackPane.alignment="CENTER"/>
                 </StackPane>
+            </VBox>
+            <VBox fx:id="boxFrontEvCalendar" spacing="12.0" visible="false" managed="false"
+                  styleClass="front-calendar-root" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER" spacing="20.0" styleClass="front-calendar-nav">
+                    <Button fx:id="btnFrontCalPrev" mnemonicParsing="false" text="‹ Mois précédent"
+                            onAction="#onFrontCalPrevMonth" styleClass="button,button-secondary"/>
+                    <Label fx:id="lblFrontCalMonthTitle" styleClass="front-calendar-month-title"/>
+                    <Button fx:id="btnFrontCalNext" mnemonicParsing="false" text="Mois suivant ›"
+                            onAction="#onFrontCalNextMonth" styleClass="button,button-secondary"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" styleClass="front-calendar-scroll" VBox.vgrow="ALWAYS">
+                    <GridPane fx:id="gridFrontEvenementsCalendar" styleClass="front-calendar-grid"
+                              hgap="6.0" vgap="6.0"/>
+                </ScrollPane>
             </VBox>
             <VBox fx:id="boxFrontEvDetail" visible="false" managed="false" spacing="0"
                   styleClass="detail-root-outer" VBox.vgrow="ALWAYS">
@@ -56,6 +81,17 @@
                         <Label fx:id="lblFrontDetailTitre" styleClass="detail-title" wrapText="true"/>
                         <FlowPane fx:id="boxFrontDetailBadges" hgap="10" vgap="10"
                                   styleClass="detail-badges-flow"/>
+                        <VBox spacing="8.0" styleClass="detail-section">
+                            <Label text="Places &amp; durée" styleClass="detail-section-title"/>
+                            <Label fx:id="lblFrontDetailPlacesRestantes" wrapText="true" styleClass="detail-description"/>
+                            <Label fx:id="lblFrontDetailDuree" wrapText="true" styleClass="detail-description"/>
+                        </VBox>
+                        <VBox fx:id="boxFrontDetailMapWrap" spacing="6.0" styleClass="detail-section">
+                            <Label text="Carte (Google Maps)" styleClass="detail-section-title"/>
+                            <Pane maxWidth="980.0">
+                                <WebView fx:id="webFrontDetailMap" prefHeight="360.0" minHeight="280.0" prefWidth="960.0"/>
+                            </Pane>
+                        </VBox>
                         <VBox styleClass="detail-section" spacing="10">
                             <Label text="Description de l'événement" styleClass="detail-section-title"/>
                             <Label fx:id="lblFrontDetailDescription" wrapText="true"

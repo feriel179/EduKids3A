@@ -141,6 +141,99 @@
     -fx-fill: #a3a3a3;
 }
 
+.front-ev-view-toggles {
+    -fx-alignment: center-left;
+}
+
+.front-calendar-root {
+    -fx-padding: 0 28px 24px 28px;
+    -fx-background-color: #121212;
+}
+
+.front-calendar-nav {
+    -fx-padding: 4 0 0 0;
+}
+
+.front-calendar-month-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e5e5e5;
+    -fx-min-width: 220px;
+    -fx-alignment: center;
+}
+
+.front-calendar-scroll {
+    -fx-background-color: transparent;
+    -fx-background: #121212;
+}
+
+.front-calendar-scroll > .viewport {
+    -fx-background-color: #121212;
+}
+
+.front-calendar-grid {
+    -fx-background-color: #121212;
+    -fx-padding: 8 0 0 0;
+}
+
+.front-cal-weekday {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #737373;
+    -fx-padding: 4 0 8 4;
+}
+
+.front-cal-cell {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10px;
+    -fx-border-color: #2d2d2d;
+    -fx-border-radius: 10px;
+    -fx-padding: 8 8 10 8;
+    -fx-spacing: 4;
+    -fx-min-height: 88px;
+    -fx-pref-width: 120px;
+}
+
+.front-cal-cell-other {
+    -fx-opacity: 0.45;
+}
+
+.front-cal-cell-today {
+    -fx-border-color: #007bff;
+    -fx-border-width: 1.5px;
+}
+
+.front-cal-day-num {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e5e5e5;
+}
+
+.front-cal-day-num-sub {
+    -fx-text-fill: #737373;
+}
+
+.front-cal-ev-link {
+    -fx-font-size: 11px;
+    -fx-text-fill: #60a5fa;
+    -fx-underline: true;
+    -fx-cursor: hand;
+    -fx-wrap-text: true;
+}
+
+.front-cal-ev-more {
+    -fx-font-size: 10px;
+    -fx-text-fill: #737373;
+    -fx-font-style: italic;
+}
+
+.front-cal-empty-msg {
+    -fx-text-fill: #a3a3a3;
+    -fx-font-size: 14px;
+    -fx-padding: 40px;
+    -fx-wrap-text: true;
+}
+
 .cards-scroll {
     -fx-background-color: transparent;
     -fx-background: #121212;
@@ -217,6 +310,56 @@
 .badge-status-programme {
     -fx-background-color: rgba(34, 197, 94, 0.2);
     -fx-text-fill: #4ade80;
+}
+
+.event-card-reactions {
+    -fx-spacing: 8;
+    -fx-padding: 6 0 2 0;
+    -fx-alignment: center-left;
+    -fx-wrap-text: true;
+}
+
+.event-react-btn {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #a3a3a3;
+    -fx-border-color: #3f3f3f;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 5px 10px;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.event-react-btn:hover {
+    -fx-background-color: #333333;
+}
+
+.event-react-btn:disabled {
+    -fx-opacity: 0.55;
+    -fx-cursor: default;
+}
+
+.event-react-like-active {
+    -fx-background-color: rgba(34, 197, 94, 0.22);
+    -fx-border-color: rgba(74, 222, 128, 0.55);
+    -fx-text-fill: #4ade80;
+}
+
+.event-react-dislike-active {
+    -fx-background-color: rgba(239, 68, 68, 0.18);
+    -fx-border-color: rgba(248, 113, 113, 0.5);
+    -fx-text-fill: #f87171;
+}
+
+.event-react-fav-active {
+    -fx-background-color: rgba(234, 179, 8, 0.22);
+    -fx-border-color: rgba(251, 191, 36, 0.55);
+    -fx-text-fill: #fbbf24;
+}
+
+.event-react-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #737373;
 }
 
 .event-card-actions {
@@ -490,6 +633,17 @@
     -fx-background-color: #121212;
 }
 
+.back-page-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f5f5f5;
+}
+
+.back-table-muted {
+    -fx-text-fill: #737373;
+    -fx-font-size: 12px;
+}
+
 .tab-content-dark {
     -fx-background-color: #121212;
 }
@@ -567,6 +721,33 @@
 
 .front-nav-item:selected:hover {
     -fx-background-color: #0066dd;
+}
+
+.nav-favoris-badge {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10px;
+    -fx-padding: 2px 6px;
+}
+
+.chart-stats-dark {
+    -fx-background-color: #1a1a1a;
+    -fx-padding: 8px;
+    -fx-background-radius: 8px;
+}
+
+.chart-stats-dark .chart-title {
+    -fx-text-fill: #e5e5e5;
+}
+
+.chart-stats-dark .axis {
+    -fx-tick-label-fill: #a3a3a3;
+}
+
+.chart-stats-dark .chart-bar {
+    -fx-bar-fill: #007bff;
 }
 
 .front-pages-stack {
@@ -1118,6 +1299,89 @@
     -fx-text-fill: #e5e5e5;
 }
 
+/* Dialogue « Participer » (aligné carte web bootstrap) */
+.dialog-resa.dialog-pane {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #333;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+.dialog-resa.dialog-pane > .button-bar > .container > .details-button {
+    -fx-padding: 8px 18px;
+}
+
+.dialog-resa .header-panel {
+    -fx-background-color: transparent;
+}
+
+.resa-dialog-root {
+    -fx-spacing: 14;
+    -fx-padding: 0 4 8 4;
+    -fx-min-width: 480;
+}
+
+.resa-dialog-header {
+    -fx-background-color: #00a86b;
+    -fx-background-radius: 8px;
+    -fx-padding: 12px 16px;
+    -fx-alignment: center-left;
+}
+
+.resa-dialog-header-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.resa-dialog-summary {
+    -fx-spacing: 8;
+}
+
+.resa-dialog-event-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #60a5fa;
+}
+
+.resa-dialog-meta {
+    -fx-font-size: 12px;
+    -fx-text-fill: #a3a3a3;
+    -fx-wrap-text: true;
+}
+
+.resa-dialog-info-box {
+    -fx-background-color: rgba(13, 202, 240, 0.12);
+    -fx-border-color: rgba(13, 202, 240, 0.35);
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 14px;
+}
+
+.resa-dialog-info-total {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #7dd3fc;
+}
+
+.resa-dialog-form .label {
+    -fx-text-fill: #b8b8b8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.front-participer-scroll-wrap {
+    -fx-padding: 0 0 24 0;
+}
+
+.front-participer-inner {
+    -fx-padding: 0 8 0 8;
+}
+
+.front-participer-actions {
+    -fx-padding: 8 0 0 0;
+}
+
 .scroll-pane {
     -fx-background-color: transparent;
 }
@@ -1163,11 +1427,6 @@
 .login-rami-root .form-subtitle {
     -fx-font-size: 14px;
     -fx-text-fill: #9a9ea4;
-}
-
-.login-rami-root .login-dev-hint {
-    -fx-font-size: 11px;
-    -fx-text-fill: #747579;
 }
 
 .login-rami-root .field-label {

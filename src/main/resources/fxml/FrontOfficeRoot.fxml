@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -16,11 +17,19 @@
         <ToggleButton fx:id="toggleFrontNavAccueil" mnemonicParsing="false" text="Accueil" selected="true" styleClass="front-nav-item"/>
         <ToggleButton fx:id="toggleFrontNavEv" mnemonicParsing="false" text="Événements" styleClass="front-nav-item"/>
         <ToggleButton fx:id="toggleFrontNavPr" mnemonicParsing="false" text="Programmes" styleClass="front-nav-item"/>
+        <HBox spacing="6.0" alignment="CENTER_LEFT">
+            <ToggleButton fx:id="toggleFrontNavFavoris" mnemonicParsing="false" text="Mes favoris" styleClass="front-nav-item"/>
+            <Label fx:id="lblFrontNavFavorisBadge" text="" minWidth="22.0" alignment="CENTER" styleClass="nav-favoris-badge"/>
+        </HBox>
+        <ToggleButton fx:id="toggleFrontNavResa" mnemonicParsing="false" text="Mes réservations" styleClass="front-nav-item"/>
         <Region HBox.hgrow="ALWAYS"/>
     </HBox>
     <StackPane VBox.vgrow="ALWAYS" styleClass="front-pages-stack">
         <fx:include source="FrontPageAccueil.fxml"/>
         <fx:include source="FrontPageEvenements.fxml"/>
         <fx:include source="FrontPageProgrammes.fxml"/>
+        <fx:include source="FrontPageFavoris.fxml"/>
+        <fx:include source="FrontPageReservations.fxml"/>
+        <fx:include source="FrontPageParticiper.fxml"/>
     </StackPane>
 </VBox>

@@ -29,6 +29,9 @@
         <Separator/>
         <ToggleButton fx:id="toggleBackNavStats" mnemonicParsing="false" text="Statistiques"
                       maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+        <Separator/>
+        <ToggleButton fx:id="toggleBackNavResListe" mnemonicParsing="false" text="Réservations"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
     </VBox>
     <StackPane HBox.hgrow="ALWAYS" styleClass="back-office-main" VBox.vgrow="ALWAYS">
         <fx:include source="BackPageListeEvenements.fxml"/>
@@ -37,5 +40,6 @@
         <fx:include source="BackPageListeProgrammes.fxml"/>
         <fx:include source="BackPageFicheProgramme.fxml"/>
         <fx:include source="BackPageStatistiques.fxml"/>
+        <fx:include source="BackPageListeReservations.fxml"/>
     </StackPane>
 </HBox>

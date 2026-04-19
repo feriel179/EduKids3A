@@ -37,8 +37,6 @@
             <Label text="Connexion" styleClass="form-title"/>
             <Label text="Connectez-vous avec votre compte (e-mail et mot de passe)." styleClass="form-subtitle"
                    wrapText="true"/>
-            <Label styleClass="login-dev-hint" wrapText="true" maxWidth="320.0"
-                   text="Comptes de test : admin@edukids.local (admin) ou parent@edukids.local (parent) — mot de passe : edukids"/>
 
             <VBox spacing="15.0" maxWidth="320.0">
                 <Label text="Adresse e-mail" styleClass="field-label"/>

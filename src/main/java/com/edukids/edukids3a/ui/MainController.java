@@ -1,11 +1,17 @@
 package com.edukids.edukids3a.ui;
 
 import com.edukids.edukids3a.EduKidsApplication;
+import com.edukids.edukids3a.auth.Role;
+import com.edukids.edukids3a.auth.SessionManager;
 import com.edukids.edukids3a.model.Evenement;
 import com.edukids.edukids3a.model.Programme;
+import com.edukids.edukids3a.model.Reservation;
+import com.edukids.edukids3a.model.UserEvenementInteraction;
 import com.edukids.edukids3a.model.TypeEvenement;
 import com.edukids.edukids3a.service.EvenementService;
+import com.edukids.edukids3a.service.InteractionService;
 import com.edukids.edukids3a.service.ProgrammeService;
+import com.edukids.edukids3a.service.ReservationService;
 import com.edukids.edukids3a.validation.EvenementValidator;
 import com.edukids.edukids3a.validation.ProgrammeValidator;
 import com.edukids.edukids3a.validation.ValidationException;
@@ -17,6 +23,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
 import javafx.scene.control.Alert;
@@ -36,17 +43,25 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebView;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -54,6 +69,8 @@ import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -61,11 +78,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 public class MainController {
@@ -74,10 +94,21 @@ public class MainController {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy").withLocale(Locale.FRENCH);
+    private static final DateTimeFormatter MONTH_TITLE_FR = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
+    private static final DateTimeFormatter RESA_DATETIME_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.FRENCH);
+    private static final String[] CAL_WEEK_HEADERS = {"lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."};
 
     private static final String SORT_RECENT = "Plus récent";
     private static final String SORT_ANCIEN = "Plus ancien";
     private static final String SORT_TITRE = "Titre (A-Z)";
+
+    private YearMonth frontEvenementsCalMonth = YearMonth.now();
+    private boolean frontEvVueListe = true;
+
+    /** Nav front sélectionnée avant d'ouvrir la page « Participer » (pour Retour). */
+    private Toggle lastFrontNavBeforeParticiper;
+    /** Événement ciblé par le formulaire Participer. */
+    private Integer partenaireEvenementId;
 
     /** Taille demandée au décodage pour les cartes (px) */
     private static final double IMG_CARD_W = 600;
@@ -98,12 +129,21 @@ public class MainController {
     private static final int PG_BACK_PR_LISTE = 3;
     private static final int PG_BACK_PR_FORM = 4;
     private static final int PG_BACK_STATS = 5;
+    private static final int PG_BACK_RES_LISTE = 6;
 
     private final EvenementService evenementService = new EvenementService();
     private final ProgrammeService programmeService = new ProgrammeService();
+    private final InteractionService interactionService = new InteractionService();
+    private final ReservationService reservationService = new ReservationService();
+
+    /** Événement affiché en détail front (référence pour rechargement après actions). */
+    private Integer frontDetailEvenementId;
 
     private final ObservableList<Evenement> evenementsData = FXCollections.observableArrayList();
     private final ObservableList<Programme> programmesData = FXCollections.observableArrayList();
+    private final ObservableList<Reservation> reservationsData = FXCollections.observableArrayList();
+    private FilteredList<Reservation> reservationsFiltresBack;
+    private final ObservableList<Reservation> reservationsFrontData = FXCollections.observableArrayList();
     private FilteredList<Evenement> evenementsFiltresBack;
 
     @FXML
@@ -126,6 +166,8 @@ public class MainController {
     private ToggleButton toggleBackNavPrForm;
     @FXML
     private ToggleButton toggleBackNavStats;
+    @FXML
+    private ToggleButton toggleBackNavResListe;
     @FXML
     private VBox paneBackPageEvListe;
     @FXML
@@ -163,6 +205,34 @@ public class MainController {
     @FXML
     private ScrollPane paneBackPageStats;
     @FXML
+    private VBox paneBackPageResListe;
+    @FXML
+    private TableView<Reservation> tableReservations;
+    @FXML
+    private TableColumn<Reservation, Integer> colResId;
+    @FXML
+    private TableColumn<Reservation, String> colResEvenement;
+    @FXML
+    private TableColumn<Reservation, String> colResUserEmail;
+    @FXML
+    private TableColumn<Reservation, String> colResNom;
+    @FXML
+    private TableColumn<Reservation, String> colResEmail;
+    @FXML
+    private TableColumn<Reservation, String> colResTelephone;
+    @FXML
+    private TableColumn<Reservation, String> colResPlaces;
+    @FXML
+    private TableColumn<Reservation, String> colResDate;
+    @FXML
+    private TableColumn<Reservation, Reservation> colResActions;
+    @FXML
+    private Label lblBackResResultCount;
+    @FXML
+    private TextField tfBackResSearch;
+    @FXML
+    private Label lblEmptyBackReservations;
+    @FXML
     private Label lblStatsTotalEvenements;
     @FXML
     private Label lblStatsTotalProgrammes;
@@ -173,6 +243,14 @@ public class MainController {
     @FXML
     private Label lblStatsCouvertureProgrammes;
     @FXML
+    private Label lblStatsTotalLikes;
+    @FXML
+    private Label lblStatsTotalDislikes;
+    @FXML
+    private Label lblStatsTotalFavorites;
+    @FXML
+    private VBox boxStatsCharts;
+    @FXML
     private TableView<LigneStatsParType> tableStatsParType;
     @FXML
     private TableColumn<LigneStatsParType, String> colStatsType;
@@ -182,12 +260,19 @@ public class MainController {
     private TableColumn<LigneStatsParType, String> colStatsPourcent;
 
     private final ToggleGroup frontNavGroup = new ToggleGroup();
+    private final ToggleGroup frontEvViewGroup = new ToggleGroup();
     @FXML
     private ToggleButton toggleFrontNavAccueil;
     @FXML
     private ToggleButton toggleFrontNavEv;
     @FXML
     private ToggleButton toggleFrontNavPr;
+    @FXML
+    private ToggleButton toggleFrontNavFavoris;
+    @FXML
+    private ToggleButton toggleFrontNavResa;
+    @FXML
+    private Label lblFrontNavFavorisBadge;
     @FXML
     private VBox paneFrontPageAccueil;
     @FXML
@@ -200,6 +285,50 @@ public class MainController {
     private VBox paneFrontPageEv;
     @FXML
     private VBox paneFrontPagePr;
+    @FXML
+    private VBox paneFrontPageFavoris;
+    @FXML
+    private VBox paneFrontPageResa;
+    @FXML
+    private TableView<Reservation> tableFrontMesReservations;
+    @FXML
+    private TableColumn<Reservation, String> colFrontResEv;
+    @FXML
+    private TableColumn<Reservation, String> colFrontResPlaces;
+    @FXML
+    private TableColumn<Reservation, String> colFrontResDate;
+    @FXML
+    private Label lblFrontResaVide;
+    @FXML
+    private VBox paneFrontPageParticiper;
+    @FXML
+    private Label lblParticiperBreadcrumb;
+    @FXML
+    private Label lblParticiperEvTitre;
+    @FXML
+    private Label lblParticiperEvMeta;
+    @FXML
+    private Label lblParticiperEvLieu;
+    @FXML
+    private Label lblParticiperEvPlaces;
+    @FXML
+    private TextField tfParticiperNom;
+    @FXML
+    private TextField tfParticiperPrenom;
+    @FXML
+    private TextField tfParticiperEmail;
+    @FXML
+    private TextField tfParticiperTel;
+    @FXML
+    private Spinner<Integer> spParticiperAdultes;
+    @FXML
+    private Spinner<Integer> spParticiperEnfants;
+    @FXML
+    private Label lblParticiperTotal;
+    @FXML
+    private FlowPane flowFrontFavorisCards;
+    @FXML
+    private Label lblFrontFavorisVide;
 
     @FXML
     private FlowPane flowEvenementsCards;
@@ -218,6 +347,16 @@ public class MainController {
 
     @FXML
     private VBox boxFrontEvList;
+    @FXML
+    private VBox boxFrontEvCalendar;
+    @FXML
+    private GridPane gridFrontEvenementsCalendar;
+    @FXML
+    private Label lblFrontCalMonthTitle;
+    @FXML
+    private ToggleButton toggleFrontEvListe;
+    @FXML
+    private ToggleButton toggleFrontEvCalendrier;
     @FXML
     private VBox boxFrontEvDetail;
     @FXML
@@ -248,6 +387,14 @@ public class MainController {
     private Label lblFrontDetailDocs;
     @FXML
     private Label lblFrontDetailMateriels;
+    @FXML
+    private Label lblFrontDetailPlacesRestantes;
+    @FXML
+    private Label lblFrontDetailDuree;
+    @FXML
+    private VBox boxFrontDetailMapWrap;
+    @FXML
+    private WebView webFrontDetailMap;
 
     @FXML
     private TableView<Evenement> tableEvenements;
@@ -347,9 +494,18 @@ public class MainController {
         toggleBackNavPrListe.setToggleGroup(backNavGroup);
         toggleBackNavPrForm.setToggleGroup(backNavGroup);
         toggleBackNavStats.setToggleGroup(backNavGroup);
+        if (toggleBackNavResListe != null) {
+            toggleBackNavResListe.setToggleGroup(backNavGroup);
+        }
         toggleFrontNavAccueil.setToggleGroup(frontNavGroup);
         toggleFrontNavEv.setToggleGroup(frontNavGroup);
         toggleFrontNavPr.setToggleGroup(frontNavGroup);
+        if (toggleFrontNavFavoris != null) {
+            toggleFrontNavFavoris.setToggleGroup(frontNavGroup);
+        }
+        if (toggleFrontNavResa != null) {
+            toggleFrontNavResa.setToggleGroup(frontNavGroup);
+        }
 
         cbEvType.setItems(FXCollections.observableArrayList(TypeEvenement.values()));
         cbEvType.setConverter(new javafx.util.StringConverter<>() {
@@ -401,10 +557,65 @@ public class MainController {
         cbFrontSortEvenements.getSelectionModel().selectFirst();
         cbFrontSortEvenements.setOnAction(e -> rafraichirCartesEvenementsFront());
 
+        if (toggleFrontEvListe != null && toggleFrontEvCalendrier != null) {
+            toggleFrontEvListe.setToggleGroup(frontEvViewGroup);
+            toggleFrontEvCalendrier.setToggleGroup(frontEvViewGroup);
+            frontEvViewGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+                if (newT == null) {
+                    Platform.runLater(() -> {
+                        if (frontEvViewGroup.getSelectedToggle() == null) {
+                            toggleFrontEvListe.setSelected(true);
+                        }
+                    });
+                    return;
+                }
+                frontEvVueListe = newT == toggleFrontEvListe;
+                if (boxFrontEvList != null) {
+                    boxFrontEvList.setVisible(frontEvVueListe);
+                    boxFrontEvList.setManaged(frontEvVueListe);
+                }
+                if (boxFrontEvCalendar != null) {
+                    boolean cal = !frontEvVueListe;
+                    boxFrontEvCalendar.setVisible(cal);
+                    boxFrontEvCalendar.setManaged(cal);
+                    if (cal) {
+                        rafraichirCalendrierEvenementsFront();
+                    }
+                }
+            });
+        }
+        if (gridFrontEvenementsCalendar != null) {
+            gridFrontEvenementsCalendar.getColumnConstraints().clear();
+            for (int i = 0; i < 7; i++) {
+                ColumnConstraints cc = new ColumnConstraints();
+                cc.setPercentWidth(100.0 / 7.0);
+                cc.setHgrow(Priority.ALWAYS);
+                cc.setMinWidth(72);
+                gridFrontEvenementsCalendar.getColumnConstraints().add(cc);
+            }
+        }
+
         evenementsFiltresBack = new FilteredList<>(evenementsData, e -> true);
         tableEvenements.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tableEvenements.setItems(evenementsFiltresBack);
         configurerTableEvenementsBackOffice();
+        reservationsFiltresBack = new FilteredList<>(reservationsData, r -> true);
+        configurerTableReservationsBack();
+        configurerTableFrontMesReservations();
+        installerPageParticiper();
+        if (tfBackResSearch != null) {
+            tfBackResSearch.textProperty().addListener((o, ov, nv) -> {
+                String q = nv == null ? "" : nv.trim().toLowerCase(Locale.ROOT);
+                reservationsFiltresBack.setPredicate(r -> {
+                    if (q.isEmpty()) {
+                        return true;
+                    }
+                    return matcheRechercheReservation(r, q);
+                });
+                mettreAJourCompteurReservationsBack();
+            });
+        }
+        mettreAJourCompteurReservationsBack();
         if (tfBackEvSearch != null) {
             tfBackEvSearch.textProperty().addListener((o, ov, nv) -> {
                 String q = nv == null ? "" : nv.trim().toLowerCase(Locale.ROOT);
@@ -500,6 +711,7 @@ public class MainController {
         syncPageFrontOffice(frontNavGroup.getSelectedToggle());
 
         Platform.runLater(this::installerRaccourcisScene);
+        majBadgeFavoris();
     }
 
     private void appliquerMode(Toggle t) {
@@ -514,6 +726,7 @@ public class MainController {
             }
             rafraichirCartesEvenementsFront();
             rafraichirCartesProgrammesFront();
+            majBadgeFavoris();
         } else {
             if (toggleBackNavEvListe != null) {
                 toggleBackNavEvListe.setSelected(true);
@@ -528,7 +741,8 @@ public class MainController {
                 paneBackPageEvDetail,
                 paneBackPagePrListe,
                 paneBackPagePrForm,
-                paneBackPageStats);
+                paneBackPageStats,
+                paneBackPageResListe);
         for (int i = 0; i < pages.size(); i++) {
             Node n = pages.get(i);
             if (n == null) {
@@ -540,6 +754,9 @@ public class MainController {
         }
         if (index == PG_BACK_STATS) {
             rafraichirPageStatistiques();
+        }
+        if (index == PG_BACK_RES_LISTE) {
+            onRafraichirReservationsBack();
         }
     }
 
@@ -560,6 +777,8 @@ public class MainController {
             montrerSeulementPageBack(PG_BACK_PR_FORM);
         } else if (t == toggleBackNavStats) {
             montrerSeulementPageBack(PG_BACK_STATS);
+        } else if (toggleBackNavResListe != null && t == toggleBackNavResListe) {
+            montrerSeulementPageBack(PG_BACK_RES_LISTE);
         }
     }
 
@@ -567,15 +786,29 @@ public class MainController {
         if (paneFrontPageAccueil == null || t == null) {
             return;
         }
+        if (paneFrontPageParticiper != null) {
+            paneFrontPageParticiper.setVisible(false);
+            paneFrontPageParticiper.setManaged(false);
+        }
         boolean acc = t == toggleFrontNavAccueil;
         boolean ev = t == toggleFrontNavEv;
         boolean pr = t == toggleFrontNavPr;
+        boolean fav = toggleFrontNavFavoris != null && t == toggleFrontNavFavoris;
+        boolean resa = toggleFrontNavResa != null && t == toggleFrontNavResa;
         paneFrontPageAccueil.setVisible(acc);
         paneFrontPageAccueil.setManaged(acc);
         paneFrontPageEv.setVisible(ev);
         paneFrontPageEv.setManaged(ev);
         paneFrontPagePr.setVisible(pr);
         paneFrontPagePr.setManaged(pr);
+        if (paneFrontPageFavoris != null) {
+            paneFrontPageFavoris.setVisible(fav);
+            paneFrontPageFavoris.setManaged(fav);
+        }
+        if (paneFrontPageResa != null) {
+            paneFrontPageResa.setVisible(resa);
+            paneFrontPageResa.setManaged(resa);
+        }
         if (ev) {
             onFrontRetourListeEvenements();
             rafraichirCartesEvenementsFront();
@@ -583,9 +816,16 @@ public class MainController {
         if (pr) {
             rafraichirCartesProgrammesFront();
         }
+        if (fav) {
+            rafraichirFavorisFront();
+        }
+        if (resa) {
+            rafraichirMesReservationsFront();
+        }
         if (acc) {
             majInfosAccueil();
         }
+        majBadgeFavoris();
     }
 
     private void rafraichirPageStatistiques() {
@@ -630,6 +870,52 @@ public class MainController {
         }
         lignes.sort(Comparator.comparing(LigneStatsParType::getLibelleType, String.CASE_INSENSITIVE_ORDER));
         tableStatsParType.setItems(lignes);
+
+        EvenementService.StatsInteractions st = evenementService.getStatsInteractions();
+        if (lblStatsTotalLikes != null) {
+            lblStatsTotalLikes.setText(String.valueOf(st.totalLikes()));
+        }
+        if (lblStatsTotalDislikes != null) {
+            lblStatsTotalDislikes.setText(String.valueOf(st.totalDislikes()));
+        }
+        if (lblStatsTotalFavorites != null) {
+            lblStatsTotalFavorites.setText(String.valueOf(st.totalFavorites()));
+        }
+        if (boxStatsCharts != null) {
+            boxStatsCharts.getChildren().clear();
+            boxStatsCharts.getChildren().add(creerBarChartTop("Top 10 — likes", evenementService.topParLikes(10), StatChartMode.LIKES));
+            boxStatsCharts.getChildren().add(creerBarChartTop("Top 10 — dislikes", evenementService.topParDislikes(10), StatChartMode.DISLIKES));
+            boxStatsCharts.getChildren().add(creerBarChartTop("Top 10 — favoris", evenementService.topParFavoris(10), StatChartMode.FAVORITES));
+        }
+    }
+
+    private enum StatChartMode {
+        LIKES, DISLIKES, FAVORITES
+    }
+
+    private VBox creerBarChartTop(String titre, List<Evenement> evenements, StatChartMode mode) {
+        Label lt = new Label(titre);
+        lt.getStyleClass().add("form-section-title");
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        chart.setLegendVisible(false);
+        chart.setPrefHeight(260);
+        chart.setMaxWidth(Double.MAX_VALUE);
+        chart.getStyleClass().add("chart-stats-dark");
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (Evenement ev : evenements) {
+            String cat = tronquer(nvl(ev.getTitre()), 22);
+            int v = switch (mode) {
+                case LIKES -> ev.getLikesCount();
+                case DISLIKES -> ev.getDislikesCount();
+                case FAVORITES -> ev.getFavoritesCount();
+            };
+            series.getData().add(new XYChart.Data<>(cat, v));
+        }
+        chart.getData().add(series);
+        VBox box = new VBox(8, lt, chart);
+        return box;
     }
 
     private void majInfosAccueil() {
@@ -667,6 +953,553 @@ public class MainController {
         if (w instanceof Stage st) {
             EduKidsApplication.afficherSceneConnexion(st);
         }
+    }
+
+    private void majBadgeFavoris() {
+        if (lblFrontNavFavorisBadge == null) {
+            return;
+        }
+        var u = SessionManager.getCurrentUser();
+        if (u == null) {
+            lblFrontNavFavorisBadge.setText("");
+            lblFrontNavFavorisBadge.setVisible(false);
+            lblFrontNavFavorisBadge.setManaged(false);
+            return;
+        }
+        long n = interactionService.compterFavorisUtilisateur(u.getId());
+        if (n > 0) {
+            lblFrontNavFavorisBadge.setText(String.valueOf(n));
+            lblFrontNavFavorisBadge.setVisible(true);
+            lblFrontNavFavorisBadge.setManaged(true);
+        } else {
+            lblFrontNavFavorisBadge.setText("");
+            lblFrontNavFavorisBadge.setVisible(false);
+            lblFrontNavFavorisBadge.setManaged(false);
+        }
+    }
+
+    private void rafraichirFavorisFront() {
+        if (flowFrontFavorisCards == null) {
+            return;
+        }
+        flowFrontFavorisCards.getChildren().clear();
+        var u = SessionManager.getCurrentUser();
+        if (u == null) {
+            if (lblFrontFavorisVide != null) {
+                lblFrontFavorisVide.setText("Connectez-vous pour voir vos événements favoris.");
+                lblFrontFavorisVide.setVisible(true);
+                lblFrontFavorisVide.setManaged(true);
+            }
+            return;
+        }
+        List<Evenement> favs = evenementService.listerEvenementsFavorisPourUtilisateur(u.getId(), 200);
+        if (lblFrontFavorisVide != null) {
+            boolean empty = favs.isEmpty();
+            lblFrontFavorisVide.setText("Aucun favori pour le moment. Utilisez le bouton cœur sur les cartes « Événements ».");
+            lblFrontFavorisVide.setVisible(empty);
+            lblFrontFavorisVide.setManaged(empty);
+        }
+        for (Evenement ev : favs) {
+            flowFrontFavorisCards.getChildren().add(creerCarteEvenement(ev));
+        }
+    }
+
+    private boolean estUtilisateurAdmin() {
+        var u = SessionManager.getCurrentUser();
+        return u != null && u.getRoles() != null && u.getRoles().contains(Role.ROLE_ADMIN);
+    }
+
+    private void toggleInteractionCarte(Integer evenementId, String type) {
+        var u = SessionManager.getCurrentUser();
+        if (u == null || evenementId == null) {
+            return;
+        }
+        try {
+            if (UserEvenementInteraction.TYPE_LIKE.equals(type)) {
+                interactionService.toggleLike(u.getId(), evenementId);
+            } else if (UserEvenementInteraction.TYPE_DISLIKE.equals(type)) {
+                interactionService.toggleDislike(u.getId(), evenementId);
+            } else if (UserEvenementInteraction.TYPE_FAVORITE.equals(type)) {
+                interactionService.toggleFavorite(u.getId(), evenementId);
+            }
+            onRafraichirEvenements();
+            if (boxFrontEvDetail != null && boxFrontEvDetail.isVisible() && evenementId.equals(frontDetailEvenementId)) {
+                Evenement fresh = evenementService.trouverParId(evenementId);
+                if (fresh != null) {
+                    ouvrirDetailEvenementFront(fresh);
+                }
+            }
+            if (toggleFrontNavFavoris != null && toggleFrontNavFavoris.isSelected()) {
+                rafraichirFavorisFront();
+            }
+            if (toggleFrontNavResa != null && toggleFrontNavResa.isSelected()) {
+                rafraichirMesReservationsFront();
+            }
+            majBadgeFavoris();
+        } catch (Exception ex) {
+            LOG.warn("Interaction événement", ex);
+            erreur(ex.getMessage() != null ? ex.getMessage() : "Erreur lors de l'enregistrement de la réaction.");
+        }
+    }
+
+    private HBox creerBarreReactionsEvenement(Evenement e) {
+        HBox row = new HBox(8);
+        row.getStyleClass().add("event-card-reactions");
+        row.setAlignment(Pos.CENTER_LEFT);
+        if (e.getId() == null) {
+            return row;
+        }
+        var u = SessionManager.getCurrentUser();
+        InteractionService.EtatInteractions et;
+        if (u != null) {
+            et = interactionService.getEtat(u.getId(), e.getId());
+        } else {
+            et = new InteractionService.EtatInteractions(false, false, false,
+                    e.getLikesCount(), e.getDislikesCount(), e.getFavoritesCount());
+        }
+
+        Button btnLike = new Button("👍 " + et.likes());
+        btnLike.getStyleClass().addAll("event-react-btn", "event-react-like");
+        if (et.liked()) {
+            btnLike.getStyleClass().add("event-react-like-active");
+        }
+        btnLike.setDisable(u == null);
+        btnLike.setOnAction(ev -> toggleInteractionCarte(e.getId(), UserEvenementInteraction.TYPE_LIKE));
+
+        Button btnDis = new Button("👎 " + et.dislikes());
+        btnDis.getStyleClass().addAll("event-react-btn", "event-react-dislike");
+        if (et.disliked()) {
+            btnDis.getStyleClass().add("event-react-dislike-active");
+        }
+        btnDis.setDisable(u == null);
+        btnDis.setOnAction(ev -> toggleInteractionCarte(e.getId(), UserEvenementInteraction.TYPE_DISLIKE));
+
+        String favLabel = et.favorited() ? "♥ " + et.favorites() : "♡ " + et.favorites();
+        Button btnFav = new Button(favLabel);
+        btnFav.getStyleClass().addAll("event-react-btn", "event-react-fav");
+        if (et.favorited()) {
+            btnFav.getStyleClass().add("event-react-fav-active");
+        }
+        btnFav.setDisable(u == null);
+        btnFav.setOnAction(ev -> toggleInteractionCarte(e.getId(), UserEvenementInteraction.TYPE_FAVORITE));
+
+        if (u == null) {
+            Label hint = new Label("(connectez-vous)");
+            hint.getStyleClass().add("event-react-hint");
+            row.getChildren().addAll(btnLike, btnDis, btnFav, hint);
+        } else {
+            row.getChildren().addAll(btnLike, btnDis, btnFav);
+        }
+        return row;
+    }
+
+    private void installerPageParticiper() {
+        if (spParticiperAdultes == null || spParticiperEnfants == null) {
+            return;
+        }
+        spParticiperAdultes.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 50, 1));
+        spParticiperEnfants.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 50, 0));
+        spParticiperAdultes.setEditable(true);
+        spParticiperEnfants.setEditable(true);
+        spParticiperAdultes.valueProperty().addListener((o, a, b) -> majTotalParticiper());
+        spParticiperEnfants.valueProperty().addListener((o, a, b) -> majTotalParticiper());
+    }
+
+    private void majTotalParticiper() {
+        if (lblParticiperTotal == null || spParticiperAdultes == null || spParticiperEnfants == null) {
+            return;
+        }
+        lblParticiperTotal.setText("Total de places : " + (spParticiperAdultes.getValue() + spParticiperEnfants.getValue()));
+    }
+
+    private void mettreAJourFilArianeParticiper() {
+        if (lblParticiperBreadcrumb == null) {
+            return;
+        }
+        Toggle t = lastFrontNavBeforeParticiper;
+        if (t == toggleFrontNavFavoris) {
+            lblParticiperBreadcrumb.setText("Mes favoris • Réservation");
+        } else if (toggleFrontNavResa != null && t == toggleFrontNavResa) {
+            lblParticiperBreadcrumb.setText("Mes réservations • Réservation");
+        } else if (t == toggleFrontNavPr) {
+            lblParticiperBreadcrumb.setText("Programmes • Réservation");
+        } else if (t == toggleFrontNavAccueil) {
+            lblParticiperBreadcrumb.setText("Accueil • Réservation");
+        } else {
+            lblParticiperBreadcrumb.setText("Événements • Réservation");
+        }
+    }
+
+    private void remplirPageParticiper(Evenement e) {
+        if (lblParticiperEvTitre == null || e == null || e.getId() == null) {
+            return;
+        }
+        Evenement src = evenementService.trouverParId(e.getId());
+        if (src == null) {
+            return;
+        }
+        var u = SessionManager.getCurrentUser();
+        lblParticiperEvTitre.setText(nvl(src.getTitre()));
+        String dateStr = src.getDateEvenement() != null ? src.getDateEvenement().format(DATE_FR) : "—";
+        String hStr = (src.getHeureDebut() != null && src.getHeureFin() != null)
+                ? TIME_FMT.format(src.getHeureDebut()) + " – " + TIME_FMT.format(src.getHeureFin())
+                : "—";
+        lblParticiperEvMeta.setText("📅  " + dateStr + "     🕐  " + hStr);
+
+        String lieu = src.getLocalisation();
+        if (lieu != null && !lieu.isBlank()) {
+            lblParticiperEvLieu.setText("📍  " + lieu.trim());
+            lblParticiperEvLieu.setVisible(true);
+            lblParticiperEvLieu.setManaged(true);
+        } else {
+            lblParticiperEvLieu.setVisible(false);
+            lblParticiperEvLieu.setManaged(false);
+        }
+
+        int reserves = evenementService.sommePlacesReserveesPourEvenement(src.getId());
+        Integer cap = src.getNbPlacesDisponibles();
+        if (cap != null) {
+            int rest = Math.max(0, cap - reserves);
+            lblParticiperEvPlaces.setText("👥  Places disponibles : " + rest + " / " + cap);
+            lblParticiperEvPlaces.setVisible(true);
+            lblParticiperEvPlaces.setManaged(true);
+        } else {
+            lblParticiperEvPlaces.setVisible(false);
+            lblParticiperEvPlaces.setManaged(false);
+        }
+
+        if (u != null) {
+            tfParticiperNom.setText(nvl(u.getLastName()));
+            tfParticiperPrenom.setText(nvl(u.getFirstName()));
+            tfParticiperEmail.setText(nvl(u.getEmail()));
+        }
+        tfParticiperTel.clear();
+        if (spParticiperAdultes.getValueFactory() != null) {
+            spParticiperAdultes.getValueFactory().setValue(1);
+        }
+        if (spParticiperEnfants.getValueFactory() != null) {
+            spParticiperEnfants.getValueFactory().setValue(0);
+        }
+        majTotalParticiper();
+        mettreAJourFilArianeParticiper();
+    }
+
+    private void afficherSeulementPageParticiper() {
+        paneFrontPageAccueil.setVisible(false);
+        paneFrontPageAccueil.setManaged(false);
+        paneFrontPageEv.setVisible(false);
+        paneFrontPageEv.setManaged(false);
+        paneFrontPagePr.setVisible(false);
+        paneFrontPagePr.setManaged(false);
+        if (paneFrontPageFavoris != null) {
+            paneFrontPageFavoris.setVisible(false);
+            paneFrontPageFavoris.setManaged(false);
+        }
+        if (paneFrontPageResa != null) {
+            paneFrontPageResa.setVisible(false);
+            paneFrontPageResa.setManaged(false);
+        }
+        paneFrontPageParticiper.setVisible(true);
+        paneFrontPageParticiper.setManaged(true);
+    }
+
+    private void ouvrirPageParticiper(Evenement e) {
+        var u = SessionManager.getCurrentUser();
+        if (u == null) {
+            erreur("Connectez-vous pour réserver une place.");
+            return;
+        }
+        if (e.getId() == null) {
+            return;
+        }
+        int reserves = evenementService.sommePlacesReserveesPourEvenement(e.getId());
+        Integer cap = e.getNbPlacesDisponibles();
+        if (cap != null && cap - reserves <= 0) {
+            erreur("Il n'y a plus de places disponibles pour cet événement.");
+            return;
+        }
+        lastFrontNavBeforeParticiper = frontNavGroup.getSelectedToggle();
+        partenaireEvenementId = e.getId();
+        remplirPageParticiper(e);
+        afficherSeulementPageParticiper();
+    }
+
+    private void fermerPageParticiperEtRestaurerNavigation() {
+        if (paneFrontPageParticiper != null) {
+            paneFrontPageParticiper.setVisible(false);
+            paneFrontPageParticiper.setManaged(false);
+        }
+        Toggle t = lastFrontNavBeforeParticiper != null ? lastFrontNavBeforeParticiper : toggleFrontNavEv;
+        if (t != null) {
+            t.setSelected(true);
+        }
+        syncPageFrontOffice(frontNavGroup.getSelectedToggle());
+    }
+
+    @FXML
+    private void onFrontParticiperRetour() {
+        fermerPageParticiperEtRestaurerNavigation();
+    }
+
+    @FXML
+    private void onFrontParticiperConfirmer() {
+        var u = SessionManager.getCurrentUser();
+        if (u == null || partenaireEvenementId == null) {
+            return;
+        }
+        try {
+            reservationService.creerReservation(
+                    u.getId(),
+                    partenaireEvenementId,
+                    tfParticiperNom.getText(),
+                    tfParticiperPrenom.getText(),
+                    tfParticiperEmail.getText(),
+                    tfParticiperTel.getText(),
+                    spParticiperAdultes.getValue(),
+                    spParticiperEnfants.getValue());
+            onRafraichirEvenements();
+            if (toggleFrontNavResa != null && toggleFrontNavResa.isSelected()) {
+                rafraichirMesReservationsFront();
+            }
+            info("Votre réservation a été enregistrée.");
+            fermerPageParticiperEtRestaurerNavigation();
+        } catch (IllegalArgumentException ex) {
+            erreur(ex.getMessage());
+        } catch (Exception ex) {
+            LOG.error("Réservation", ex);
+            erreur("Erreur : " + (ex.getMessage() != null ? ex.getMessage() : "inconnue"));
+        }
+    }
+
+    @FXML
+    private void onRafraichirReservationsBack() {
+        if (tableReservations == null) {
+            return;
+        }
+        reservationsData.setAll(reservationService.listerToutes());
+        mettreAJourCompteurReservationsBack();
+    }
+
+    private void mettreAJourCompteurReservationsBack() {
+        if (lblBackResResultCount == null || reservationsFiltresBack == null) {
+            return;
+        }
+        lblBackResResultCount.setText(reservationsFiltresBack.size() + " résultat(s)");
+        majEtatVideBackReservations();
+    }
+
+    @FXML
+    private void onBackResResetFiltre() {
+        if (tfBackResSearch != null) {
+            tfBackResSearch.clear();
+        }
+        if (reservationsFiltresBack != null) {
+            reservationsFiltresBack.setPredicate(r -> true);
+        }
+        mettreAJourCompteurReservationsBack();
+    }
+
+    private static boolean matcheRechercheReservation(Reservation r, String q) {
+        Evenement ev = r.getEvenement();
+        String titre = ev != null ? ev.getTitre() : "";
+        var usr = r.getUtilisateur();
+        String uem = usr != null ? usr.getEmail() : "";
+        return contient(titre, q)
+                || contient(uem, q)
+                || contient(r.getNom(), q)
+                || contient(r.getPrenom(), q)
+                || contient(r.getEmail(), q)
+                || contient(r.getTelephone(), q);
+    }
+
+    private void majEtatVideBackReservations() {
+        if (lblEmptyBackReservations == null || reservationsFiltresBack == null) {
+            return;
+        }
+        boolean vide = reservationsFiltresBack.isEmpty();
+        lblEmptyBackReservations.setManaged(vide);
+        lblEmptyBackReservations.setVisible(vide);
+        if (vide) {
+            lblEmptyBackReservations.setText(reservationsData.isEmpty()
+                    ? "Aucune réservation en base."
+                    : "Aucune réservation ne correspond au filtre actuel. Modifiez la recherche ou cliquez sur « Réinitialiser ».");
+        }
+    }
+
+    private void rafraichirMesReservationsFront() {
+        if (tableFrontMesReservations == null) {
+            return;
+        }
+        var u = SessionManager.getCurrentUser();
+        if (u == null) {
+            reservationsFrontData.clear();
+            if (lblFrontResaVide != null) {
+                lblFrontResaVide.setText("Connectez-vous pour voir vos réservations.");
+                lblFrontResaVide.setVisible(true);
+                lblFrontResaVide.setManaged(true);
+            }
+            return;
+        }
+        reservationsFrontData.setAll(reservationService.listerPourUtilisateur(u.getId()));
+        boolean empty = reservationsFrontData.isEmpty();
+        if (lblFrontResaVide != null) {
+            lblFrontResaVide.setText("Vous n'avez encore aucune réservation. Participez depuis « Événements ».");
+            lblFrontResaVide.setVisible(empty);
+            lblFrontResaVide.setManaged(empty);
+        }
+    }
+
+    private void configurerTableReservationsBack() {
+        if (tableReservations == null || colResId == null) {
+            return;
+        }
+        tableReservations.setItems(reservationsFiltresBack);
+        tableReservations.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        colResId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colResEvenement.setCellValueFactory(cd -> {
+            Evenement ev = cd.getValue().getEvenement();
+            return new SimpleStringProperty(ev != null ? nvl(ev.getTitre()) : "—");
+        });
+        colResUserEmail.setCellValueFactory(cd -> {
+            var usr = cd.getValue().getUtilisateur();
+            return new SimpleStringProperty(usr != null ? nvl(usr.getEmail()) : "—");
+        });
+        colResNom.setCellValueFactory(cd -> new SimpleStringProperty(
+                nvl(cd.getValue().getPrenom()) + " " + nvl(cd.getValue().getNom())));
+        colResEmail.setCellValueFactory(cd -> new SimpleStringProperty(nvl(cd.getValue().getEmail())));
+        colResTelephone.setCellValueFactory(cd -> {
+            String t = cd.getValue().getTelephone();
+            return new SimpleStringProperty(t == null || t.isBlank() ? "—" : t.trim());
+        });
+        colResPlaces.setCellValueFactory(cd -> {
+            Reservation x = cd.getValue();
+            return new SimpleStringProperty((x.getNbAdultes() + x.getNbEnfants()) + " (A" + x.getNbAdultes() + " + E" + x.getNbEnfants() + ")");
+        });
+        colResDate.setCellValueFactory(cd -> {
+            var dt = cd.getValue().getDateReservation();
+            return new SimpleStringProperty(dt != null ? dt.format(RESA_DATETIME_FR) : "—");
+        });
+        colResActions.setCellValueFactory(cd -> new ReadOnlyObjectWrapper<>(cd.getValue()));
+        colResActions.setCellFactory(c -> new TableCell<Reservation, Reservation>() {
+            @Override
+            protected void updateItem(Reservation res, boolean empty) {
+                super.updateItem(res, empty);
+                if (empty || res == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                if (!estUtilisateurAdmin()) {
+                    Label l = new Label("—");
+                    l.getStyleClass().add("back-table-muted");
+                    setGraphic(l);
+                    setText(null);
+                    return;
+                }
+                Button del = new Button("Supprimer");
+                del.getStyleClass().addAll("back-table-action-link", "back-table-action-del");
+                del.setOnAction(ae -> supprimerReservationBack(res));
+                setGraphic(del);
+                setText(null);
+            }
+        });
+    }
+
+    private void supprimerReservationBack(Reservation res) {
+        if (res == null || res.getId() == null) {
+            return;
+        }
+        if (!estUtilisateurAdmin()) {
+            erreur("Seuls les administrateurs peuvent supprimer une réservation.");
+            return;
+        }
+        if (!confirmer("Supprimer cette réservation ?")) {
+            return;
+        }
+        try {
+            reservationService.supprimer(res.getId());
+            onRafraichirReservationsBack();
+            onRafraichirEvenements();
+            info("Réservation supprimée.");
+        } catch (Exception ex) {
+            LOG.error("Suppression réservation", ex);
+            erreur("Erreur : " + (ex.getMessage() != null ? ex.getMessage() : "inconnue"));
+        }
+    }
+
+    private void configurerTableFrontMesReservations() {
+        if (tableFrontMesReservations == null || colFrontResEv == null) {
+            return;
+        }
+        tableFrontMesReservations.setItems(reservationsFrontData);
+        tableFrontMesReservations.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        colFrontResEv.setCellValueFactory(cd -> {
+            Evenement ev = cd.getValue().getEvenement();
+            return new SimpleStringProperty(ev != null ? nvl(ev.getTitre()) : "—");
+        });
+        colFrontResPlaces.setCellValueFactory(cd -> {
+            Reservation x = cd.getValue();
+            return new SimpleStringProperty((x.getNbAdultes() + x.getNbEnfants()) + " (adultes " + x.getNbAdultes() + ", enfants " + x.getNbEnfants() + ")");
+        });
+        colFrontResDate.setCellValueFactory(cd -> {
+            var dt = cd.getValue().getDateReservation();
+            return new SimpleStringProperty(dt != null ? dt.format(RESA_DATETIME_FR) : "—");
+        });
+    }
+
+    private void actualiserBlocInteractionsEtPlaces(Evenement e) {
+        if (e == null || e.getId() == null) {
+            return;
+        }
+        int reserves = evenementService.sommePlacesReserveesPourEvenement(e.getId());
+        if (lblFrontDetailPlacesRestantes != null) {
+            if (e.getNbPlacesDisponibles() == null) {
+                lblFrontDetailPlacesRestantes.setText("Places : sans limite fixée — réservations enregistrées : " + reserves + ".");
+            } else {
+                int rest = Math.max(0, e.getNbPlacesDisponibles() - reserves);
+                lblFrontDetailPlacesRestantes.setText("Capacité : " + e.getNbPlacesDisponibles()
+                        + " — réservées : " + reserves + " — restantes : " + rest + ".");
+            }
+        }
+        if (lblFrontDetailDuree != null) {
+            java.time.Duration d = e.getDureeEvenement();
+            long minutes = d.toMinutes();
+            lblFrontDetailDuree.setText("Durée (début → fin) : " + minutes + " minute(s).");
+        }
+        if (boxFrontDetailMapWrap != null && webFrontDetailMap != null) {
+            String lieu = e.getLocalisation();
+            if (lieu == null || lieu.isBlank()) {
+                boxFrontDetailMapWrap.setVisible(false);
+                boxFrontDetailMapWrap.setManaged(false);
+                webFrontDetailMap.getEngine().load("about:blank");
+            } else {
+                boxFrontDetailMapWrap.setVisible(true);
+                boxFrontDetailMapWrap.setManaged(true);
+                chargerCarteEmbedGoogleMaps(lieu.trim());
+            }
+        }
+    }
+
+    /**
+     * Carte centrée sur le lieu, comme le site Symfony (iframe {@code output=embed}), sans la page Maps « recherche ».
+     */
+    private void chargerCarteEmbedGoogleMaps(String lieu) {
+        if (webFrontDetailMap == null || lieu == null || lieu.isBlank()) {
+            return;
+        }
+        String q = URLEncoder.encode(lieu, StandardCharsets.UTF_8);
+        String src = "https://www.google.com/maps?q=" + q + "&output=embed&z=15";
+        String html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/>"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
+                + "<style>html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;background:#1a1a1a}"
+                + "iframe{border:0;width:100%;height:100%;display:block}</style>"
+                + "</head><body>"
+                + "<iframe title=\"Carte\" width=\"100%\" height=\"100%\" "
+                + "src=\"" + src + "\" "
+                + "allowfullscreen=\"true\" "
+                + "referrerpolicy=\"no-referrer-when-downgrade\"></iframe>"
+                + "</body></html>";
+        webFrontDetailMap.getEngine().loadContent(html);
     }
 
     private void allerVueListeEvenements() {
@@ -1300,12 +2133,37 @@ public class MainController {
     private void onFrontRetourListeEvenements() {
         boxFrontEvDetail.setVisible(false);
         boxFrontEvDetail.setManaged(false);
-        boxFrontEvList.setVisible(true);
-        boxFrontEvList.setManaged(true);
+        if (frontEvVueListe) {
+            boxFrontEvList.setVisible(true);
+            boxFrontEvList.setManaged(true);
+            if (boxFrontEvCalendar != null) {
+                boxFrontEvCalendar.setVisible(false);
+                boxFrontEvCalendar.setManaged(false);
+            }
+        } else {
+            boxFrontEvList.setVisible(false);
+            boxFrontEvList.setManaged(false);
+            if (boxFrontEvCalendar != null) {
+                boxFrontEvCalendar.setVisible(true);
+                boxFrontEvCalendar.setManaged(true);
+                rafraichirCalendrierEvenementsFront();
+            }
+        }
     }
 
-    private void rafraichirCartesEvenementsFront() {
-        flowEvenementsCards.getChildren().clear();
+    @FXML
+    private void onFrontCalPrevMonth() {
+        frontEvenementsCalMonth = frontEvenementsCalMonth.minusMonths(1);
+        rafraichirCalendrierEvenementsFront();
+    }
+
+    @FXML
+    private void onFrontCalNextMonth() {
+        frontEvenementsCalMonth = frontEvenementsCalMonth.plusMonths(1);
+        rafraichirCalendrierEvenementsFront();
+    }
+
+    private List<Evenement> listEvenementsFrontFiltresTri() {
         List<Evenement> base = new ArrayList<>(evenementsData);
         String q = tfFrontSearchEvenements.getText() == null ? "" : tfFrontSearchEvenements.getText().trim().toLowerCase(Locale.ROOT);
         if (!q.isEmpty()) {
@@ -1321,11 +2179,117 @@ public class MainController {
             base.sort(Comparator.comparing(Evenement::getDateEvenement, Comparator.nullsLast(Comparator.reverseOrder()))
                     .thenComparing(Evenement::getHeureDebut, Comparator.nullsLast(Comparator.naturalOrder())));
         }
+        return base;
+    }
+
+    private void rafraichirCartesEvenementsFront() {
+        flowEvenementsCards.getChildren().clear();
+        List<Evenement> base = listEvenementsFrontFiltresTri();
         for (Evenement e : base) {
             flowEvenementsCards.getChildren().add(creerCarteEvenement(e));
         }
         lblFrontEvenementsCount.setText(base.size() + " événement(s)");
         majEtatVideFrontEvenements();
+        if (toggleFrontEvCalendrier != null && toggleFrontEvCalendrier.isSelected()) {
+            rafraichirCalendrierEvenementsFront();
+        }
+    }
+
+    private static String capitalizeMonthTitle(String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private static Map<LocalDate, List<Evenement>> grouperEvenementsParDate(List<Evenement> list) {
+        Map<LocalDate, List<Evenement>> m = new HashMap<>();
+        for (Evenement ev : list) {
+            LocalDate d = ev.getDateEvenement();
+            if (d != null) {
+                m.computeIfAbsent(d, k -> new ArrayList<>()).add(ev);
+            }
+        }
+        for (List<Evenement> dayList : m.values()) {
+            dayList.sort(Comparator.comparing(Evenement::getHeureDebut, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(Evenement::getTitre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+        }
+        return m;
+    }
+
+    private void rafraichirCalendrierEvenementsFront() {
+        if (gridFrontEvenementsCalendar == null || lblFrontCalMonthTitle == null) {
+            return;
+        }
+        gridFrontEvenementsCalendar.getChildren().clear();
+        List<Evenement> filtered = listEvenementsFrontFiltresTri();
+        lblFrontCalMonthTitle.setText(capitalizeMonthTitle(frontEvenementsCalMonth.format(MONTH_TITLE_FR)));
+
+        if (filtered.isEmpty()) {
+            Label empty = new Label(evenementsData.isEmpty()
+                    ? "Aucun événement pour le moment."
+                    : "Aucun événement ne correspond à votre recherche ou au tri actuel.");
+            empty.getStyleClass().add("front-cal-empty-msg");
+            empty.setWrapText(true);
+            empty.setMaxWidth(Double.MAX_VALUE);
+            gridFrontEvenementsCalendar.add(empty, 0, 0);
+            GridPane.setColumnSpan(empty, 7);
+            return;
+        }
+
+        Map<LocalDate, List<Evenement>> byDay = grouperEvenementsParDate(filtered);
+        LocalDate first = frontEvenementsCalMonth.atDay(1);
+        int colStart = first.getDayOfWeek().getValue() == 7 ? 6 : first.getDayOfWeek().getValue() - 1;
+        LocalDate gridStart = first.minusDays(colStart);
+
+        for (int c = 0; c < 7; c++) {
+            Label h = new Label(CAL_WEEK_HEADERS[c]);
+            h.getStyleClass().add("front-cal-weekday");
+            h.setMaxWidth(Double.MAX_VALUE);
+            gridFrontEvenementsCalendar.add(h, c, 0);
+        }
+
+        for (int i = 0; i < 42; i++) {
+            LocalDate d = gridStart.plusDays(i);
+            VBox cell = creerCelluleCalendrierJour(d, frontEvenementsCalMonth, byDay.getOrDefault(d, List.of()));
+            gridFrontEvenementsCalendar.add(cell, i % 7, 1 + i / 7);
+        }
+    }
+
+    private VBox creerCelluleCalendrierJour(LocalDate d, YearMonth ym, List<Evenement> jour) {
+        VBox cell = new VBox(4);
+        cell.getStyleClass().add("front-cal-cell");
+        boolean autreMois = !ym.equals(YearMonth.from(d));
+        if (autreMois) {
+            cell.getStyleClass().add("front-cal-cell-other");
+        }
+        if (d.equals(LocalDate.now())) {
+            cell.getStyleClass().add("front-cal-cell-today");
+        }
+
+        Label num = new Label(String.valueOf(d.getDayOfMonth()));
+        num.getStyleClass().add("front-cal-day-num");
+        if (autreMois) {
+            num.getStyleClass().add("front-cal-day-num-sub");
+        }
+
+        VBox links = new VBox(2);
+        int max = 3;
+        for (int j = 0; j < Math.min(max, jour.size()); j++) {
+            Evenement ev = jour.get(j);
+            Label link = new Label(tronquer(nvl(ev.getTitre()), 32));
+            link.getStyleClass().add("front-cal-ev-link");
+            link.setWrapText(true);
+            link.setOnMouseClicked(e -> ouvrirDetailEvenementFront(ev));
+            links.getChildren().add(link);
+        }
+        if (jour.size() > max) {
+            Label more = new Label("+" + (jour.size() - max) + " autre(s)");
+            more.getStyleClass().add("front-cal-ev-more");
+            links.getChildren().add(more);
+        }
+        cell.getChildren().addAll(num, links);
+        return cell;
     }
 
     private static boolean matcheRechercheEvenement(Evenement e, String q) {
@@ -1383,17 +2347,19 @@ public class MainController {
             badge.getStyleClass().add("badge-status-programme");
         }
 
+        HBox reactions = creerBarreReactionsEvenement(e);
+
         HBox actions = new HBox(10);
         actions.getStyleClass().add("event-card-actions");
         Button btnParticiper = new Button("Participer");
         btnParticiper.getStyleClass().addAll("btn-participer");
-        btnParticiper.setOnAction(ev -> info("Merci pour votre intérêt !\n(Inscription simplifiée — démo locale.)"));
+        btnParticiper.setOnAction(ev -> ouvrirPageParticiper(e));
         Button btnDetails = new Button("Détails");
         btnDetails.getStyleClass().addAll("btn-details");
         btnDetails.setOnAction(ev -> ouvrirDetailEvenementFront(e));
         actions.getChildren().addAll(btnParticiper, btnDetails);
 
-        body.getChildren().addAll(meta, titre, desc, badge, actions);
+        body.getChildren().addAll(meta, titre, desc, badge, reactions, actions);
         card.getChildren().addAll(imgWrap, body);
         return card;
     }
@@ -1456,6 +2422,7 @@ public class MainController {
     }
 
     private void ouvrirDetailEvenementFront(Evenement e) {
+        frontDetailEvenementId = e.getId();
         lblFrontDetailTitre.setText(nvl(e.getTitre()));
         lblFrontDetailDescription.setText(nvl(e.getDescription()));
 
@@ -1504,12 +2471,8 @@ public class MainController {
             l.setWrapText(true);
             boxFrontDetailBadges.getChildren().add(l);
         }
-        if (e.getNbPlacesDisponibles() != null) {
-            Label l = new Label("Places : " + e.getNbPlacesDisponibles());
-            l.getStyleClass().addAll("badge-pill", "badge-pill-places");
-            l.setWrapText(true);
-            boxFrontDetailBadges.getChildren().add(l);
-        }
+
+        actualiserBlocInteractionsEtPlaces(e);
 
         Programme p = e.getProgramme();
         if (p != null) {
@@ -1538,6 +2501,10 @@ public class MainController {
 
         boxFrontEvList.setVisible(false);
         boxFrontEvList.setManaged(false);
+        if (boxFrontEvCalendar != null) {
+            boxFrontEvCalendar.setVisible(false);
+            boxFrontEvCalendar.setManaged(false);
+        }
         boxFrontEvDetail.setVisible(true);
         boxFrontEvDetail.setManaged(true);
         if (spFrontEvDetail != null) {
@@ -1687,6 +2654,16 @@ public class MainController {
         }
         if (toggleFrontNavAccueil != null && toggleFrontNavAccueil.isSelected()) {
             majInfosAccueil();
+        }
+        majBadgeFavoris();
+        if (toggleFrontNavFavoris != null && toggleFrontNavFavoris.isSelected()) {
+            rafraichirFavorisFront();
+        }
+        if (toggleFrontNavResa != null && toggleFrontNavResa.isSelected()) {
+            rafraichirMesReservationsFront();
+        }
+        if (toggleBackNavResListe != null && toggleBackNavResListe.isSelected()) {
+            onRafraichirReservationsBack();
         }
     }
 

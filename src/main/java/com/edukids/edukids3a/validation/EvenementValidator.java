@@ -2,6 +2,8 @@ package com.edukids.edukids3a.validation;
 
 import com.edukids.edukids3a.model.Evenement;
 
+import java.time.LocalDate;
+
 public final class EvenementValidator {
 
     private EvenementValidator() {
@@ -19,6 +21,9 @@ public final class EvenementValidator {
         }
         if (e.getDateEvenement() == null) {
             throw new ValidationException("La date de l'événement est obligatoire.");
+        }
+        if (e.getDateEvenement().isBefore(LocalDate.now())) {
+            throw new ValidationException("La date de l'événement doit être aujourd'hui ou dans le futur.");
         }
         if (e.getHeureDebut() == null || e.getHeureFin() == null) {
             throw new ValidationException("Les heures de début et de fin sont obligatoires.");
