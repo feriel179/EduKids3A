@@ -20,14 +20,14 @@
                 <Insets bottom="16.0" left="28.0" right="28.0" top="16.0" />
             </padding>
             <children>
-                <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="student-brand-wrap">
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="student-brand-wrap">
                     <children>
-                        <ImageView fitHeight="56.0" fitWidth="56.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                        <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" smooth="true">
                             <image>
                                 <Image url="@/tn/esprit/images/edukids-logo.png" />
                             </image>
                         </ImageView>
-                        <TextFlow styleClass="student-brand-flow">
+                        <TextFlow styleClass="student-brand-flow" translateY="4.0">
                             <children>
                                 <Text styleClass="student-brand-accent" text="Edu" />
                                 <Text styleClass="student-brand-light" text="Kids" />
