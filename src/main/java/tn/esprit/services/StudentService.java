@@ -24,10 +24,17 @@ public class StudentService {
     private final Connection cnx = MyConnection.getInstance().getCnx();
 
     public Student loginOrCreateStudent(String identifier) {
+        return loginOrCreateStudent(identifier, null, null);
+    }
+
+    public Student loginOrCreateStudent(String identifier, Integer age, String preferredCategory) {
         String normalized = identifier == null ? "" : identifier.trim();
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("Please enter a student name or email.");
         }
+
+        validateStudentAge(age);
+        String normalizedCategory = normalizePreferredCategory(preferredCategory);
 
         Student student = normalized.contains("@")
                 ? findStudentByEmail(normalized)
@@ -35,8 +42,10 @@ public class StudentService {
 
         if (student == null) {
             student = normalized.contains("@")
-                    ? createStudentFromEmail(normalized)
-                    : createStudentFromName(normalized);
+                    ? createStudentFromEmail(normalized, age, normalizedCategory)
+                    : createStudentFromName(normalized, age, normalizedCategory);
+        } else if (age != null || preferredCategory != null) {
+            updateStudentProfile(student, age, normalizedCategory);
         }
 
         student.replaceEnrolledCourses(loadEnrolledCourses(student.getId()));
@@ -48,6 +57,18 @@ public class StudentService {
         if (currentStudent != null) {
             refreshCurrentStudentCourses();
         }
+        return currentStudent;
+    }
+
+    public Student updateCurrentStudentProfile(Integer age, String preferredCategory) {
+        if (currentStudent == null) {
+            throw new IllegalStateException("No student is currently connected.");
+        }
+
+        validateStudentAge(age);
+        String normalizedCategory = normalizePreferredCategory(preferredCategory);
+        updateStudentProfile(currentStudent, age, normalizedCategory);
+        refreshCurrentStudentCourses();
         return currentStudent;
     }
 
@@ -204,7 +225,7 @@ public class StudentService {
     public ObservableList<Student> getAllStudents() {
         ObservableList<Student> students = FXCollections.observableArrayList();
         String sql = """
-                SELECT id, email, first_name, last_name
+                SELECT id, email, first_name, last_name, age, preferred_subject
                 FROM user
                 WHERE is_active = 1 AND roles LIKE '%ROLE_ELEVE%'
                 ORDER BY first_name, last_name, email
@@ -231,7 +252,7 @@ public class StudentService {
 
     private Student findStudentByEmail(String email) {
         String sql = """
-                SELECT id, email, first_name, last_name
+                SELECT id, email, first_name, last_name, age, preferred_subject
                 FROM user
                 WHERE is_active = 1 AND roles LIKE '%ROLE_ELEVE%' AND LOWER(email) = LOWER(?)
                 LIMIT 1
@@ -248,7 +269,7 @@ public class StudentService {
 
     private Student findStudentByName(String name) {
         String sql = """
-                SELECT id, email, first_name, last_name
+                SELECT id, email, first_name, last_name, age, preferred_subject
                 FROM user
                 WHERE is_active = 1 AND roles LIKE '%ROLE_ELEVE%'
                   AND (
@@ -270,26 +291,26 @@ public class StudentService {
         }
     }
 
-    private Student createStudentFromName(String name) {
+    private Student createStudentFromName(String name, Integer age, String preferredCategory) {
         String[] parts = name.trim().split("\\s+", 2);
         String firstName = capitalize(parts[0]);
         String lastName = parts.length > 1 ? capitalize(parts[1]) : "Student";
         String email = buildUniqueEmail(firstName + "." + lastName);
-        return createStudent(email, firstName, lastName);
+        return createStudent(email, firstName, lastName, age, preferredCategory);
     }
 
-    private Student createStudentFromEmail(String email) {
+    private Student createStudentFromEmail(String email, Integer age, String preferredCategory) {
         String localPart = email.substring(0, email.indexOf('@'));
         String[] parts = localPart.replace('.', ' ').replace('_', ' ').trim().split("\\s+", 2);
         String firstName = parts.length > 0 && !parts[0].isBlank() ? capitalize(parts[0]) : "Edukids";
         String lastName = parts.length > 1 && !parts[1].isBlank() ? capitalize(parts[1]) : "Student";
-        return createStudent(email.trim().toLowerCase(Locale.ROOT), firstName, lastName);
+        return createStudent(email.trim().toLowerCase(Locale.ROOT), firstName, lastName, age, preferredCategory);
     }
 
-    private Student createStudent(String email, String firstName, String lastName) {
+    private Student createStudent(String email, String firstName, String lastName, Integer age, String preferredCategory) {
         String sql = """
-                INSERT INTO user (email, roles, password, first_name, last_name, is_active)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO user (email, roles, password, first_name, last_name, age, preferred_subject, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement preparedStatement = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, email);
@@ -297,12 +318,18 @@ public class StudentService {
             preparedStatement.setString(3, "desktop-generated");
             preparedStatement.setString(4, firstName);
             preparedStatement.setString(5, lastName);
-            preparedStatement.setBoolean(6, true);
+            if (age == null) {
+                preparedStatement.setNull(6, java.sql.Types.INTEGER);
+            } else {
+                preparedStatement.setInt(6, age);
+            }
+            preparedStatement.setString(7, preferredCategory);
+            preparedStatement.setBoolean(8, true);
             preparedStatement.executeUpdate();
 
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 long generatedId = generatedKeys.next() ? generatedKeys.getLong(1) : 0;
-                return new Student(generatedId, buildDisplayName(firstName, lastName, email), email);
+                return new Student(generatedId, buildDisplayName(firstName, lastName, email), email, safeAge(age), preferredCategory);
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Impossible de creer l'etudiant dans EduKids.", exception);
@@ -359,7 +386,9 @@ public class StudentService {
         return new Student(
                 resultSet.getLong("id"),
                 buildDisplayName(firstName, lastName, email),
-                email
+                email,
+                resultSet.getInt("age"),
+                normalizePreferredCategory(resultSet.getString("preferred_subject"))
         );
     }
 
@@ -434,6 +463,37 @@ public class StudentService {
         course.setProgressPercent(progressPercent);
     }
 
+    private void updateStudentProfile(Student student, Integer age, String preferredCategory) {
+        if (student == null) {
+            return;
+        }
+
+        Integer targetAge = age == null || age <= 0 ? student.getAge() : age;
+        String targetCategory = preferredCategory == null || preferredCategory.isBlank()
+                ? normalizePreferredCategory(student.getPreferredCategory())
+                : preferredCategory;
+
+        String sql = """
+                UPDATE user
+                SET age = ?, preferred_subject = ?
+                WHERE id = ?
+                """;
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            if (targetAge == null || targetAge <= 0) {
+                preparedStatement.setNull(1, java.sql.Types.INTEGER);
+            } else {
+                preparedStatement.setInt(1, targetAge);
+            }
+            preparedStatement.setString(2, targetCategory);
+            preparedStatement.setLong(3, student.getId());
+            preparedStatement.executeUpdate();
+            student.setAge(safeAge(targetAge));
+            student.setPreferredCategory(targetCategory);
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Impossible de mettre a jour le profil de l'etudiant.", exception);
+        }
+    }
+
     private String buildDisplayName(String firstName, String lastName, String email) {
         String fullName = ((firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim())).trim();
         return fullName.isBlank() ? email : fullName;
@@ -478,6 +538,20 @@ public class StudentService {
         }
         String normalized = value.toLowerCase(Locale.ROOT);
         return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
+    }
+
+    private void validateStudentAge(Integer age) {
+        if (age != null && (age < 8 || age > 18)) {
+            throw new IllegalArgumentException("EduKids personalization is available for students aged 8 to 18.");
+        }
+    }
+
+    private int safeAge(Integer age) {
+        return age == null ? 0 : Math.max(0, age);
+    }
+
+    private String normalizePreferredCategory(String preferredCategory) {
+        return preferredCategory == null || preferredCategory.isBlank() ? "General" : preferredCategory.trim();
     }
 
     private void rollbackQuietly() {

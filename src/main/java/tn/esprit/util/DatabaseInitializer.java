@@ -56,6 +56,8 @@ public final class DatabaseInitializer {
                         password VARCHAR(255) NOT NULL,
                         first_name VARCHAR(255) DEFAULT NULL,
                         last_name VARCHAR(255) DEFAULT NULL,
+                        age INT DEFAULT NULL,
+                        preferred_subject VARCHAR(255) DEFAULT NULL,
                         is_active TINYINT(1) NOT NULL,
                         PRIMARY KEY (id),
                         UNIQUE KEY uniq_user_email (email)
@@ -87,6 +89,34 @@ public final class DatabaseInitializer {
                         KEY idx_lesson_progress_lesson (lesson_id)
                     )
                     """);
+
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS lesson_exercise (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        lesson_id INT NOT NULL,
+                        title VARCHAR(255) NOT NULL,
+                        prompt TEXT NOT NULL,
+                        display_order INT NOT NULL DEFAULT 1,
+                        PRIMARY KEY (id),
+                        KEY idx_lesson_exercise_lesson (lesson_id)
+                    )
+                    """);
+
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS student_exercise_work (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        user_id INT NOT NULL,
+                        exercise_id INT NOT NULL,
+                        custom_prompt TEXT DEFAULT NULL,
+                        answer_text TEXT DEFAULT NULL,
+                        drawing_path VARCHAR(512) DEFAULT NULL,
+                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (id),
+                        UNIQUE KEY uniq_student_exercise (user_id, exercise_id),
+                        KEY idx_student_exercise_user (user_id),
+                        KEY idx_student_exercise_exercise (exercise_id)
+                    )
+                    """);
         } catch (SQLException exception) {
             throw new IllegalStateException("Impossible d'initialiser les tables EduKids.", exception);
         }
@@ -98,6 +128,9 @@ public final class DatabaseInitializer {
 
             boolean lessonStatusAdded = addColumnIfMissing(cnx, "lecon", "status", "VARCHAR(20) NOT NULL DEFAULT 'DRAFT'");
             addColumnIfMissing(cnx, "lecon", "duration_minutes", "INT NOT NULL DEFAULT 10");
+            addColumnIfMissing(cnx, "user", "age", "INT DEFAULT NULL");
+            addColumnIfMissing(cnx, "user", "preferred_subject", "VARCHAR(255) DEFAULT NULL");
+            addColumnIfMissing(cnx, "student_exercise_work", "drawing_path", "VARCHAR(512) DEFAULT NULL");
 
             if (courseStatusAdded) {
                 backfillLegacyCourseStatus(cnx);

@@ -248,9 +248,22 @@ public class LessonService {
             cnx.setAutoCommit(false);
 
             try (PreparedStatement deleteLessonProgress = cnx.prepareStatement("DELETE FROM user_lecon_progress WHERE lesson_id = ?");
+                 PreparedStatement deleteExerciseWork = cnx.prepareStatement("""
+                        DELETE sew
+                        FROM student_exercise_work sew
+                        INNER JOIN lesson_exercise le ON le.id = sew.exercise_id
+                        WHERE le.lesson_id = ?
+                        """);
+                 PreparedStatement deleteExercises = cnx.prepareStatement("DELETE FROM lesson_exercise WHERE lesson_id = ?");
                  PreparedStatement preparedStatement = cnx.prepareStatement("DELETE FROM lecon WHERE id = ?")) {
                 deleteLessonProgress.setLong(1, lesson.getId());
                 deleteLessonProgress.executeUpdate();
+
+                deleteExerciseWork.setLong(1, lesson.getId());
+                deleteExerciseWork.executeUpdate();
+
+                deleteExercises.setLong(1, lesson.getId());
+                deleteExercises.executeUpdate();
 
                 preparedStatement.setLong(1, lesson.getId());
                 preparedStatement.executeUpdate();

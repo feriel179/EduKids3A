@@ -6,10 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -20,10 +17,13 @@ import javafx.scene.shape.Rectangle;
 import tn.esprit.models.Course;
 import tn.esprit.models.CourseProgressSummary;
 import tn.esprit.models.Lesson;
+import tn.esprit.models.LessonExercise;
+import tn.esprit.services.ExerciseService;
 import tn.esprit.services.LessonService;
 import tn.esprit.services.StudentService;
 import tn.esprit.util.SweetAlert;
 
+import javax.imageio.ImageIO;
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -32,15 +32,12 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
-
 public class CourseDetailController {
     private static final double HERO_HEIGHT = 270;
-    private static final double LESSON_LIST_MIN_HEIGHT = 220;
-    private static final double LESSON_CARD_ESTIMATED_HEIGHT = 190;
 
     @FXML
     private StackPane courseHeroPane;
@@ -65,12 +62,14 @@ public class CourseDetailController {
     @FXML
     private Label descriptionLabel;
     @FXML
-    private ListView<Lesson> lessonListView;
+    private VBox lessonContainer;
 
     private final LessonService lessonService = new LessonService();
+    private final ExerciseService exerciseService = new ExerciseService();
     private final StudentService studentService = new StudentService();
     private final Rectangle heroClip = new Rectangle();
     private Course currentCourse;
+    private ObservableList<Lesson> currentLessons;
     private Set<Long> completedLessonIds = Set.of();
 
     @FXML
@@ -87,31 +86,11 @@ public class CourseDetailController {
         heroClip.widthProperty().bind(courseHeroPane.widthProperty());
         heroClip.setHeight(HERO_HEIGHT);
         courseImageView.setClip(heroClip);
-
-        lessonListView.setPlaceholder(new Label("No lessons available for this course."));
-        lessonListView.setCellFactory(list -> new ListCell<>() {
-            @Override
-            protected void updateItem(Lesson lesson, boolean empty) {
-                super.updateItem(lesson, empty);
-                if (!getStyleClass().contains("student-lesson-cell")) {
-                    getStyleClass().add("student-lesson-cell");
-                }
-                if (empty || lesson == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setContentDisplay(ContentDisplay.TEXT_ONLY);
-                } else {
-                    setText(null);
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setGraphic(createLessonCard(lesson));
-                }
-            }
-        });
     }
 
     public void setCourse(Course course) {
         currentCourse = course;
-        ObservableList<Lesson> lessons = lessonService.getPublishedLessonsByCourse(course);
+        currentLessons = lessonService.getPublishedLessonsByCourse(course);
         completedLessonIds = studentService.getCompletedLessonIds(course);
 
         courseTitleLabel.setText(safeText(course.getTitle(), "Untitled course"));
@@ -121,17 +100,33 @@ public class CourseDetailController {
         levelBadgeLabel.setStyle("-fx-background-color: " + course.getLevelColor() + ";");
         courseSummaryLabel.setText(summarize(course.getDescription(), 168));
         descriptionLabel.setText(safeText(course.getDescription(), "No description is available for this course yet."));
-        lessonCountLabel.setText(formatLessonCount(lessons.size()));
-        durationLabel.setText(resolveDurationLabel(course, lessons));
+        lessonCountLabel.setText(formatLessonCount(currentLessons.size()));
+        durationLabel.setText(resolveDurationLabel(course, currentLessons));
         courseInitialsLabel.setText(buildCourseInitials(course));
         courseHeroPane.setStyle(buildHeroStyle(course));
         updateHeroImage(course);
-        lessonListView.setItems(lessons);
-        updateLessonListHeight(lessons.size());
+        renderLessons();
+    }
+
+    private void renderLessons() {
+        lessonContainer.getChildren().clear();
+        if (currentLessons == null || currentLessons.isEmpty()) {
+            Label empty = new Label("No lessons or exercises are available for this course yet.");
+            empty.getStyleClass().add("empty-state");
+            empty.setWrapText(true);
+            lessonContainer.getChildren().add(empty);
+            return;
+        }
+
+        for (Lesson lesson : currentLessons) {
+            lessonContainer.getChildren().add(createLessonCard(lesson));
+        }
     }
 
     private VBox createLessonCard(Lesson lesson) {
         boolean completed = completedLessonIds.contains(lesson.getId());
+        List<LessonExercise> exercises = exerciseService.getExercisesByLesson(lesson);
+        boolean drawingEnabled = isDrawingEnabled();
 
         Label lessonOrderBadge = new Label("Lesson " + lesson.getOrder());
         lessonOrderBadge.getStyleClass().add("student-mini-badge");
@@ -152,7 +147,9 @@ public class CourseDetailController {
         titleLabel.getStyleClass().add("student-lesson-title");
         titleLabel.setWrapText(true);
 
-        Label helperLabel = new Label("Open one of the available resources below.");
+        Label helperLabel = new Label(drawingEnabled
+                ? "Open the lesson resources, then continue to the exercise studio to draw and write."
+                : "Open the lesson resources, then continue to the exercise studio to write your answer.");
         helperLabel.getStyleClass().add("student-detail-section-subtitle");
         helperLabel.setWrapText(true);
 
@@ -166,13 +163,35 @@ public class CourseDetailController {
         actions.getChildren().add(createCompletionButton(lesson, completed));
 
         if (!hasResource) {
-            helperLabel.setText("No PDF, video, or YouTube resource is available yet. You can still update your progress.");
+            helperLabel.setText("No PDF, video, or YouTube resource is available yet. You can still open the exercise studio.");
         }
 
-        VBox card = new VBox(12, badgeRow, titleLabel, helperLabel, actions);
+        Label exerciseSummaryLabel = new Label(exercises.isEmpty()
+                ? "No exercise yet for this lesson."
+                : exercises.size() + (exercises.size() == 1 ? " exercise ready in the studio." : " exercises ready in the studio."));
+        exerciseSummaryLabel.getStyleClass().add("student-detail-section-subtitle");
+        exerciseSummaryLabel.setWrapText(true);
+
+        Button studioButton = new Button("Open Exercise Studio");
+        studioButton.getStyleClass().add("primary-button");
+        studioButton.setOnAction(event -> {
+            if (StudentShellController.getInstance() != null && currentCourse != null) {
+                StudentShellController.getInstance().showExerciseStudio(currentCourse, lesson);
+            }
+        });
+
+        VBox card = new VBox(12, badgeRow, titleLabel, helperLabel, actions, exerciseSummaryLabel, studioButton);
         card.getStyleClass().add("student-lesson-card");
         card.setPadding(new Insets(18));
         return card;
+    }
+
+    private boolean isDrawingEnabled() {
+        if (studentService.getCurrentStudent() == null) {
+            return false;
+        }
+        int age = studentService.getCurrentStudent().getAge();
+        return age >= 8 && age <= 10;
     }
 
     private Button createResourceButton(String text, String location, String resourceType) {
@@ -210,7 +229,7 @@ public class CourseDetailController {
         CourseProgressSummary summary = studentService.updateLessonCompletion(currentCourse, lesson, completed);
         completedLessonIds = studentService.getCompletedLessonIds(currentCourse);
         updateCurrentCourseProgress(summary);
-        lessonListView.refresh();
+        renderLessons();
     }
 
     private void updateCurrentCourseProgress(CourseProgressSummary summary) {
@@ -295,7 +314,6 @@ public class CourseDetailController {
                 return SwingFXUtils.toFXImage(bufferedImage, null);
             }
         } catch (IOException ignored) {
-            // Fall back to JavaFX image loading below.
         }
         return new Image(imageSource, false);
     }
@@ -363,13 +381,6 @@ public class CourseDetailController {
             totalDuration = course.getTotalDurationMinutes();
         }
         return Course.formatDuration(totalDuration);
-    }
-
-    private void updateLessonListHeight(int lessonCount) {
-        double visibleRows = Math.max(1, lessonCount);
-        double computedHeight = Math.max(LESSON_LIST_MIN_HEIGHT, 22 + (visibleRows * LESSON_CARD_ESTIMATED_HEIGHT));
-        lessonListView.setPrefHeight(computedHeight);
-        lessonListView.setMinHeight(LESSON_LIST_MIN_HEIGHT);
     }
 
     private String summarize(String text, int maxLength) {

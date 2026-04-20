@@ -60,13 +60,25 @@ public class CatalogController {
     @FXML
     private Label savedCoursesValueLabel;
     @FXML
+    private ComboBox<Integer> agePersonalizationComboBox;
+    @FXML
+    private ComboBox<String> preferredCategoryComboBox;
+    @FXML
+    private Label learningPathLabel;
+    @FXML
     private Label heroStudentChipLabel;
     @FXML
     private Label heroSavedCoursesChipLabel;
     @FXML
+    private Label heroPersonalizationChipLabel;
+    @FXML
     private Label studentSnapshotNameLabel;
     @FXML
     private Label studentSnapshotEmailLabel;
+    @FXML
+    private Label studentProfileAgeLabel;
+    @FXML
+    private Label studentProfileCategoryLabel;
     @FXML
     private Label featuredCourseLabel;
 
@@ -81,8 +93,9 @@ public class CatalogController {
     @FXML
     private void initialize() {
         courseService.refreshCourses();
-        configureFilters();
         refreshStudentSnapshot();
+        configurePersonalization();
+        configureFilters();
         applyFilters();
     }
 
@@ -123,7 +136,7 @@ public class CatalogController {
         searchField.clear();
         subjectFilterComboBox.setValue("All Subjects");
         levelFilterComboBox.setValue("All Levels");
-        sortComboBox.setValue("Newest");
+        sortComboBox.setValue(resolveDefaultSort());
         currentPage = 1;
         applyFilters();
     }
@@ -133,6 +146,54 @@ public class CatalogController {
         if (StudentShellController.getInstance() != null) {
             StudentShellController.getInstance().showMyCourses();
         }
+    }
+
+    @FXML
+    private void handleSavePersonalization() {
+        Integer selectedAge = agePersonalizationComboBox.getValue();
+        String selectedCategory = preferredCategoryComboBox.getValue();
+        if (selectedAge == null) {
+            SweetAlert.warning("Age Required", "Choose the student's age in the learning space.");
+            return;
+        }
+        if (selectedCategory == null || selectedCategory.isBlank()) {
+            SweetAlert.warning("Category Required", "Choose the preferred learning category.");
+            return;
+        }
+
+        currentStudent = studentService.updateCurrentStudentProfile(selectedAge, selectedCategory);
+        if (StudentShellController.getInstance() != null) {
+            StudentShellController.getInstance().refreshStudentHeader();
+        }
+        refreshStudentSnapshot();
+        currentPage = 1;
+        applyFilters();
+        SweetAlert.success("Learning Path Updated", "The personalized courses and exercises were refreshed for this age.");
+    }
+
+    private void configurePersonalization() {
+        agePersonalizationComboBox.getItems().setAll(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        preferredCategoryComboBox.getItems().setAll(
+                "Mathematique",
+                "Francais",
+                "Anglais",
+                "Sciences",
+                "Informatique",
+                "Arabe",
+                "Histoire",
+                "Geographie",
+                "General"
+        );
+
+        if (currentStudent != null && currentStudent.getAge() >= 8) {
+            agePersonalizationComboBox.setValue(currentStudent.getAge());
+        } else {
+            agePersonalizationComboBox.setValue(8);
+        }
+
+        preferredCategoryComboBox.setValue(currentStudent == null
+                ? "General"
+                : buildDisplaySubjectName(currentStudent.getPreferredCategory(), "General"));
     }
 
     private void configureFilters() {
@@ -152,8 +213,8 @@ public class CatalogController {
         levelFilterComboBox.getItems().addAll(levels);
         levelFilterComboBox.setValue("All Levels");
 
-        sortComboBox.getItems().setAll("Newest", "Most Liked", "A to Z", "Level Ascending", "Level Descending");
-        sortComboBox.setValue("Newest");
+        sortComboBox.getItems().setAll("Recommended", "Newest", "Most Liked", "A to Z", "Level Ascending", "Level Descending");
+        sortComboBox.setValue(resolveDefaultSort());
 
         searchField.textProperty().addListener((obs, oldValue, newValue) -> {
             currentPage = 1;
@@ -176,7 +237,7 @@ public class CatalogController {
     private void renderCurrentPage() {
         catalogContainer.getChildren().clear();
         if (filteredCourses.isEmpty()) {
-            Label empty = new Label("No courses match your filters yet. Try another search or reset the filters.");
+            Label empty = new Label("No courses match these filters yet. Try another search or reset the filters.");
             empty.getStyleClass().add("empty-state");
             empty.setWrapText(true);
             empty.setMaxWidth(420);
@@ -313,8 +374,18 @@ public class CatalogController {
             enrolledCourseIds = Set.of();
             heroStudentChipLabel.setText("Welcome, Student");
             heroSavedCoursesChipLabel.setText("0 saved courses");
+            heroPersonalizationChipLabel.setText("Choose the age inside this page");
             studentSnapshotNameLabel.setText("No student loaded");
             studentSnapshotEmailLabel.setText("student@edukids.local");
+            studentProfileAgeLabel.setText("Not set");
+            studentProfileCategoryLabel.setText("General");
+            if (agePersonalizationComboBox != null) {
+                agePersonalizationComboBox.setValue(8);
+            }
+            if (preferredCategoryComboBox != null) {
+                preferredCategoryComboBox.setValue("General");
+            }
+            learningPathLabel.setText("Set the age and category to build a personalized learning path.");
             return;
         }
 
@@ -324,14 +395,24 @@ public class CatalogController {
 
         heroStudentChipLabel.setText("Welcome, " + extractFirstName(currentStudent.getName()));
         heroSavedCoursesChipLabel.setText(enrolledCourseIds.size() + " saved courses");
+        heroPersonalizationChipLabel.setText(currentStudent.getAgeGroupLabel() + " | " + buildDisplaySubjectName(currentStudent.getPreferredCategory(), "General"));
         studentSnapshotNameLabel.setText(currentStudent.getName());
         studentSnapshotEmailLabel.setText(currentStudent.getEmail());
+        studentProfileAgeLabel.setText(currentStudent.getAgeLabel());
+        studentProfileCategoryLabel.setText(buildDisplaySubjectName(currentStudent.getPreferredCategory(), "General"));
+        if (agePersonalizationComboBox != null && currentStudent.getAge() >= 8) {
+            agePersonalizationComboBox.setValue(currentStudent.getAge());
+        }
+        if (preferredCategoryComboBox != null) {
+            preferredCategoryComboBox.setValue(buildDisplaySubjectName(currentStudent.getPreferredCategory(), "General"));
+        }
+        learningPathLabel.setText(buildLearningPathLabel(resolveSelectedAge()));
     }
 
     private void updateMetrics() {
-        List<Course> allCourses = courseService.getPublishedCourses();
-        totalCoursesValueLabel.setText(String.valueOf(allCourses.size()));
-        subjectsValueLabel.setText(String.valueOf(allCourses.stream()
+        List<Course> publishedCourses = courseService.getPublishedCourses();
+        totalCoursesValueLabel.setText(String.valueOf(publishedCourses.size()));
+        subjectsValueLabel.setText(String.valueOf(publishedCourses.stream()
                 .map(course -> buildDisplaySubjectName(course.getSubject()))
                 .filter(subject -> !subject.isBlank())
                 .collect(Collectors.toSet())
@@ -341,11 +422,12 @@ public class CatalogController {
 
     private void updateFeaturedCourse() {
         Course featured = filteredCourses.stream()
-                .max(Comparator.comparingInt(Course::getLikes).thenComparingLong(Course::getId))
+                .sorted(resolveComparator("Recommended"))
+                .findFirst()
                 .orElse(null);
         featuredCourseLabel.setText(featured == null
-                ? "No recommendation yet. Start by choosing a subject."
-                : featured.getTitle());
+                ? "No recommendation yet. Update the age profile first."
+                : featured.getTitle() + " for " + resolveAgeBandLabel(resolveSelectedAge()));
     }
 
     private void rebuildPagination() {
@@ -406,8 +488,12 @@ public class CatalogController {
     }
 
     private Comparator<Course> resolveComparator(String selectedSort) {
-        String sort = selectedSort == null ? "Newest" : selectedSort;
+        String sort = selectedSort == null ? resolveDefaultSort() : selectedSort;
         return switch (sort) {
+            case "Recommended" -> Comparator.<Course>comparingInt(this::buildRecommendationScore)
+                    .reversed()
+                    .thenComparing(Comparator.comparingInt(Course::getLikes).reversed())
+                    .thenComparing(Comparator.comparingLong(Course::getId).reversed());
             case "Most Liked" -> Comparator.comparingInt(Course::getLikes)
                     .reversed()
                     .thenComparing(Comparator.comparingLong(Course::getId).reversed());
@@ -419,6 +505,94 @@ public class CatalogController {
                     .thenComparing(course -> safeText(course.getTitle()), String.CASE_INSENSITIVE_ORDER);
             default -> Comparator.comparingLong(Course::getId).reversed();
         };
+    }
+
+    private int buildRecommendationScore(Course course) {
+        int score = course.getLikes() * 2;
+        if (currentStudent == null || course == null) {
+            return score;
+        }
+
+        String preferredCategory = normalizeSubjectKey(currentStudent.getPreferredCategory());
+        String courseCategory = normalizeSubjectKey(course.getSubject());
+        if (!preferredCategory.isBlank() && preferredCategory.equals(courseCategory)) {
+            score += 90;
+        }
+
+        int age = resolveSelectedAge();
+        int idealLevel = resolveIdealLevel(age);
+        int levelDistance = Math.abs(course.getLevel() - idealLevel);
+        score += Math.max(0, 60 - (levelDistance * 15));
+        if (matchesAgeProfile(course)) {
+            score += 40;
+        }
+
+        if (enrolledCourseIds.contains(course.getId())) {
+            score += 10;
+        }
+        return score;
+    }
+
+    private String resolveDefaultSort() {
+        return currentStudent == null ? "Newest" : "Recommended";
+    }
+
+    private boolean matchesAgeProfile(Course course) {
+        int age = resolveSelectedAge();
+        if (age <= 0 || course == null) {
+            return true;
+        }
+        if (age <= 10) {
+            return course.getLevel() <= 3;
+        }
+        if (age <= 13) {
+            return course.getLevel() >= 2 && course.getLevel() <= 6;
+        }
+        return course.getLevel() >= 4;
+    }
+
+    private int resolveSelectedAge() {
+        Integer comboAge = agePersonalizationComboBox == null ? null : agePersonalizationComboBox.getValue();
+        if (comboAge != null) {
+            return comboAge;
+        }
+        return currentStudent == null ? 0 : currentStudent.getAge();
+    }
+
+    private int resolveIdealLevel(int age) {
+        if (age <= 10) {
+            return 2;
+        }
+        if (age <= 13) {
+            return 4;
+        }
+        return 6;
+    }
+
+    private String buildLearningPathLabel(int age) {
+        if (age >= 8 && age <= 10) {
+            return "For ages 8-10: the existing courses stay visible, but the suggestions and exercises become simpler and more guided.";
+        }
+        if (age >= 11 && age <= 13) {
+            return "For ages 11-13: the existing courses stay visible, with intermediate recommendations and stronger practice activities.";
+        }
+        if (age >= 14) {
+            return "For ages 14+: the existing courses stay visible, with more advanced recommendations and deeper exercises.";
+        }
+        return "Set the age to adapt recommendations while keeping the existing courses visible.";
+    }
+
+    private String resolveAgeBandLabel(int age) {
+        if (age >= 8 && age <= 10) {
+            return "ages 8-10";
+        }
+        if (age >= 11 && age <= 13) {
+            return "ages 11-13";
+        }
+        if (age >= 14) {
+            return "ages 14+";
+        }
+        return "this learner";
     }
 
     private boolean matchesKeyword(Course course, String keyword) {

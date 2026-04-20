@@ -2,6 +2,7 @@ package tn.esprit.controllers.student;
 
 import tn.esprit.MainFX;
 import tn.esprit.models.Course;
+import tn.esprit.models.Lesson;
 import tn.esprit.models.Student;
 import tn.esprit.services.StudentService;
 import javafx.fxml.FXML;
@@ -79,6 +80,14 @@ public class StudentShellController {
         setActiveNavigation(catalogButton);
     }
 
+    public void showExerciseStudio(Course course, Lesson lesson) {
+        loadCenterView("/tn/esprit/fxml/student/exercise-studio.fxml", loader -> {
+            ExerciseStudioController controller = loader.getController();
+            controller.setContext(course, lesson);
+        });
+        setActiveNavigation(catalogButton);
+    }
+
     private void loadCenterView(String fxmlPath, LoaderCallback callback) {
         try {
             FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(fxmlPath));
@@ -102,8 +111,12 @@ public class StudentShellController {
         }
 
         studentNameLabel.setText(student.getName());
-        studentEmailLabel.setText(student.getEmail());
+        studentEmailLabel.setText(student.getAgeGroupLabel() + " | " + student.getPreferredCategory());
         studentAvatarLabel.setText(buildInitials(student.getName(), student.getEmail()));
+    }
+
+    public void refreshStudentHeader() {
+        populateStudentHeader();
     }
 
     private void setActiveNavigation(Button activeButton) {

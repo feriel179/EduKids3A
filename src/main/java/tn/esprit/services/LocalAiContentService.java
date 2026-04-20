@@ -105,6 +105,56 @@ public class LocalAiContentService {
         return parseTranslatedContent(callTextModel(prompt));
     }
 
+    public GeneratedExerciseQuestions generateExerciseQuestions(String courseTitle, String subject, int level,
+                                                                String courseDescription, String lessonTitle,
+                                                                int age, boolean drawingEnabled) {
+        String prompt = """
+                You are an educational question generator for the EduKids platform.
+                Create exactly 2 exercise questions related to the course and the lesson.
+
+                Course title: %s
+                Subject: %s
+                Level: Niveau %d
+                Course description: %s
+                Lesson title: %s
+                Student age: %d
+                Drawing available: %s
+
+                Requirements:
+                - Use the same language as the course content when it is clear. Otherwise use French.
+                - The questions must be directly about the course and the lesson, not generic.
+                - Question 1 should test comprehension of the lesson.
+                - Question 2 should ask the student to apply, explain, compare, or create using the lesson content.
+                - If drawing is available, question 2 must explicitly ask the student to use the drawing area and then explain the drawing in writing.
+                - If drawing is not available, question 2 must be writing-only.
+                - Keep each question clear and classroom-ready.
+
+                Return exactly in this format:
+                [Q1_TITLE]
+                title of question 1
+                [/Q1_TITLE]
+                [Q1_PROMPT]
+                prompt of question 1
+                [/Q1_PROMPT]
+                [Q2_TITLE]
+                title of question 2
+                [/Q2_TITLE]
+                [Q2_PROMPT]
+                prompt of question 2
+                [/Q2_PROMPT]
+                """.formatted(
+                safeText(courseTitle, "Untitled course"),
+                safeText(subject, "General education"),
+                Math.max(1, level),
+                safeText(courseDescription, "No description provided."),
+                safeText(lessonTitle, "Untitled lesson"),
+                Math.max(8, age),
+                drawingEnabled ? "yes" : "no"
+        );
+
+        return parseGeneratedExerciseQuestions(callTextModel(prompt));
+    }
+
     public String getBaseUrl() {
         return readSettingOrDefault("OLLAMA_BASE_URL", DEFAULT_BASE_URL);
     }
@@ -177,6 +227,33 @@ public class LocalAiContentService {
         }
 
         return new TranslatedCourseContent(title, subject, description);
+    }
+
+    private GeneratedExerciseQuestions parseGeneratedExerciseQuestions(String rawOutput) {
+        String q1Title = "";
+        String q1Prompt = "";
+        String q2Title = "";
+        String q2Prompt = "";
+
+        Matcher matcher = Pattern.compile("(?is)\\[(Q1_TITLE|Q1_PROMPT|Q2_TITLE|Q2_PROMPT)]\\s*(.*?)\\s*\\[/\\1]").matcher(rawOutput);
+        while (matcher.find()) {
+            String section = matcher.group(1).toUpperCase(Locale.ROOT);
+            String value = matcher.group(2).trim();
+            switch (section) {
+                case "Q1_TITLE" -> q1Title = value;
+                case "Q1_PROMPT" -> q1Prompt = value;
+                case "Q2_TITLE" -> q2Title = value;
+                case "Q2_PROMPT" -> q2Prompt = value;
+                default -> {
+                }
+            }
+        }
+
+        if (q1Title.isBlank() || q1Prompt.isBlank() || q2Title.isBlank() || q2Prompt.isBlank()) {
+            throw new IllegalStateException("The generated exercise questions could not be parsed correctly.");
+        }
+
+        return new GeneratedExerciseQuestions(q1Title, q1Prompt, q2Title, q2Prompt);
     }
 
     private String buildErrorMessage(int statusCode, String responseBody) {
@@ -311,6 +388,10 @@ public class LocalAiContentService {
     }
 
     public record TranslatedCourseContent(String title, String subject, String description) {
+    }
+
+    public record GeneratedExerciseQuestions(String questionOneTitle, String questionOnePrompt,
+                                             String questionTwoTitle, String questionTwoPrompt) {
     }
 
     private record ParsedJsonString(String value, int nextIndex) {

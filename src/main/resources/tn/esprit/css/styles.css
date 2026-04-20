@@ -1738,6 +1738,82 @@
     -fx-background-color: linear-gradient(to bottom right, #ff7878 0%, #e84d63 100%);
 }
 
+.student-exercise-section {
+    -fx-padding: 8 0 0 0;
+}
+
+.student-exercise-card {
+    -fx-background-color: linear-gradient(to bottom, #f8fbff 0%, #f1f7ff 100%);
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: #d7e5f7;
+    -fx-border-width: 1px;
+}
+
+.student-exercise-title {
+    -fx-text-fill: #173258;
+    -fx-font-size: 15px;
+    -fx-font-weight: 900;
+}
+
+.student-exercise-textarea {
+    -fx-background-color: white;
+    -fx-border-color: #cfe0f4;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1d3557;
+}
+
+.student-exercise-textarea:focused {
+    -fx-border-color: #1f73ff;
+    -fx-effect: dropshadow(gaussian, rgba(31, 115, 255, 0.12), 12, 0.16, 0, 2);
+}
+
+.student-exercise-status {
+    -fx-text-fill: #607390;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.student-studio-canvas-wrap {
+    -fx-background-color: white;
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: #d7e5f7;
+    -fx-border-width: 1px;
+    -fx-padding: 10 10 10 10;
+}
+
+.student-studio-exercise-button {
+    -fx-background-color: #eef5ff;
+    -fx-text-fill: #1f4f88;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 9 14 9 14;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: #cfe0f4;
+}
+
+.student-studio-exercise-button-active {
+    -fx-background-color: #1f73ff;
+    -fx-text-fill: white;
+    -fx-border-color: #1f73ff;
+}
+
+.student-studio-drawing-prompt {
+    -fx-text-fill: #173258;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-background-color: #eef5ff;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: #cfe0f4;
+    -fx-padding: 10 12 10 12;
+}
+
 .empty-state {
     -fx-text-fill: #6c7f9a;
     -fx-font-size: 15px;

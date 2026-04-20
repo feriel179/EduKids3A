@@ -237,11 +237,30 @@ public class CourseService implements GlobalInterface<Course> {
                         INNER JOIN lecon l ON l.id = ulp.lesson_id
                         WHERE l.cours_id = ?
                         """);
+                 PreparedStatement deleteExerciseWork = cnx.prepareStatement("""
+                        DELETE sew
+                        FROM student_exercise_work sew
+                        INNER JOIN lesson_exercise le ON le.id = sew.exercise_id
+                        INNER JOIN lecon l ON l.id = le.lesson_id
+                        WHERE l.cours_id = ?
+                        """);
+                 PreparedStatement deleteExercises = cnx.prepareStatement("""
+                        DELETE le
+                        FROM lesson_exercise le
+                        INNER JOIN lecon l ON l.id = le.lesson_id
+                        WHERE l.cours_id = ?
+                        """);
                  PreparedStatement deleteProgress = cnx.prepareStatement("DELETE FROM user_cours_progress WHERE cours_id = ?");
                  PreparedStatement deleteLessons = cnx.prepareStatement("DELETE FROM lecon WHERE cours_id = ?");
                  PreparedStatement deleteCourse = cnx.prepareStatement("DELETE FROM cours WHERE id = ?")) {
                 deleteLessonProgress.setLong(1, course.getId());
                 deleteLessonProgress.executeUpdate();
+
+                deleteExerciseWork.setLong(1, course.getId());
+                deleteExerciseWork.executeUpdate();
+
+                deleteExercises.setLong(1, course.getId());
+                deleteExercises.executeUpdate();
 
                 deleteProgress.setLong(1, course.getId());
                 deleteProgress.executeUpdate();
