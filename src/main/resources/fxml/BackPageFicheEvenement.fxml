@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneBackPageEvForm" spacing="14.0" fillWidth="true" visible="false"
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controllers.app.MainController" fx:id="paneBackPageEvForm" spacing="14.0" fillWidth="true" visible="false"
       managed="false" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
     <padding>
         <Insets bottom="12.0" left="24.0" right="24.0" top="16.0"/>
@@ -131,11 +131,23 @@
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
                                 <TextField fx:id="tfEvImage" promptText="URL ou chemin fichier…"
                                            styleClass="text-field-dark" HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="btnGenererImageIa" mnemonicParsing="false"
+                                        onAction="#onGenererImageEvenementIa"
+                                        text="Image IA" styleClass="button-ai-image"
+                                        minWidth="120.0"/>
+                                <Button fx:id="btnGenererAlbumIa" mnemonicParsing="false"
+                                        onAction="#onGenererAlbumEvenementIa"
+                                        text="Album IA (4)" styleClass="button-ai-image"
+                                        minWidth="130.0"/>
                                 <Button mnemonicParsing="false" onAction="#onParcourirImageEvenement"
                                         text="Parcourir…" styleClass="button-file-browse"/>
                             </HBox>
-                            <Label text="URL web, ou bouton Parcourir pour choisir un fichier image"
-                                   styleClass="form-hint"/>
+                            <Label text="Image IA : une proposition. Album IA : 4 variantes — cliquez sur une vignette pour l’utiliser comme image de l’événement (une seule URL enregistrée). Vous pouvez aussi coller une URL ou un fichier."
+                                   styleClass="form-hint" wrapText="true" maxWidth="640.0"/>
+                            <VBox fx:id="boxEvAlbumIaWrap" spacing="8.0" visible="false" managed="false">
+                                <Label text="Choisissez une image pour l’événement :" styleClass="form-hint"/>
+                                <HBox fx:id="boxEvAlbumIaThumbs" spacing="10.0" alignment="CENTER_LEFT"/>
+                            </VBox>
                             <StackPane styleClass="back-office-img-preview-wrap">
                                 <ImageView fx:id="imgBackOfficeEvenementPreview"
                                            fitWidth="520.0" fitHeight="220.0"

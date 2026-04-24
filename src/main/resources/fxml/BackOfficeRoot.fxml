@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.edukids.edukids3a.ui.MainController"
+      fx:controller="com.edukids.edukids3a.controllers.app.MainController"
       spacing="0" VBox.vgrow="ALWAYS">
     <VBox styleClass="back-sidebar" prefWidth="232.0" minWidth="200.0" maxWidth="280.0" spacing="10.0">
         <padding>

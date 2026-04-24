@@ -1122,6 +1122,51 @@
     -fx-text-fill: white;
 }
 
+/* Génération d’image IA (formulaire événement) */
+.button-ai-image {
+    -fx-background-color: #4a2d6e;
+    -fx-text-fill: #f0e8ff;
+    -fx-font-weight: 600;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+    -fx-min-width: 100px;
+}
+
+.button-ai-image:hover {
+    -fx-background-color: #6b3d9a;
+    -fx-text-fill: white;
+}
+
+.button-ai-image:disabled {
+    -fx-opacity: 0.55;
+    -fx-cursor: default;
+}
+
+/* Vignettes album IA (choix unique → champ image) */
+.album-ia-thumb {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 10px;
+    -fx-border-color: #555555;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-padding: 4px;
+}
+
+.album-ia-thumb:hover {
+    -fx-border-color: #888888;
+}
+
+.album-ia-thumb-selected {
+    -fx-border-color: #9b6bd4;
+    -fx-border-width: 3px;
+}
+
+.album-ia-thumb-wait {
+    -fx-text-fill: #888888;
+    -fx-font-size: 22px;
+}
+
 /* Aperçu image — back office */
 .back-office-img-preview-wrap {
     -fx-background-color: #262626;

@@ -96,7 +96,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.edukids.edukids3a.EduKidsApplication</mainClass>
+                    <mainClass>com.edukids.edukids3a.MainFX</mainClass>
                     <!-- Use the same JDK as Maven; otherwise javafx:run often picks PATH/java (e.g. Java 17) -->
                     <executable>${java.home}/bin/java</executable>
                 </configuration>
@@ -113,7 +113,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.edukids.edukids3a.EduKidsApplication</mainClass>
+                            <mainClass>com.edukids.edukids3a.MainFX</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

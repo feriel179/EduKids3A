@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneFrontPageAccueil" spacing="20.0" styleClass="front-root" alignment="TOP_CENTER">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controllers.app.MainController" fx:id="paneFrontPageAccueil" spacing="20.0" styleClass="front-root" alignment="TOP_CENTER">
     <padding>
         <Insets bottom="32.0" left="32.0" right="32.0" top="40.0"/>
     </padding>

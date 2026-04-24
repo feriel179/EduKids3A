@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 <ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.edukids.edukids3a.ui.MainController"
+            fx:controller="com.edukids.edukids3a.controllers.app.MainController"
             fx:id="paneBackPageStats" fitToWidth="true" visible="false" managed="false"
             styleClass="form-scroll-dark" maxHeight="1.7976931348623157E308">
     <VBox spacing="18.0" styleClass="back-form-panel">

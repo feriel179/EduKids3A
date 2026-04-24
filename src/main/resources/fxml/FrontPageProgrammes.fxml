@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.ui.MainController" fx:id="paneFrontPagePr" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controllers.app.MainController" fx:id="paneFrontPagePr" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
         <VBox styleClass="front-hero">
             <Label text="Programmes des événements" styleClass="hero-title"/>
             <Label text="Consultation — pas de modification" styleClass="hero-breadcrumb"/>

@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:id="rootPane" alignment="CENTER" spacing="0"
-      fx:controller="com.edukids.edukids3a.ui.LoginController"
+      fx:controller="com.edukids.edukids3a.controllers.LoginController"
       styleClass="login-rami-root" prefWidth="900.0" prefHeight="600.0"
       stylesheets="@../css/edukids.css">
 
