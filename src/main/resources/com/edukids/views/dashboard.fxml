@@ -1,184 +1,359 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 
-<HBox fx:id="rootPane" spacing="0" xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml" fx:controller="com.edukids.controllers.DashboardController"
-      prefWidth="1200" prefHeight="750">
-
-    <!-- ==================== SIDEBAR ==================== -->
-    <VBox styleClass="sidebar" prefWidth="230" spacing="3">
-        <padding><Insets top="20" right="12" bottom="20" left="12"/></padding>
-
-        <Label text="EduKids" styleClass="sidebar-logo"/>
-        <Label text="Admin Panel" styleClass="sidebar-subtitle"/>
-        <Separator styleClass="sidebar-separator"/>
-
-        <!-- Navigation -->
-        <Button text="Dashboard" onAction="#handleDashboardNav"
-                styleClass="sidebar-btn,sidebar-btn-active" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-
-        <Label text="USER MANAGEMENT" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 12 0 4 8;"/>
-
-        <Button text="All Users" onAction="#handleAllUsersNav"
-                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Admins" onAction="#handleAdminsNav"
-                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Students" onAction="#handleStudentsNav"
-                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Parents" onAction="#handleParentsNav"
-                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-
-        <Label text="MODULES" style="-fx-text-fill: #5a7a96; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 12 0 4 8;"/>
-
-        <Button text="Cours" onAction="#handleCoursNav"
-                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Events" onAction="#handleEventsNav"
-                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Produits" onAction="#handleProduitsNav"
-                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Button text="Chat" onAction="#handleChatNav"
-                styleClass="sidebar-btn,sidebar-btn-disabled" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-
-        <Region VBox.vgrow="ALWAYS"/>
-
-        <Separator styleClass="sidebar-separator"/>
-        <Button text="Profile" onAction="#handleProfileNav"
-                styleClass="sidebar-btn" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-        <Label fx:id="currentUserLabel" text="Admin" styleClass="sidebar-user"/>
-        <Button text="Logout" onAction="#handleLogout"
-                styleClass="sidebar-btn-logout" maxWidth="Infinity"/>
-    </VBox>
-
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" HBox.hgrow="ALWAYS">
-        <StackPane fx:id="contentArea">
-
-            <!-- ==================== DASHBOARD VIEW ==================== -->
-            <VBox fx:id="dashboardView" spacing="20">
-                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
-
-                <Label text="Dashboard" styleClass="page-title"/>
-
-                <!-- Stats Row 1 -->
-                <HBox spacing="15">
-                    <VBox styleClass="stat-card,stat-card-primary" HBox.hgrow="ALWAYS" spacing="5">
-                        <Label text="Total Users" styleClass="stat-label"/>
-                        <Label fx:id="totalUsersLabel" text="0" styleClass="stat-value,stat-value-primary"/>
-                    </VBox>
-                    <VBox styleClass="stat-card,stat-card-info" HBox.hgrow="ALWAYS" spacing="5">
-                        <Label text="Students" styleClass="stat-label"/>
-                        <Label fx:id="studentsLabel" text="0" styleClass="stat-value,stat-value-info"/>
-                    </VBox>
-                    <VBox styleClass="stat-card,stat-card-success" HBox.hgrow="ALWAYS" spacing="5">
-                        <Label text="Parents" styleClass="stat-label"/>
-                        <Label fx:id="parentsLabel" text="0" styleClass="stat-value,stat-value-success"/>
-                    </VBox>
-                    <VBox styleClass="stat-card,stat-card-danger" HBox.hgrow="ALWAYS" spacing="5">
-                        <Label text="Admins" styleClass="stat-label"/>
-                        <Label fx:id="adminsLabel" text="0" styleClass="stat-value,stat-value-danger"/>
-                    </VBox>
+<HBox fx:id="rootPane" prefHeight="820.0" prefWidth="1380.0" styleClass="admin-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.controllers.DashboardController">
+    <children>
+        <VBox maxWidth="320.0" minWidth="320.0" prefWidth="320.0" styleClass="admin-sidebar">
+            <padding>
+                <Insets bottom="24.0" left="22.0" right="22.0" top="22.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="sidebar-brand-wrap">
+                    <children>
+                        <StackPane maxHeight="88.0" maxWidth="88.0" minHeight="88.0" minWidth="88.0" prefHeight="88.0" prefWidth="88.0" styleClass="sidebar-logo-frame">
+                            <children>
+                                <ImageView fitHeight="88.0" fitWidth="88.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                                    <image>
+                                        <Image url="@/tn/esprit/images/edukids-logo.png" />
+                                    </image>
+                                </ImageView>
+                            </children>
+                        </StackPane>
+                        <TextFlow maxWidth="184.0" minWidth="184.0" prefWidth="184.0" styleClass="sidebar-brand-flow" translateY="3.0">
+                            <children>
+                                <Text styleClass="sidebar-brand-accent" text="Edu" />
+                                <Text styleClass="sidebar-brand-light" text="Kids" />
+                            </children>
+                        </TextFlow>
+                    </children>
                 </HBox>
 
-                <!-- Stats Row 2 -->
-                <HBox spacing="15">
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
-                        <Label text="Active Users" styleClass="stat-label"/>
-                        <Label fx:id="activeUsersLabel" text="0 / 0" styleClass="section-title"/>
-                        <ProgressBar fx:id="activeProgressBar" progress="0" maxWidth="Infinity" prefHeight="8"/>
-                    </VBox>
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
-                        <Label text="Quick Actions" styleClass="stat-label"/>
-                        <HBox spacing="8">
-                            <Button text="+ Student" onAction="#handleStudentsNav" styleClass="btn-info,btn-sm"/>
-                            <Button text="+ Parent" onAction="#handleParentsNav" styleClass="btn-success,btn-sm"/>
-                            <Button text="+ Admin" onAction="#handleAdminsNav" styleClass="btn-danger,btn-sm"/>
-                        </HBox>
-                    </VBox>
-                </HBox>
+                <Label styleClass="sidebar-section" text="Navigation" />
 
-                <!-- Chart + Recent Users -->
-                <HBox spacing="15">
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="5">
-                        <PieChart fx:id="roleChart" prefHeight="250" legendSide="BOTTOM"/>
-                    </VBox>
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="10" prefWidth="400">
-                        <Label text="Recent Users" styleClass="section-title"/>
-                        <VBox fx:id="recentUsersBox" spacing="6"/>
-                    </VBox>
-                </HBox>
-            </VBox>
+                <Button fx:id="dashboardButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleDashboardNav" styleClass="shell-nav-button,shell-nav-button-active" text="Dashboard" />
+                <Button fx:id="allUsersButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAllUsersNav" styleClass="shell-nav-button" text="All Users" />
+                <VBox fx:id="userSubmenuBox" managed="false" spacing="6.0" visible="false">
+                    <children>
+                        <Button fx:id="adminsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAdminsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Admins" />
+                        <Button fx:id="studentsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleStudentsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Students" />
+                        <Button fx:id="parentsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleParentsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Parents" />
+                    </children>
+                </VBox>
 
-            <!-- ==================== USER MANAGEMENT VIEW ==================== -->
-            <VBox fx:id="userManagementView" spacing="15" visible="false" managed="false">
-                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                <Label styleClass="sidebar-section" text="Modules" />
 
-                <HBox alignment="CENTER_LEFT" spacing="15">
-                    <Label fx:id="userMgmtTitle" text="Users Management" styleClass="page-title"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="+ Add New User" onAction="#handleAddNewUser" styleClass="btn-success"/>
-                </HBox>
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCoursNav" styleClass="shell-nav-button" text="Cours" />
+                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
+                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Produits" />
+                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Chat" />
 
-                <!-- Filter Bar -->
-                <HBox spacing="10" styleClass="filter-bar" alignment="CENTER_LEFT">
-                    <TextField fx:id="searchField" promptText="Search by name or email..."
-                               styleClass="search-input" HBox.hgrow="ALWAYS"/>
-                    <ComboBox fx:id="roleFilterCombo" styleClass="combo-input" prefWidth="160"/>
-                    <ComboBox fx:id="sortCombo" styleClass="combo-input" prefWidth="150"/>
-                </HBox>
+                <VBox VBox.vgrow="ALWAYS" />
 
-                <!-- Content: List + Edit Form -->
-                <HBox spacing="15" VBox.vgrow="ALWAYS">
-                    <ListView fx:id="userListView" styleClass="user-list" HBox.hgrow="ALWAYS"/>
+                <VBox spacing="8.0" styleClass="sidebar-footer-card">
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <Label styleClass="sidebar-footer-title" text="User control" />
+                        <Label styleClass="sidebar-footer-text" text="Apply the same course-module navigation to dashboards, user lists, and profile actions." wrapText="true" />
+                    </children>
+                </VBox>
 
-                    <!-- Edit / Create Form -->
-                    <VBox fx:id="editFormPane" spacing="10" styleClass="edit-form" prefWidth="320"
-                          visible="false" managed="false">
-                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="sidebar-footer-text" text="Connected as" />
+                        <Label fx:id="currentUserLabel" styleClass="shell-sidebar-user" text="EduKids Team" />
+                    </children>
+                </VBox>
 
-                        <Label fx:id="editFormTitle" text="Edit User" styleClass="section-title"/>
-                        <Separator/>
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProfileNav" styleClass="shell-nav-button" text="Profile" />
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLogout" styleClass="shell-logout-button" text="Sign Out" />
+            </children>
+        </VBox>
 
-                        <Label text="First Name *" styleClass="field-label"/>
-                        <TextField fx:id="editFirstName" promptText="First name" styleClass="text-input"/>
-
-                        <Label text="Last Name *" styleClass="field-label"/>
-                        <TextField fx:id="editLastName" promptText="Last name" styleClass="text-input"/>
-
-                        <Label text="Email *" styleClass="field-label"/>
-                        <TextField fx:id="editEmail" promptText="Email" styleClass="text-input"/>
-
-                        <Label text="Role" styleClass="field-label"/>
-                        <ComboBox fx:id="editRole" styleClass="combo-input" maxWidth="Infinity"/>
-
-                        <HBox spacing="15">
-                            <CheckBox fx:id="editActiveCheck" text="Active" styleClass="check-input"/>
-                            <CheckBox fx:id="editVerifiedCheck" text="Verified" styleClass="check-input"/>
-                        </HBox>
-
-                        <!-- Password Section (create mode only) -->
-                        <VBox fx:id="passwordSection" spacing="8">
-                            <Separator/>
-                            <Label text="Password *" styleClass="field-label"/>
-                            <PasswordField fx:id="editPassword" promptText="Min 8 characters" styleClass="text-input"/>
-                            <Label text="Confirm Password *" styleClass="field-label"/>
-                            <PasswordField fx:id="editConfirmPassword" promptText="Confirm password" styleClass="text-input"/>
+        <VBox minWidth="0.0" styleClass="admin-main" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets bottom="18.0" left="18.0" right="18.0" top="18.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="18.0" styleClass="admin-topbar">
+                    <padding>
+                        <Insets bottom="16.0" left="22.0" right="22.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label styleClass="topbar-kicker" text="Users space" />
+                                <Label styleClass="topbar-title" text="Dashboard" />
+                            </children>
                         </VBox>
-
-                        <Separator/>
-
-                        <HBox spacing="8">
-                            <Button text="Save" onAction="#handleSaveUser" styleClass="btn-primary"
-                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                            <Button text="Cancel" onAction="#handleCancelEdit" styleClass="btn-secondary"
-                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="admin-search-shell">
+                            <children>
+                                <Label styleClass="admin-search-prefix" text="Search" />
+                                <TextField promptText="Find a section or an action" styleClass="admin-search-field" />
+                            </children>
                         </HBox>
-                    </VBox>
+                        <StackPane styleClass="topbar-circle-button">
+                            <children>
+                                <Label styleClass="topbar-circle-text" text="5" />
+                            </children>
+                        </StackPane>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="topbar-profile-chip">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label fx:id="topbarRoleLabel" styleClass="topbar-profile-role" text="Administrator" />
+                                        <Label fx:id="topbarNameLabel" styleClass="topbar-profile-name" text="EduKids Team" />
+                                    </children>
+                                </VBox>
+                                <StackPane styleClass="topbar-avatar">
+                                    <children>
+                                        <Label fx:id="topbarAvatarLabel" styleClass="topbar-avatar-text" text="EK" />
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </HBox>
+                    </children>
                 </HBox>
-            </VBox>
-        </StackPane>
-    </ScrollPane>
+
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" VBox.vgrow="ALWAYS">
+                    <content>
+                        <StackPane fx:id="contentArea" styleClass="admin-content-area">
+                            <children>
+                                <VBox fx:id="dashboardView" spacing="22.0">
+                                    <padding>
+                                        <Insets bottom="26.0" left="26.0" right="26.0" top="26.0" />
+                                    </padding>
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                            <children>
+                                                <VBox spacing="4.0">
+                                                    <children>
+                                                        <Label styleClass="page-kicker" text="Platform overview" />
+                                                        <Label styleClass="page-hero-title" text="Dashboard" />
+                                                        <Label styleClass="page-hero-subtitle" text="Manage users with the same polished visual system as the Courses interface, including the shared sidebar and admin cards." wrapText="true" />
+                                                    </children>
+                                                </VBox>
+                                                <Region HBox.hgrow="ALWAYS" />
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="18.0">
+                                            <children>
+                                                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Total Users" />
+                                                        <Label fx:id="totalUsersLabel" styleClass="metric-value-blue" text="0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-cyan" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Students" />
+                                                        <Label fx:id="studentsLabel" styleClass="metric-value-cyan" text="0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-emerald" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Parents" />
+                                                        <Label fx:id="parentsLabel" styleClass="metric-value-emerald" text="0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-coral" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Admins" />
+                                                        <Label fx:id="adminsLabel" styleClass="metric-value-coral" text="0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="18.0">
+                                            <children>
+                                                <VBox spacing="12.0" styleClass="admin-table-card" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="dashboard-panel-title" text="Active Users" />
+                                                        <Label fx:id="activeUsersLabel" styleClass="page-hero-title" text="0 / 0" />
+                                                        <ProgressBar fx:id="activeProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" styleClass="student-progress-bar" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="12.0" styleClass="admin-table-card" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="dashboard-panel-title" text="Quick Actions" />
+                                                        <Label styleClass="dashboard-panel-subtitle" text="Open a filtered user view in one click." wrapText="true" />
+                                                        <HBox spacing="10.0">
+                                                            <children>
+                                                                <Button mnemonicParsing="false" onAction="#handleStudentsNav" styleClass="btn-info,btn-sm" text="+ Student" />
+                                                                <Button mnemonicParsing="false" onAction="#handleParentsNav" styleClass="btn-success,btn-sm" text="+ Parent" />
+                                                                <Button mnemonicParsing="false" onAction="#handleAdminsNav" styleClass="btn-danger,btn-sm" text="+ Admin" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="18.0" VBox.vgrow="ALWAYS">
+                                            <children>
+                                                <VBox spacing="14.0" styleClass="dashboard-spotlight-card" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="dashboard-panel-title" text="Users by Role" />
+                                                        <Label styleClass="dashboard-panel-subtitle" text="A quick distribution of administrators, students, and parents." wrapText="true" />
+                                                        <PieChart fx:id="roleChart" legendSide="BOTTOM" prefHeight="320.0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox prefWidth="390.0" spacing="14.0" styleClass="admin-table-card">
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="dashboard-panel-title" text="Recent Users" />
+                                                        <Label styleClass="dashboard-panel-subtitle" text="Fresh registrations and account activity." wrapText="true" />
+                                                        <VBox fx:id="recentUsersBox" spacing="10.0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox fx:id="userManagementView" managed="false" spacing="18.0" visible="false">
+                                    <padding>
+                                        <Insets bottom="26.0" left="26.0" right="26.0" top="26.0" />
+                                    </padding>
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                            <children>
+                                                <VBox spacing="4.0">
+                                                    <children>
+                                                        <Label styleClass="page-kicker" text="User management" />
+                                                        <Label fx:id="userMgmtTitle" styleClass="page-hero-title" text="Users Management" />
+                                                        <Label styleClass="page-hero-subtitle" text="Search, sort, edit, and create users inside the same modern admin workspace used by the course module." wrapText="true" />
+                                                    </children>
+                                                </VBox>
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <Button mnemonicParsing="false" onAction="#handleAddNewUser" styleClass="toolbar-create-button" text="+ Add New User" />
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="18.0" VBox.vgrow="ALWAYS">
+                                            <children>
+                                                <VBox spacing="16.0" styleClass="admin-table-card" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="18.0" left="18.0" right="18.0" top="18.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="table-toolbar">
+                                                            <children>
+                                                                <TextField fx:id="searchField" promptText="Search by name or email..." styleClass="toolbar-search-field" HBox.hgrow="ALWAYS" />
+                                                                <ComboBox fx:id="roleFilterCombo" prefWidth="180.0" styleClass="toolbar-combo-box" />
+                                                                <ComboBox fx:id="sortCombo" prefWidth="190.0" styleClass="toolbar-combo-box" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <ListView fx:id="userListView" styleClass="user-list,modern-user-list" VBox.vgrow="ALWAYS" />
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox fx:id="editFormPane" managed="false" prefWidth="360.0" spacing="12.0" styleClass="admin-table-card,user-edit-card" visible="false">
+                                                    <padding>
+                                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label fx:id="editFormTitle" styleClass="section-title" text="Edit User" />
+                                                        <Label styleClass="dashboard-panel-subtitle" text="Update the selected user while keeping the shared EduKids admin style." wrapText="true" />
+                                                        <Separator />
+
+                                                        <Label styleClass="field-label" text="First Name *" />
+                                                        <TextField fx:id="editFirstName" promptText="First name" styleClass="text-input" />
+
+                                                        <Label styleClass="field-label" text="Last Name *" />
+                                                        <TextField fx:id="editLastName" promptText="Last name" styleClass="text-input" />
+
+                                                        <Label styleClass="field-label" text="Email *" />
+                                                        <TextField fx:id="editEmail" promptText="Email" styleClass="text-input" />
+
+                                                        <Label styleClass="field-label" text="Role" />
+                                                        <ComboBox fx:id="editRole" maxWidth="1.7976931348623157E308" styleClass="combo-input" />
+
+                                                        <HBox spacing="15.0">
+                                                            <children>
+                                                                <CheckBox fx:id="editActiveCheck" styleClass="check-input" text="Active" />
+                                                                <CheckBox fx:id="editVerifiedCheck" styleClass="check-input" text="Verified" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <VBox fx:id="passwordSection" spacing="8.0">
+                                                            <children>
+                                                                <Separator />
+                                                                <Label styleClass="field-label" text="Password *" />
+                                                                <PasswordField fx:id="editPassword" promptText="Min 8 characters" styleClass="text-input" />
+                                                                <Label styleClass="field-label" text="Confirm Password *" />
+                                                                <PasswordField fx:id="editConfirmPassword" promptText="Confirm password" styleClass="text-input" />
+                                                            </children>
+                                                        </VBox>
+
+                                                        <Separator />
+
+                                                        <HBox spacing="10.0">
+                                                            <children>
+                                                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleSaveUser" styleClass="btn-primary" text="Save" HBox.hgrow="ALWAYS" />
+                                                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCancelEdit" styleClass="btn-secondary" text="Cancel" HBox.hgrow="ALWAYS" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </StackPane>
+                    </content>
+                </ScrollPane>
+            </children>
+        </VBox>
+    </children>
 </HBox>

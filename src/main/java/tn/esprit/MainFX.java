@@ -1,6 +1,9 @@
 package tn.esprit;
 
+import com.edukids.entities.User;
+import com.edukids.utils.SessionManager;
 import tn.esprit.models.Student;
+import tn.esprit.services.StudentService;
 import tn.esprit.util.MyConnection;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -9,9 +12,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class MainFX extends Application {
+
     private static MainFX instance;
     private Stage primaryStage;
 
@@ -20,14 +22,23 @@ public class MainFX extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws IOException { 
-        instance = this;
-        this.primaryStage = stage;
-        initializeDatabase();
-        showLoginView();
-        primaryStage.setMinWidth(1100);
-        primaryStage.setMinHeight(720);
-        primaryStage.show();
+    public void start(Stage stage) {
+        try {
+            instance = this;
+            this.primaryStage = stage;
+
+            initializeDatabase();
+
+            // 🔥 CORRECTION ICI
+            showLoginView();   // 👈 afficher login
+
+            primaryStage.setMinWidth(1100);
+            primaryStage.setMinHeight(720);
+            primaryStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void initializeDatabase() {
@@ -42,29 +53,84 @@ public class MainFX extends Application {
         }
     }
 
-    public void showLoginView() throws IOException {
-        Parent root = loadView("/tn/esprit/fxml/login.fxml");
-        setScene(root, "CourseApp - Login");
+    public void showLoginView() throws Exception {
+        SessionManager.clearSession();
+        StudentService.clearCurrentStudent();
+        Parent root = loadView("/com/edukids/views/login.fxml");
+        setScene(root, "EduKids - Sign In", "/com/edukids/css/style.css");
     }
 
-    public void showAdminShell() throws IOException {
+    public void showUserDashboard() throws Exception {
+        Parent root = loadView("/com/edukids/views/dashboard.fxml");
+        setScene(root, "EduKids - Users Dashboard", "/tn/esprit/css/styles.css", "/com/edukids/css/style.css");
+    }
+
+    public void showParentHome() throws Exception {
+        Parent root = loadView("/com/edukids/views/user-home.fxml");
+        setScene(root, "EduKids - Parent Space", "/tn/esprit/css/styles.css", "/com/edukids/css/style.css");
+    }
+
+    public void showAdminShell() throws Exception {
         Parent root = loadView("/tn/esprit/fxml/admin/admin-shell.fxml");
         setScene(root, "CourseApp - Admin Panel");
     }
 
-    public void showStudentShell(Student student) throws IOException {
+    public void showStudentShell(Student student) throws Exception {
         Parent root = loadView("/tn/esprit/fxml/student/student-shell.fxml");
         setScene(root, "CourseApp - Student Panel - " + student.getName());
     }
 
-    public Parent loadView(String resourcePath) throws IOException {
-        FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(resourcePath));
+    public void showAdminCourses() throws Exception {
+        showAdminShell();
+        var controller = tn.esprit.controllers.admin.AdminShellController.getInstance();
+        if (controller != null) {
+            controller.showCourses();
+        }
+    }
+
+    public void showStudentShellForUser(User user) throws Exception {
+        if (user == null) {
+            throw new IllegalArgumentException("Aucun utilisateur connecte.");
+        }
+
+        Student student = new StudentService().loginOrCreateStudent(user.getEmail());
+        showStudentShell(student);
+    }
+
+    public Parent loadView(String path) throws Exception {
+        if (MainFX.class.getResource(path) == null) {
+            throw new RuntimeException("FXML introuvable: " + path);
+        }
+        FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(path));
         return loader.load();
     }
 
     private void setScene(Parent root, String title) {
         Scene scene = new Scene(root, 1280, 820);
-        scene.getStylesheets().add(MainFX.class.getResource("/tn/esprit/css/styles.css").toExternalForm());
+
+        var css = MainFX.class.getResource("/tn/esprit/css/styles.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        } else {
+            System.out.println("CSS non trouvé !");
+        }
+
+        primaryStage.setTitle(title);
+        primaryStage.setScene(scene);
+    }
+
+    private void setScene(Parent root, String title, String... cssPaths) {
+        Scene scene = new Scene(root, 1280, 820);
+
+        for (String cssPath : cssPaths) {
+            var css = MainFX.class.getResource(cssPath);
+            if (css != null) {
+                scene.getStylesheets().add(css.toExternalForm());
+            } else {
+                System.out.println("CSS non trouve: " + cssPath);
+            }
+        }
+
         primaryStage.setTitle(title);
         primaryStage.setScene(scene);
     }

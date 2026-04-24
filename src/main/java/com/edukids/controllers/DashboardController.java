@@ -14,17 +14,26 @@ import javafx.geometry.Pos;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import tn.esprit.MainFX;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 public class DashboardController implements Initializable {
 
     // --- Sidebar ---
     @FXML private Label currentUserLabel;
+    @FXML private Button dashboardButton;
+    @FXML private Button allUsersButton;
+    @FXML private VBox userSubmenuBox;
+    @FXML private Button adminsButton;
+    @FXML private Button studentsButton;
+    @FXML private Button parentsButton;
     @FXML private HBox rootPane;
+    @FXML private Label topbarRoleLabel;
+    @FXML private Label topbarNameLabel;
+    @FXML private Label topbarAvatarLabel;
 
     // --- Main content area ---
     @FXML private StackPane contentArea;
@@ -71,6 +80,9 @@ public class DashboardController implements Initializable {
         User current = SessionManager.getCurrentUser();
         if (current != null) {
             currentUserLabel.setText(current.getFullName());
+            topbarRoleLabel.setText(current.getPrimaryRole().getDisplayName());
+            topbarNameLabel.setText(current.getFullName());
+            topbarAvatarLabel.setText(buildInitials(current));
         }
 
         // Setup combos
@@ -88,7 +100,10 @@ public class DashboardController implements Initializable {
         editFormPane.setManaged(false);
         userManagementView.setVisible(false);
         userManagementView.setManaged(false);
+        showUserSubmenu(false);
+        setActiveUserFilter(null);
 
+        setActiveNavigation(dashboardButton);
         loadDashboardStats();
 
         // Live search
@@ -99,6 +114,9 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleDashboardNav() {
+        showUserSubmenu(false);
+        setActiveUserFilter(null);
+        setActiveNavigation(dashboardButton);
         showView("dashboard");
         loadDashboardStats();
     }
@@ -108,6 +126,9 @@ public class DashboardController implements Initializable {
         currentRoleFilter = null;
         userMgmtTitle.setText("Users Management");
         roleFilterCombo.setValue("All Roles");
+        showUserSubmenu(true);
+        setActiveUserFilter(null);
+        setActiveNavigation(allUsersButton);
         showView("users");
         applyFilters();
     }
@@ -117,6 +138,9 @@ public class DashboardController implements Initializable {
         currentRoleFilter = Role.ROLE_ADMIN;
         userMgmtTitle.setText("Admins Management");
         roleFilterCombo.setValue("Admin");
+        showUserSubmenu(true);
+        setActiveUserFilter(adminsButton);
+        setActiveNavigation(allUsersButton);
         showView("users");
         applyFilters();
     }
@@ -126,6 +150,9 @@ public class DashboardController implements Initializable {
         currentRoleFilter = Role.ROLE_ELEVE;
         userMgmtTitle.setText("Students Management");
         roleFilterCombo.setValue("Student (Eleve)");
+        showUserSubmenu(true);
+        setActiveUserFilter(studentsButton);
+        setActiveNavigation(allUsersButton);
         showView("users");
         applyFilters();
     }
@@ -135,13 +162,21 @@ public class DashboardController implements Initializable {
         currentRoleFilter = Role.ROLE_PARENT;
         userMgmtTitle.setText("Parents Management");
         roleFilterCombo.setValue("Parent");
+        showUserSubmenu(true);
+        setActiveUserFilter(parentsButton);
+        setActiveNavigation(allUsersButton);
         showView("users");
         applyFilters();
     }
 
     @FXML
     private void handleCoursNav() {
-        // TODO: Navigate to Cours management
+        try {
+            MainFX.getInstance().showAdminCourses();
+        } catch (Exception exception) {
+            showAlert(Alert.AlertType.ERROR, "Navigation", "Unable to open the courses module.");
+            exception.printStackTrace();
+        }
     }
 
     @FXML
@@ -166,8 +201,13 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleLogout() {
-        SessionManager.clearSession();
-        Navigator.navigateTo("login.fxml", Navigator.getStageFromNode(rootPane));
+        try {
+            MainFX.getInstance().showLoginView();
+        } catch (Exception exception) {
+            SessionManager.clearSession();
+            Navigator.navigateTo("login.fxml", Navigator.getStageFromNode(rootPane));
+            exception.printStackTrace();
+        }
     }
 
     // ======================== VIEW SWITCHING ========================
@@ -203,7 +243,7 @@ public class DashboardController implements Initializable {
         if (students > 0) pieData.add(new PieChart.Data("Student (" + students + ")", students));
         if (parents > 0) pieData.add(new PieChart.Data("Parent (" + parents + ")", parents));
         roleChart.setData(pieData);
-        roleChart.setTitle("Users by Role");
+        roleChart.setTitle("");
 
         // Recent users
         loadRecentUsers();
@@ -222,7 +262,7 @@ public class DashboardController implements Initializable {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
-        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 6; -fx-border-color: #eff1f2; -fx-border-radius: 6;");
+        row.getStyleClass().add("dashboard-user-row");
 
         Label avatar = createAvatarLabel(user, "avatar-circle-sm");
         VBox info = new VBox(1);
@@ -523,6 +563,54 @@ public class DashboardController implements Initializable {
     // ======================== HELPERS ========================
 
     private Label createAvatarLabel(User user, String styleClass) {
+        String initials = buildInitials(user);
+        Label avatar = new Label(initials);
+        avatar.getStyleClass().add(styleClass);
+        avatar.setAlignment(Pos.CENTER);
+        return avatar;
+    }
+
+    private void setActiveNavigation(Button activeButton) {
+        List<Button> buttons = List.of(
+                dashboardButton,
+                allUsersButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-button-active");
+        }
+    }
+
+    private void setActiveUserFilter(Button activeButton) {
+        List<Button> buttons = List.of(
+                adminsButton,
+                studentsButton,
+                parentsButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-sub-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-sub-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-sub-button-active");
+        }
+    }
+
+    private void showUserSubmenu(boolean visible) {
+        userSubmenuBox.setVisible(visible);
+        userSubmenuBox.setManaged(visible);
+    }
+
+    private String buildInitials(User user) {
+        if (user == null) {
+            return "?";
+        }
+
         String initials = "";
         if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
             initials += user.getFirstName().substring(0, 1).toUpperCase();
@@ -530,12 +618,7 @@ public class DashboardController implements Initializable {
         if (user.getLastName() != null && !user.getLastName().isEmpty()) {
             initials += user.getLastName().substring(0, 1).toUpperCase();
         }
-        if (initials.isEmpty()) initials = "?";
-
-        Label avatar = new Label(initials);
-        avatar.getStyleClass().add(styleClass);
-        avatar.setAlignment(Pos.CENTER);
-        return avatar;
+        return initials.isEmpty() ? "?" : initials;
     }
 
     private Label createRoleBadge(User user) {
