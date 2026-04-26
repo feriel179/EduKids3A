@@ -2716,44 +2716,26 @@ public class QuizBackOfficeView {
         Label title = new Label("Chatbot quiz");
         title.getStyleClass().add("chatbot-title");
 
-        Label subtitle = new Label("Pose une question pendant le quiz pour recevoir une vraie reponse contextualisee.");
+        Label subtitle = new Label("Pose une question pendant le quiz pour recevoir une reponse verifiee a partir de la correction enregistree.");
         subtitle.getStyleClass().add("chatbot-subtitle");
         subtitle.setWrapText(true);
 
-        Label chatHint = new Label("Tu peux demander un indice, une explication simple, une methode ou verifier ta reponse actuelle.");
+        Label chatHint = new Label("Tu peux demander la bonne reponse, une explication simple, une methode ou verifier ta reponse actuelle.");
         chatHint.getStyleClass().add("chatbot-helper");
         chatHint.setWrapText(true);
 
-        Label apiStatusLabel = new Label(openAiChatService.hasApiKeyConfigured()
-                ? "API OpenAI connectee"
-                : "Mode local verifie");
+        Label apiStatusLabel = new Label("Reponses verifiees par le quiz");
         apiStatusLabel.getStyleClass().addAll(
                 "chatbot-api-status",
-                openAiChatService.hasApiKeyConfigured() ? "chatbot-api-status-ready" : "chatbot-api-status-local"
+                "chatbot-api-status-ready"
         );
-
-        Runnable showApiReadyStatus = () -> {
-            apiStatusLabel.setText("API OpenAI connectee");
-            apiStatusLabel.getStyleClass().remove("chatbot-api-status-local");
-            if (!apiStatusLabel.getStyleClass().contains("chatbot-api-status-ready")) {
-                apiStatusLabel.getStyleClass().add("chatbot-api-status-ready");
-            }
-        };
-
-        Runnable showApiUnavailableStatus = () -> {
-            apiStatusLabel.setText("API OpenAI indisponible");
-            apiStatusLabel.getStyleClass().remove("chatbot-api-status-ready");
-            if (!apiStatusLabel.getStyleClass().contains("chatbot-api-status-local")) {
-                apiStatusLabel.getStyleClass().add("chatbot-api-status-local");
-            }
-        };
 
         TextArea transcriptArea = new TextArea();
         transcriptArea.setEditable(false);
         transcriptArea.setWrapText(true);
         transcriptArea.setPrefRowCount(12);
         transcriptArea.getStyleClass().addAll("app-field", "chatbot-transcript");
-        transcriptArea.setText("EduKids Coach: Bonjour, ecris ta question et je te repondrai sur la question actuelle du quiz.");
+        transcriptArea.setText("EduKids Coach: Bonjour, ecris ta question et je te repondrai avec la correction de la question actuelle du quiz.");
 
         TextArea inputArea = new TextArea();
         inputArea.setPromptText("Exemple: pourquoi cette reponse est correcte ?");
@@ -2761,7 +2743,7 @@ public class QuizBackOfficeView {
         inputArea.setPrefRowCount(3);
         inputArea.getStyleClass().addAll("app-field", "chatbot-input");
 
-        Label statusLabel = new Label("Le coach IA prend en compte le quiz et la question affichee.");
+        Label statusLabel = new Label("Le coach repond a partir de la question affichee et de sa correction.");
         statusLabel.getStyleClass().add("chatbot-status");
         statusLabel.setWrapText(true);
 
@@ -2785,16 +2767,7 @@ public class QuizBackOfficeView {
             inputArea.positionCaret(inputArea.getLength());
         };
 
-        Runnable lockChatControls = () -> {
-            sendButton.setDisable(true);
-            inputArea.setDisable(true);
-            hintButton.setDisable(true);
-            explainButton.setDisable(true);
-            methodButton.setDisable(true);
-        };
-
         Runnable sendMessage = () -> {
-            String apiKey = openAiChatService.resolveApiKey();
             String userMessage = inputArea.getText() == null ? "" : inputArea.getText().trim();
             if (userMessage.isBlank()) {
                 statusLabel.setText("Ecris un message avant d'envoyer.");
@@ -2810,93 +2783,19 @@ public class QuizBackOfficeView {
             String studentAnswer = getCurrentStudentAnswer(currentQuestion, freeTextAnswers, qcmAnswers, qcuAnswers, matchingAnswers);
             transcriptArea.appendText("\n\nToi: " + userMessage);
             inputArea.clear();
-            List<OpenAiChatService.ChatTurn> requestHistory = new ArrayList<>(chatHistory);
-            boolean useVerifiedResponse = openAiChatService.shouldUseVerifiedResponse(userMessage);
-
-            if (useVerifiedResponse || apiKey == null || apiKey.isBlank()) {
-                String fallbackResponse = openAiChatService.buildFallbackAssistantReply(
-                        quiz,
-                        currentQuestion,
-                        currentQuestionIndex[0] + 1,
-                        quizQuestions.size(),
-                        studentAnswer,
-                        userMessage
-                );
-                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
-                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", fallbackResponse));
-                transcriptArea.appendText("\n\nEduKids Coach: " + fallbackResponse);
-                statusLabel.setText("Reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
-                unlockChatControls.run();
-                return;
-            }
-
-            statusLabel.setText("Le coach IA reflechit...");
-            lockChatControls.run();
-
-            Task<String> task = new Task<>() {
-                @Override
-                protected String call() throws Exception {
-                    return openAiChatService.askQuizAssistant(
-                            apiKey,
-                            quiz,
-                            currentQuestion,
-                            currentQuestionIndex[0] + 1,
-                            quizQuestions.size(),
-                            studentAnswer,
-                            requestHistory,
-                            userMessage
-                    );
-                }
-            };
-
-            task.setOnSucceeded(event -> {
-                String response = task.getValue();
-                if (response == null || response.isBlank()) {
-                    response = openAiChatService.buildFallbackAssistantReply(
-                            quiz,
-                            currentQuestion,
-                            currentQuestionIndex[0] + 1,
-                            quizQuestions.size(),
-                            studentAnswer,
-                            userMessage
-                    );
-                    showApiUnavailableStatus.run();
-                    statusLabel.setText("Reponse locale affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
-                } else {
-                    showApiReadyStatus.run();
-                    statusLabel.setText("Reponse recue pour la question " + (currentQuestionIndex[0] + 1) + ".");
-                }
-                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
-                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", response));
-                transcriptArea.appendText("\n\nEduKids Coach: " + response);
-                unlockChatControls.run();
-            });
-
-            task.setOnFailed(event -> {
-                String fallbackResponse = openAiChatService.buildFallbackAssistantReply(
-                        quiz,
-                        currentQuestion,
-                        currentQuestionIndex[0] + 1,
-                        quizQuestions.size(),
-                        studentAnswer,
-                        userMessage
-                );
-                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
-                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", fallbackResponse));
-                transcriptArea.appendText("\n\nEduKids Coach: " + fallbackResponse);
-                showApiUnavailableStatus.run();
-                statusLabel.setText("Service IA indisponible, reponse locale affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
-                unlockChatControls.run();
-            });
-
-            task.setOnCancelled(event -> {
-                statusLabel.setText("Le coach IA a ete interrompu. Tu peux reessayer.");
-                unlockChatControls.run();
-            });
-
-            Thread thread = new Thread(task, "openai-quiz-chat");
-            thread.setDaemon(true);
-            thread.start();
+            String verifiedResponse = openAiChatService.buildFallbackAssistantReply(
+                    quiz,
+                    currentQuestion,
+                    currentQuestionIndex[0] + 1,
+                    quizQuestions.size(),
+                    studentAnswer,
+                    userMessage
+            );
+            chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
+            chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", verifiedResponse));
+            transcriptArea.appendText("\n\nEduKids Coach: " + verifiedResponse);
+            statusLabel.setText("Reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
+            unlockChatControls.run();
         };
 
         sendButton.setOnAction(event -> sendMessage.run());

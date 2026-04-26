@@ -256,12 +256,16 @@ public class OpenAiChatService {
         List<String> answerChoices = getAnswerChoices(currentQuestion);
         List<String> correctAnswers = getCorrectAnswers(currentQuestion);
         List<String> wrongAnswers = getWrongAnswers(currentQuestion);
+        boolean asksForHelp = containsAny(normalizedMessage, "aide", "aide moi", "aide-moi", "que peux tu faire", "que peux-tu faire", "tu peux faire quoi");
         boolean asksForHint = containsAny(normalizedMessage, "indice", "hint", "aide", "sans me dire", "sans donner");
         boolean asksToSimplify = containsAny(normalizedMessage, "plus simple", "simplifie", "simplifier", "reformule", "resume");
+        boolean asksToRepeatQuestion = containsAny(normalizedMessage, "repete la question", "repete", "rappelle la question", "relis la question", "lis la question", "question actuelle");
         boolean asksForChoices = containsAny(normalizedMessage, "choix", "option", "proposition");
         boolean asksForWhy = containsAny(normalizedMessage, "pourquoi", "explique", "explication");
         boolean asksForMethod = containsAny(normalizedMessage, "comment", "methode", "strategie", "faire");
         boolean asksForWrongAnswers = containsAny(normalizedMessage, "fausse", "faux", "mauvaise", "incorrecte", "incorrect");
+        boolean saysThanks = containsAny(normalizedMessage, "merci", "thanks");
+        boolean asksWhoAmI = containsAny(normalizedMessage, "qui es tu", "tu es qui", "c est quoi ton role", "c'est quoi ton role");
         boolean asksForDirectAnswer = containsAny(
                 normalizedMessage,
                 "bonne reponse",
@@ -274,28 +278,60 @@ public class OpenAiChatService {
                 "corrige",
                 "correction"
         );
-        boolean questionAboutStudentAnswer = containsAny(normalizedMessage, "ma reponse", "mon choix", "j'ai choisi", "est ce correct", "est-ce correct", "c'est correct", "cest correct");
+        boolean questionAboutStudentAnswer = containsAny(
+                normalizedMessage,
+                "ma reponse",
+                "mon choix",
+                "j'ai choisi",
+                "j ai choisi",
+                "j'ai mis",
+                "j ai mis",
+                "j'ai repondu",
+                "j ai repondu",
+                "est ce correct",
+                "est-ce correct",
+                "c'est correct",
+                "cest correct",
+                "est ce que c'est juste",
+                "est ce que cest juste"
+        );
 
         StringBuilder builder = new StringBuilder();
         builder.append("Question ").append(questionNumber).append(" / ").append(totalQuestions).append(". ");
 
-        if (containsAny(normalizedMessage, "bonjour", "salut", "hello", "bonsoir")) {
-            builder.append("Bonjour. Je peux te donner un indice, t'expliquer la question ou verifier ta reponse. ");
+        if (normalizedMessage.isBlank()) {
+            builder.append("Ecris-moi ton message et je te repondrai sur cette question du quiz. ");
+        } else if (containsAny(normalizedMessage, "bonjour", "salut", "hello", "bonsoir")) {
+            builder.append("Bonjour. J'ai bien lu ton message. Je peux te donner un indice, t'expliquer la question ou verifier ta reponse. ");
+        } else if (saysThanks) {
+            builder.append("Avec plaisir. Si tu veux, je peux maintenant verifier ta reponse ou te donner un indice. ");
+        } else if (asksWhoAmI) {
+            builder.append("Je suis le coach du quiz. Je lis ton dernier message et je reponds a partir de la question affichee et de sa correction enregistree. ");
+        } else if (asksForHelp) {
+            builder.append("J'ai bien lu ton message. Tu peux me demander la bonne reponse, un indice, une explication, la methode, les choix ou la verification de ta reponse actuelle. ");
+        } else if (asksToRepeatQuestion) {
+            builder.append("La question actuelle est: ").append(safeValue(currentQuestion == null ? "" : currentQuestion.getIntitule())).append(". ");
+            builder.append(buildSimpleRephrase(currentQuestion)).append(' ');
         } else if (asksToSimplify) {
+            builder.append("J'ai bien lu ton message. ");
             builder.append(buildSimpleRephrase(currentQuestion)).append(' ');
             builder.append(buildHint(currentQuestion, quiz, correctAnswers));
         } else if (asksForHint) {
+            builder.append("J'ai bien lu ton message. ");
             builder.append(buildHint(currentQuestion, quiz, correctAnswers)).append(' ');
             builder.append(buildMethod(currentQuestion));
         } else if (questionAboutStudentAnswer) {
+            builder.append("J'ai bien lu ton message. ");
             appendStudentAnswerFeedback(builder, currentQuestion, studentAnswer, correctAnswers);
             builder.append("Explication: ").append(buildExplanation(currentQuestion, quiz)).append(". ");
             if (!isStudentAnswerCorrect(currentQuestion, studentAnswer, correctAnswers)) {
                 builder.append(buildHint(currentQuestion, quiz, correctAnswers));
             }
         } else if (asksForChoices) {
+            builder.append("J'ai bien lu ton message. ");
             appendChoicesOverview(builder, currentQuestion, answerChoices);
         } else if (asksForWhy) {
+            builder.append("J'ai bien lu ton message. ");
             appendAnswer(builder, currentQuestion, correctAnswers);
             builder.append("Explication: ").append(buildExplanation(currentQuestion, quiz)).append(". ");
             if (!wrongAnswers.isEmpty()) {
@@ -303,9 +339,11 @@ public class OpenAiChatService {
             }
             builder.append(buildMethod(currentQuestion));
         } else if (asksForMethod) {
+            builder.append("J'ai bien lu ton message. ");
             builder.append(buildMethod(currentQuestion)).append(' ');
             builder.append(buildHint(currentQuestion, quiz, correctAnswers));
         } else if (asksForWrongAnswers) {
+            builder.append("J'ai bien lu ton message. ");
             if (!wrongAnswers.isEmpty()) {
                 builder.append("Les reponses incorrectes sont: ").append(String.join(" | ", wrongAnswers)).append(". ");
             } else {
@@ -313,11 +351,13 @@ public class OpenAiChatService {
             }
             appendAnswer(builder, currentQuestion, correctAnswers);
         } else if (asksForDirectAnswer) {
+            builder.append("J'ai bien lu ton message. ");
             appendAnswer(builder, currentQuestion, correctAnswers);
             builder.append("Explication: ").append(buildExplanation(currentQuestion, quiz)).append(". ");
         } else {
+            builder.append("J'ai bien lu ton message. ");
             builder.append(buildHint(currentQuestion, quiz, correctAnswers)).append(' ');
-            builder.append(buildMethod(currentQuestion));
+            builder.append("Si tu veux une reponse plus precise, demande-moi par exemple la bonne reponse, une explication ou la verification de ton choix.");
         }
 
         if (!answerChoices.isEmpty() && !asksForChoices && currentQuestion.getType() != TypeQuestion.RELIER_FLECHE) {
