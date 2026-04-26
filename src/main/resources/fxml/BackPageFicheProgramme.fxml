@@ -84,9 +84,14 @@
                         </rowConstraints>
                         <Label text="Activités *" GridPane.columnIndex="0"
                                GridPane.rowIndex="0" GridPane.valignment="TOP"/>
-                        <VBox spacing="4.0" GridPane.columnIndex="1"
+                        <VBox spacing="8.0" GridPane.columnIndex="1"
                                GridPane.rowIndex="0" GridPane.hgrow="ALWAYS"
                                minHeight="100.0" prefHeight="108.0">
+                            <HBox spacing="8.0" alignment="CENTER_RIGHT">
+                                <Button fx:id="btnPrGenererActivitesIa" mnemonicParsing="false"
+                                        onAction="#onGenererActivitesProgrammeIa"
+                                        text="Générer activités IA" styleClass="button-ai-image"/>
+                            </HBox>
                             <TextArea fx:id="taPrActivites" prefRowCount="4"
                                       wrapText="true" styleClass="text-area-dark"
                                       minHeight="100.0" prefHeight="100.0"

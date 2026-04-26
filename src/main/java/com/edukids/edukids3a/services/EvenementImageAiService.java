@@ -3,120 +3,330 @@ package com.edukids.edukids3a.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Locale;
 
 /**
- * Produit une URL d’image générée à partir du titre / description d’un événement.
- * <p>Utilise l’API <a href="https://pollinations.ai">Pollinations</a> (pas de clé requise, usage raisonnable).
- * L’URL renvoyée peut être stockée telle quelle dans {@code evenement.image} et affichée par JavaFX.
+ * Recommandation d'image pour événement, alignée sur le web :
+ * Gemini (mots-clés) + Pexels (image), avec fallback local.
  */
 public final class EvenementImageAiService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EvenementImageAiService.class);
-
-    /** Limiter la longueur du prompt (navigateur / serveur). */
     private static final int MAX_DESC_SNIPPET = 420;
-    private static final int MAX_PROMPT = 900;
+    private static final String GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
+    private static final String[] GEMINI_MODELS = {"gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"};
 
-    private static final String BASE = "https://image.pollinations.ai/prompt/";
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(20))
+            .build();
 
-    /**
-     * @param titre       titre (peut être vide si description fournie)
-     * @param description texte (tronqué si trop long)
-     * @return URL https pointant vers l’image générée
-     * @throws IllegalArgumentException si titre et description sont vides
-     */
     public String buildImageUrlFromEvenementText(String titre, String description) {
-        String t = titre == null ? "" : titre.trim();
-        String d = description == null ? "" : description.trim()
-                .replaceAll("\\s+", " ");
-        if (d.length() > MAX_DESC_SNIPPET) {
-            d = d.substring(0, MAX_DESC_SNIPPET) + "…";
-        }
+        String[] td = normalizeInput(titre, description);
+        String t = td[0];
+        String d = td[1];
         if (t.isEmpty() && d.isEmpty()) {
             throw new IllegalArgumentException("Saisissez au moins un titre ou une description.");
         }
-        String prompt = buildEnglishPrompt(t, d);
-        if (prompt.length() > MAX_PROMPT) {
-            prompt = prompt.substring(0, MAX_PROMPT);
+        List<String> keywords = generateKeywords(t, d);
+        String image = fetchSingleImageFromPexels(keywords);
+        if (image != null) {
+            return image;
         }
-        String encoded = URLEncoder.encode(prompt, StandardCharsets.UTF_8);
-        // Paramètres : taille utile pour cartes + pas de logo intégré
-        String url = BASE + encoded + "?width=800&height=400&nologo=true";
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("URL image IA (tronqué): {}", url.substring(0, Math.min(120, url.length())));
-        }
-        return url;
+        return picsumUrlFromSeed(keywordSeed(keywords), 800, 420);
     }
 
-    /**
-     * Plusieurs URLs différentes (seed + légère variation de prompt) pour laisser l’utilisateur en choisir une seule.
-     *
-     * @param nombre nombre de propositions (2 à 6)
-     */
     public List<String> buildAlbumImageUrls(String titre, String description, int nombre) {
-        String t = titre == null ? "" : titre.trim();
-        String d = description == null ? "" : description.trim().replaceAll("\\s+", " ");
-        if (d.length() > MAX_DESC_SNIPPET) {
-            d = d.substring(0, MAX_DESC_SNIPPET) + "…";
-        }
+        String[] td = normalizeInput(titre, description);
+        String t = td[0];
+        String d = td[1];
         if (t.isEmpty() && d.isEmpty()) {
             throw new IllegalArgumentException("Saisissez au moins un titre ou une description.");
         }
         if (nombre < 2 || nombre > 6) {
             throw new IllegalArgumentException("L’album doit proposer entre 2 et 6 images.");
         }
-        ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        List<String> urls = new ArrayList<>(nombre);
-        String[] albumStyles = albumStyleSuffixes();
-        for (int i = 0; i < nombre; i++) {
-            String prompt = buildEnglishPrompt(t, d);
-            prompt = prompt + " " + albumStyles[i % albumStyles.length];
-            if (prompt.length() > MAX_PROMPT) {
-                prompt = prompt.substring(0, MAX_PROMPT);
+        List<String> keywords = generateKeywords(t, d);
+        List<String> urls = fetchAlbumFromPexels(keywords, nombre);
+        if (urls.size() >= nombre) {
+            return urls;
+        }
+        int baseSeed = keywordSeed(keywords);
+        while (urls.size() < nombre) {
+            int i = urls.size();
+            int w = 760 + (i * 18);
+            int h = 420 + (i * 10);
+            String fallback = picsumUrlFromSeed(Math.abs(baseSeed + i * 97), w, h);
+            if (!urls.contains(fallback)) {
+                urls.add(fallback);
             }
-            String encoded = URLEncoder.encode(prompt, StandardCharsets.UTF_8);
-            int seed = rnd.nextInt(1, Integer.MAX_VALUE);
-            // largeurs légèrement différentes pour éviter le cache serveur identique entre vignettes
-            int w = 720 + i * 24;
-            int h = 400 + i * 8;
-            urls.add(BASE + encoded + "?width=" + w + "&height=" + h + "&nologo=true&seed=" + seed);
         }
         return urls;
     }
 
-    /** Variantes visuelles nettement différentes pour que chaque URL génère une image distincte. */
-    private static String[] albumStyleSuffixes() {
-        return new String[]{
-                "Composition 1: wide establishing shot, outdoor or schoolyard, open space, horizon visible.",
-                "Composition 2: medium shot, small group of cheerful cartoon children, playful activity, props.",
-                "Composition 3: symbolic flat illustration, books paint music colorful shapes, tiny stylized figures.",
-                "Composition 4: festive evening scene, soft lights balloons bunting, warm cozy atmosphere."
-        };
+    private List<String> generateKeywords(String titre, String description) {
+        String geminiKey = readKeyFromDotEnv("GEMINI_API_KEY");
+        if (geminiKey == null || geminiKey.isBlank()) {
+            return fallbackKeywords(titre, description);
+        }
+        String prompt = "Generate 6-10 English keywords for event image search. "
+                + "Return keywords only, comma-separated.\n"
+                + "Title: " + titre + "\n"
+                + "Description: " + description + "\nKeywords:";
+        for (String model : GEMINI_MODELS) {
+            try {
+                String endpoint = GEMINI_BASE + model + ":generateContent?key=" + URLEncoder.encode(geminiKey, StandardCharsets.UTF_8);
+                String payload = "{\"contents\":[{\"parts\":[{\"text\":\"" + jsonEscape(prompt) + "\"}]}]}";
+                HttpRequest req = HttpRequest.newBuilder(URI.create(endpoint))
+                        .timeout(java.time.Duration.ofSeconds(20))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload))
+                        .build();
+                HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+                if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+                    continue;
+                }
+                String text = extractFirstJsonValue(resp.body(), "\"text\":\"");
+                List<String> parsed = parseKeywords(text);
+                if (!parsed.isEmpty()) {
+                    return parsed;
+                }
+            } catch (Exception ignored) {
+                // try next model
+            }
+        }
+        return fallbackKeywords(titre, description);
     }
 
-    /**
-     * Prompt en anglais : meilleurs résultats avec les modèles d’imagerie courants.
-     */
-    private static String buildEnglishPrompt(String titre, String description) {
+    private String fetchSingleImageFromPexels(List<String> keywords) {
+        List<String> urls = fetchAlbumFromPexels(keywords, 1);
+        return urls.isEmpty() ? null : urls.get(0);
+    }
+
+    private List<String> fetchAlbumFromPexels(List<String> keywords, int nombre) {
+        String pexelsKey = readKeyFromDotEnv("PEXELS_API_KEY");
+        if (pexelsKey == null || pexelsKey.isBlank()) {
+            return new ArrayList<>();
+        }
+        List<String> out = new ArrayList<>();
+        try {
+            String query = String.join(" ", keywords.stream().limit(4).toList());
+            if (query.isBlank()) {
+                query = "children educational event";
+            }
+            String url = "https://api.pexels.com/v1/search?query="
+                    + URLEncoder.encode(query, StandardCharsets.UTF_8)
+                    + "&per_page=" + Math.max(1, Math.min(12, nombre * 3))
+                    + "&orientation=landscape&size=large";
+            HttpRequest req = HttpRequest.newBuilder(URI.create(url))
+                    .timeout(java.time.Duration.ofSeconds(15))
+                    .header("Authorization", pexelsKey)
+                    .GET()
+                    .build();
+            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+                LOG.warn("Pexels HTTP status {}", resp.statusCode());
+                return out;
+            }
+            String json = resp.body();
+            int idx = 0;
+            while (out.size() < nombre) {
+                int p1 = json.indexOf("\"large2x\":\"", idx);
+                int p2 = json.indexOf("\"large\":\"", idx);
+                int p3 = json.indexOf("\"medium\":\"", idx);
+                int p = firstPositiveMin(p1, p2, p3);
+                if (p < 0) {
+                    break;
+                }
+                String marker = (p == p1) ? "\"large2x\":\"" : (p == p2) ? "\"large\":\"" : "\"medium\":\"";
+                String imageUrl = extractJsonValueAt(json, p + marker.length());
+                idx = p + marker.length();
+                if (imageUrl != null && !imageUrl.isBlank() && !out.contains(imageUrl)) {
+                    out.add(imageUrl);
+                }
+            }
+        } catch (Exception ex) {
+            LOG.warn("Pexels indisponible: {}", ex.getMessage());
+        }
+        return out;
+    }
+
+    private static int keywordSeed(List<String> keywords) {
+        String q = String.join(" ", keywords);
+        if (q.isBlank()) {
+            q = "edukids-event";
+        }
+        return Math.abs(q.hashCode());
+    }
+
+    private static String picsumUrlFromSeed(int seed, int width, int height) {
+        return "https://picsum.photos/seed/" + Math.abs(seed) + "/" + width + "/" + height;
+    }
+
+    private static List<String> fallbackKeywords(String titre, String description) {
+        String txt = (titre + " " + description).toLowerCase(Locale.ROOT);
+        List<String> out = new ArrayList<>();
+        if (containsAny(txt, "workshop", "programm", "web", "code", "develop")) {
+            out.add("coding workshop");
+            out.add("children learning programming");
+            out.add("educational technology class");
+        } else if (containsAny(txt, "art", "paint", "dessin", "creat")) {
+            out.add("children art workshop");
+            out.add("creative painting class");
+            out.add("family art event");
+        } else if (containsAny(txt, "sport", "football", "basket", "course", "gym")) {
+            out.add("kids sports activity");
+            out.add("children team games");
+            out.add("family sports event");
+        } else {
+            out.add("children educational event");
+            out.add("family activity");
+            out.add("kids workshop");
+        }
+        out.add("friendly illustration");
+        out.add("school event");
+        return out;
+    }
+
+    private static boolean containsAny(String txt, String... terms) {
+        for (String t : terms) {
+            if (txt.contains(t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String[] normalizeInput(String titre, String description) {
+        String t = titre == null ? "" : titre.trim();
+        String d = description == null ? "" : description.trim().replaceAll("\\s+", " ");
+        if (d.length() > MAX_DESC_SNIPPET) {
+            d = d.substring(0, MAX_DESC_SNIPPET) + "…";
+        }
+        return new String[]{t, d};
+    }
+
+    private static List<String> parseKeywords(String text) {
+        List<String> out = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return out;
+        }
+        String[] parts = text.split(",");
+        for (String p : parts) {
+            String k = p.trim().toLowerCase(Locale.ROOT);
+            k = k.replaceAll("^[\\-•\\d\\.\\)\\s]+", "");
+            k = k.replaceAll("[\\.;:!\\?]+$", "");
+            if (!k.isBlank() && k.length() > 2 && !out.contains(k)) {
+                out.add(k);
+            }
+            if (out.size() >= 10) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    private static String readKeyFromDotEnv(String key) {
+        String v = readValueFromFile(Path.of(".env.local"), key);
+        if (v != null && !v.isBlank()) {
+            return v.trim();
+        }
+        v = readValueFromFile(Path.of(".env"), key);
+        if (v != null && !v.isBlank()) {
+            return v.trim();
+        }
+        return null;
+    }
+
+    private static String readValueFromFile(Path path, String key) {
+        try {
+            if (!Files.isRegularFile(path)) {
+                return null;
+            }
+            String prefix = key + "=";
+            for (String rawLine : Files.readAllLines(path)) {
+                String line = rawLine.trim();
+                if (line.isEmpty() || line.startsWith("#") || !line.startsWith(prefix)) {
+                    continue;
+                }
+                String value = line.substring(prefix.length()).trim();
+                if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                return value;
+            }
+        } catch (IOException ignored) {
+            return null;
+        }
+        return null;
+    }
+
+    private static String jsonEscape(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
+    }
+
+    private static String extractFirstJsonValue(String json, String marker) {
+        int i = json.indexOf(marker);
+        if (i < 0) {
+            return null;
+        }
+        return extractJsonValueAt(json, i + marker.length());
+    }
+
+    private static String extractJsonValueAt(String json, int start) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Bright, friendly, educational event illustration for children and families, ");
-        sb.append("clean modern digital art, soft colors, no text, no letters, no watermark, ");
-        sb.append("single scene, not photorealistic portrait of a real person. ");
-        if (!titre.isEmpty()) {
-            sb.append("Theme: ");
-            sb.append(titre);
-            sb.append(". ");
+        boolean esc = false;
+        for (int i = start; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (esc) {
+                switch (c) {
+                    case 'n' -> sb.append('\n');
+                    case 'r' -> sb.append('\r');
+                    case 't' -> sb.append('\t');
+                    case '"' -> sb.append('"');
+                    case '\\' -> sb.append('\\');
+                    case '/' -> sb.append('/');
+                    default -> sb.append(c);
+                }
+                esc = false;
+                continue;
+            }
+            if (c == '\\') {
+                esc = true;
+                continue;
+            }
+            if (c == '"') {
+                return sb.toString();
+            }
+            sb.append(c);
         }
-        if (!description.isEmpty()) {
-            sb.append("Mood and details: ");
-            sb.append(description);
-            sb.append(". ");
+        return null;
+    }
+
+    private static int firstPositiveMin(int... vals) {
+        int min = Integer.MAX_VALUE;
+        for (int v : vals) {
+            if (v >= 0 && v < min) {
+                min = v;
+            }
         }
-        return sb.toString().strip();
+        return min == Integer.MAX_VALUE ? -1 : min;
     }
 }

@@ -9,9 +9,11 @@ import com.edukids.edukids3a.models.Reservation;
 import com.edukids.edukids3a.models.UserEvenementInteraction;
 import com.edukids.edukids3a.models.TypeEvenement;
 import com.edukids.edukids3a.services.EvenementImageAiService;
+import com.edukids.edukids3a.services.EvenementNotificationMailService;
 import com.edukids.edukids3a.services.EvenementService;
 import com.edukids.edukids3a.services.InteractionService;
 import com.edukids.edukids3a.services.ProgrammeService;
+import com.edukids.edukids3a.services.ProgrammeActivitesAiService;
 import com.edukids.edukids3a.services.ReservationService;
 import com.edukids.edukids3a.util.EvenementValidator;
 import com.edukids.edukids3a.util.ProgrammeValidator;
@@ -152,6 +154,8 @@ public class MainController {
     private final InteractionService interactionService = new InteractionService();
     private final ReservationService reservationService = new ReservationService();
     private final EvenementImageAiService evenementImageAiService = new EvenementImageAiService();
+    private final ProgrammeActivitesAiService programmeActivitesAiService = new ProgrammeActivitesAiService();
+    private final EvenementNotificationMailService evenementNotificationMailService = new EvenementNotificationMailService();
 
     /** Événement affiché en détail front (référence pour rechargement après actions). */
     private Integer frontDetailEvenementId;
@@ -498,6 +502,8 @@ public class MainController {
     private Spinner<Integer> spPrPauseFinMinute;
     @FXML
     private TextArea taPrActivites;
+    @FXML
+    private Button btnPrGenererActivitesIa;
     @FXML
     private TextArea taPrDocuments;
     @FXML
@@ -2615,16 +2621,15 @@ public class MainController {
                     long backoffMs = Math.min(10_000L, 1400L * (attempt - 1));
                     Thread.sleep(backoffMs);
                 }
-                HttpRequest req = HttpRequest.newBuilder(URI.create(url))
+                HttpRequest.Builder reqBuilder = HttpRequest.newBuilder(URI.create(url))
                         .timeout(java.time.Duration.ofSeconds(180))
                         .header("User-Agent",
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                                         + "Chrome/120.0.0.0 Safari/537.36")
                         .header("Accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
                         .header("Accept-Language", "fr-FR,fr;q=0.9,en;q=0.8")
-                        .header("Referer", "https://pollinations.ai/")
-                        .GET()
-                        .build();
+                        .header("Referer", "https://pollinations.ai/");
+                HttpRequest req = reqBuilder.GET().build();
                 HttpResponse<byte[]> resp = HTTP_CLIENT_IMAGE.send(req, HttpResponse.BodyHandlers.ofByteArray());
                 int code = resp.statusCode();
                 if (code == 429 || code == 503 || code == 502 || code == 504) {
@@ -2912,7 +2917,28 @@ public class MainController {
         try {
             Evenement e = lireFormulaireEvenement();
             EvenementValidator.valider(e);
+            boolean nouveau = e.getId() == null;
             evenementService.enregistrer(e);
+            if (nouveau) {
+                Integer excludeUserId = null;
+                if (SessionManager.getCurrentUser() != null) {
+                    excludeUserId = SessionManager.getCurrentUser().getId();
+                }
+                final Evenement evenementPourNotification = e;
+                final Integer excl = excludeUserId;
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        EvenementNotificationMailService.MailReport rep =
+                                evenementNotificationMailService.notifyNewEvent(evenementPourNotification, excl);
+                        if (rep.sent() > 0 || rep.failed() > 0) {
+                            LOG.info("E-mails nouvel événement : {} envoyé(s), {} échec(s), {} destinataire(s).",
+                                    rep.sent(), rep.failed(), rep.totalDestinataires());
+                        }
+                    } catch (Exception ex) {
+                        LOG.warn("Notification e-mail nouvel événement : {}", ex.getMessage());
+                    }
+                });
+            }
             onRafraichirEvenements();
             allerVueListeEvenements();
             info("Événement enregistré.");
@@ -3063,6 +3089,64 @@ public class MainController {
         if (toggleFrontNavAccueil != null && toggleFrontNavAccueil.isSelected()) {
             majInfosAccueil();
         }
+    }
+
+    @FXML
+    private void onGenererActivitesProgrammeIa() {
+        if (cbPrEvenement == null || taPrActivites == null) {
+            return;
+        }
+        Evenement ev = cbPrEvenement.getSelectionModel().getSelectedItem();
+        if (ev == null) {
+            erreur("Choisissez d'abord un événement.");
+            return;
+        }
+        if (ev.getHeureDebut() == null || ev.getHeureFin() == null || !ev.getHeureFin().isAfter(ev.getHeureDebut())) {
+            erreur("L'événement sélectionné doit avoir des horaires valides (début < fin).");
+            return;
+        }
+
+        LocalTime pauseDebut = null;
+        LocalTime pauseFin = null;
+        if (spPrPauseDebutHeure != null && spPrPauseDebutMinute != null && spPrPauseFinHeure != null && spPrPauseFinMinute != null) {
+            pauseDebut = LocalTime.of(spPrPauseDebutHeure.getValue(), spPrPauseDebutMinute.getValue());
+            pauseFin = LocalTime.of(spPrPauseFinHeure.getValue(), spPrPauseFinMinute.getValue());
+            if (!pauseFin.isAfter(pauseDebut)) {
+                erreur("La fin de pause doit être après le début pour générer les activités.");
+                return;
+            }
+        }
+
+        if (btnPrGenererActivitesIa != null) {
+            btnPrGenererActivitesIa.setDisable(true);
+        }
+
+        final LocalTime fPauseDebut = pauseDebut;
+        final LocalTime fPauseFin = pauseFin;
+        CompletableFuture.supplyAsync(() -> programmeActivitesAiService.genererActivites(
+                        nvl(ev.getTitre()),
+                        nvl(ev.getDescription()),
+                        ev.getHeureDebut(),
+                        ev.getHeureFin(),
+                        fPauseDebut,
+                        fPauseFin))
+                .thenAccept(text -> Platform.runLater(() -> {
+                    taPrActivites.setText(text);
+                    if (btnPrGenererActivitesIa != null) {
+                        btnPrGenererActivitesIa.setDisable(false);
+                    }
+                    info("Activités générées.");
+                }))
+                .exceptionally(ex -> {
+                    Throwable c = ex.getCause() != null ? ex.getCause() : ex;
+                    Platform.runLater(() -> {
+                        erreur(c.getMessage() != null ? c.getMessage() : "Génération des activités impossible.");
+                        if (btnPrGenererActivitesIa != null) {
+                            btnPrGenererActivitesIa.setDisable(false);
+                        }
+                    });
+                    return null;
+                });
     }
 
     private void remplirFormulaireEvenement(Evenement e) {
