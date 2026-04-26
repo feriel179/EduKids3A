@@ -36,7 +36,7 @@
             <TableColumn fx:id="colResTelephone" prefWidth="110.0" text="Tél."/>
             <TableColumn fx:id="colResPlaces" prefWidth="90.0" text="Places"/>
             <TableColumn fx:id="colResDate" prefWidth="140.0" text="Date résa."/>
-            <TableColumn fx:id="colResActions" prefWidth="100.0" text="Action"/>
+            <TableColumn fx:id="colResActions" prefWidth="168.0" text="Actions"/>
         </columns>
     </TableView>
     <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="form-actions-bar">

@@ -23,9 +23,10 @@
             <TableView fx:id="tableFrontMesReservations" minHeight="280.0" styleClass="table-view-dark"
                        prefWidth="920.0">
                 <columns>
-                    <TableColumn fx:id="colFrontResEv" prefWidth="360.0" text="Événement"/>
+                    <TableColumn fx:id="colFrontResEv" prefWidth="320.0" text="Événement"/>
                     <TableColumn fx:id="colFrontResPlaces" prefWidth="120.0" text="Places"/>
-                    <TableColumn fx:id="colFrontResDate" prefWidth="200.0" text="Date de réservation"/>
+                    <TableColumn fx:id="colFrontResDate" prefWidth="180.0" text="Date de réservation"/>
+                    <TableColumn fx:id="colFrontResPass" prefWidth="120.0" text="Pass"/>
                 </columns>
             </TableView>
         </ScrollPane>

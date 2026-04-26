@@ -14,6 +14,7 @@ import com.edukids.edukids3a.services.EvenementService;
 import com.edukids.edukids3a.services.InteractionService;
 import com.edukids.edukids3a.services.ProgrammeService;
 import com.edukids.edukids3a.services.ProgrammeActivitesAiService;
+import com.edukids.edukids3a.services.ReservationPassPdfService;
 import com.edukids.edukids3a.services.ReservationService;
 import com.edukids.edukids3a.util.EvenementValidator;
 import com.edukids.edukids3a.util.ProgrammeValidator;
@@ -153,6 +154,7 @@ public class MainController {
     private final ProgrammeService programmeService = new ProgrammeService();
     private final InteractionService interactionService = new InteractionService();
     private final ReservationService reservationService = new ReservationService();
+    private final ReservationPassPdfService reservationPassPdfService = new ReservationPassPdfService();
     private final EvenementImageAiService evenementImageAiService = new EvenementImageAiService();
     private final ProgrammeActivitesAiService programmeActivitesAiService = new ProgrammeActivitesAiService();
     private final EvenementNotificationMailService evenementNotificationMailService = new EvenementNotificationMailService();
@@ -318,6 +320,8 @@ public class MainController {
     private TableColumn<Reservation, String> colFrontResPlaces;
     @FXML
     private TableColumn<Reservation, String> colFrontResDate;
+    @FXML
+    private TableColumn<Reservation, Reservation> colFrontResPass;
     @FXML
     private Label lblFrontResaVide;
     @FXML
@@ -1420,17 +1424,20 @@ public class MainController {
                     setText(null);
                     return;
                 }
+                Button pdf = new Button("PDF");
+                pdf.getStyleClass().add("back-table-action-link");
+                pdf.setOnAction(ae -> exporterPassPdfReservation(res));
                 if (!estUtilisateurAdmin()) {
-                    Label l = new Label("—");
-                    l.getStyleClass().add("back-table-muted");
-                    setGraphic(l);
+                    setGraphic(pdf);
                     setText(null);
                     return;
                 }
                 Button del = new Button("Supprimer");
                 del.getStyleClass().addAll("back-table-action-link", "back-table-action-del");
                 del.setOnAction(ae -> supprimerReservationBack(res));
-                setGraphic(del);
+                HBox row = new HBox(8, pdf, del);
+                row.setAlignment(Pos.CENTER_LEFT);
+                setGraphic(row);
                 setText(null);
             }
         });
@@ -1476,6 +1483,89 @@ public class MainController {
             var dt = cd.getValue().getDateReservation();
             return new SimpleStringProperty(dt != null ? dt.format(RESA_DATETIME_FR) : "—");
         });
+        if (colFrontResPass != null) {
+            colFrontResPass.setCellValueFactory(cd -> new ReadOnlyObjectWrapper<>(cd.getValue()));
+            colFrontResPass.setCellFactory(c -> new TableCell<Reservation, Reservation>() {
+                @Override
+                protected void updateItem(Reservation res, boolean empty) {
+                    super.updateItem(res, empty);
+                    if (empty || res == null) {
+                        setGraphic(null);
+                        setText(null);
+                        return;
+                    }
+                    Button pdf = new Button("PDF / QR");
+                    pdf.getStyleClass().add("back-table-action-link");
+                    pdf.setOnAction(ae -> exporterPassPdfReservation(res));
+                    setGraphic(pdf);
+                    setText(null);
+                }
+            });
+        }
+    }
+
+    private void exporterPassPdfReservation(Reservation row) {
+        if (row == null || row.getId() == null) {
+            return;
+        }
+        Reservation r;
+        try {
+            r = reservationService.trouverParId(row.getId());
+        } catch (Exception ex) {
+            LOG.error("Chargement réservation pour PDF", ex);
+            erreur("Impossible de charger la réservation.");
+            return;
+        }
+        if (r == null) {
+            erreur("Réservation introuvable.");
+            return;
+        }
+        Window w = null;
+        if (tableFrontMesReservations != null && tableFrontMesReservations.getScene() != null) {
+            w = tableFrontMesReservations.getScene().getWindow();
+        }
+        if (w == null && tableReservations != null && tableReservations.getScene() != null) {
+            w = tableReservations.getScene().getWindow();
+        }
+        if (w == null) {
+            erreur("Fenêtre indisponible pour l’enregistrement du fichier.");
+            return;
+        }
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Enregistrer le pass (PDF)");
+        fc.setInitialFileName(suggestPassPdfFileName(r));
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        File f = fc.showSaveDialog(w);
+        if (f == null) {
+            return;
+        }
+        Path path = f.toPath();
+        String fileName = path.getFileName().toString();
+        if (!fileName.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+            Path parent = path.getParent();
+            path = parent != null ? parent.resolve(fileName + ".pdf") : Path.of(fileName + ".pdf");
+        }
+        try {
+            reservationPassPdfService.exportPdf(r, path);
+            info("Pass PDF enregistré : " + path.getFileName());
+        } catch (Exception ex) {
+            LOG.error("Export pass PDF", ex);
+            erreur("Impossible de créer le PDF : " + (ex.getMessage() != null ? ex.getMessage() : "erreur inconnue"));
+        }
+    }
+
+    private static String suggestPassPdfFileName(Reservation r) {
+        String titre = "";
+        if (r.getEvenement() != null && r.getEvenement().getTitre() != null) {
+            titre = r.getEvenement().getTitre().replaceAll("[^a-zA-Z0-9_-]+", "_");
+        }
+        if (titre.length() > 25) {
+            titre = titre.substring(0, 25);
+        }
+        if (titre.isBlank()) {
+            titre = "evenement";
+        }
+        return "Pass-" + titre + "-" + r.getId() + ".pdf";
     }
 
     private void actualiserBlocInteractionsEtPlaces(Evenement e) {
