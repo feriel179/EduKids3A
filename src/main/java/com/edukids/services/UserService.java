@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserService implements IService<User> {
 
@@ -21,7 +22,7 @@ public class UserService implements IService<User> {
     @Override
     public void add(User user) {
         String sql = "INSERT INTO user (email, roles, password, first_name, last_name, is_active, avatar, is_verified) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getEmail());
             ps.setString(2, user.rolesToJson());
@@ -42,10 +43,64 @@ public class UserService implements IService<User> {
         }
     }
 
+    // ======================== OAUTH ========================
+
+    public void addOAuthUser(User user) {
+        String sql = "INSERT INTO user (email, roles, password, first_name, last_name, is_active, avatar, is_verified) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            System.out.println("🔍 Tentative d'insertion OAuth : " + user.getEmail());
+            System.out.println("   Email: " + user.getEmail());
+            System.out.println("   FirstName: " + user.getFirstName());
+            System.out.println("   LastName: " + user.getLastName());
+            System.out.println("   Roles: " + user.rolesToJson());
+            
+            if (cnx == null || cnx.isClosed()) {
+                System.out.println("❌ ERREUR CRITIQUE: Connection MySQL fermée ou null!");
+                throw new RuntimeException("Database connection is closed");
+            }
+            
+            try (PreparedStatement ps = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, user.getEmail());
+                ps.setString(2, user.rolesToJson());
+                // Mot de passe aléatoire hashé — l'utilisateur OAuth ne se connecte jamais par mot de passe
+                ps.setString(3, BCrypt.hashpw(UUID.randomUUID().toString(), BCrypt.gensalt()));
+                ps.setString(4, user.getFirstName());
+                ps.setString(5, user.getLastName());
+                ps.setBoolean(6, user.isActive());
+                ps.setString(7, user.getAvatar());
+                ps.setBoolean(8, user.isVerified());
+                
+                System.out.println("⏳ Exécution de la requête INSERT...");
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    user.setId(rs.getInt(1));
+                }
+                
+                System.out.println("✅ OAuth user inséré en base avec ID: " + user.getId());
+                System.out.println("✅ Email enregistré: " + user.getEmail());
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ SQL Error: " + e.getMessage());
+            System.out.println("❌ SQL State: " + e.getSQLState());
+            System.out.println("❌ Error Code: " + e.getErrorCode());
+            e.printStackTrace();
+            throw new RuntimeException("Error adding OAuth user: " + e.getMessage(), e);
+        } catch (Exception e) {
+            System.out.println("❌ Unexpected Error: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error adding OAuth user: " + e.getMessage(), e);
+        }
+    }
+
+    // ======================== UPDATE / DELETE ========================
+
     @Override
     public void update(User user) {
         String sql = "UPDATE user SET email=?, roles=?, first_name=?, last_name=?, " +
-                     "is_active=?, avatar=?, is_verified=? WHERE id=?";
+                "is_active=?, avatar=?, is_verified=? WHERE id=?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
             ps.setString(1, user.getEmail());
             ps.setString(2, user.rolesToJson());
@@ -72,15 +127,15 @@ public class UserService implements IService<User> {
         }
     }
 
+    // ======================== GET ========================
+
     @Override
     public User getById(int id) {
         String sql = "SELECT * FROM user WHERE id=?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
-            }
+            if (rs.next()) return mapResultSetToUser(rs);
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching user: " + e.getMessage(), e);
         }
@@ -92,13 +147,23 @@ public class UserService implements IService<User> {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM user ORDER BY id DESC";
         try (Statement st = cnx.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
+            while (rs.next()) users.add(mapResultSetToUser(rs));
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching users: " + e.getMessage(), e);
         }
         return users;
+    }
+
+    public User getByEmail(String email) {
+        String sql = "SELECT * FROM user WHERE email=?";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapResultSetToUser(rs);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching user by email: " + e.getMessage(), e);
+        }
+        return null;
     }
 
     // ======================== AUTH ========================
@@ -112,9 +177,7 @@ public class UserService implements IService<User> {
                 String hashedPassword = rs.getString("password");
                 if (BCrypt.checkpw(password, hashedPassword)) {
                     User user = mapResultSetToUser(rs);
-                    if (!user.isActive()) {
-                        return null;
-                    }
+                    if (!user.isActive()) return null;
                     return user;
                 }
             }
@@ -142,9 +205,7 @@ public class UserService implements IService<User> {
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
+            if (rs.next()) return rs.getInt(1) > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Error checking email: " + e.getMessage(), e);
         }
@@ -157,33 +218,13 @@ public class UserService implements IService<User> {
             ps.setString(1, email);
             ps.setInt(2, excludeUserId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
+            if (rs.next()) return rs.getInt(1) > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Error checking email: " + e.getMessage(), e);
         }
         return false;
     }
 
-    public User getByEmail(String email) {
-        String sql = "SELECT * FROM user WHERE email=?";
-        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
-            ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error fetching user by email: " + e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
-     * Search users by keyword and optional role filter, with sorting.
-     * Matches Symfony's UserRepository::searchUsers()
-     */
     public List<User> searchUsers(String keyword, Role roleFilter, String sortBy, String sortOrder) {
         List<User> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM user WHERE 1=1");
@@ -202,34 +243,26 @@ public class UserService implements IService<User> {
             params.add("%" + roleFilter.getDbValue() + "%");
         }
 
-        // Validate sort column
         String validSort = switch (sortBy != null ? sortBy : "id") {
             case "firstName", "first_name" -> "first_name";
-            case "lastName", "last_name" -> "last_name";
-            case "email" -> "email";
-            case "isActive", "is_active" -> "is_active";
-            default -> "id";
+            case "lastName", "last_name"   -> "last_name";
+            case "email"                   -> "email";
+            case "isActive", "is_active"   -> "is_active";
+            default                        -> "id";
         };
         String order = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
         sql.append(" ORDER BY ").append(validSort).append(" ").append(order);
 
         try (PreparedStatement ps = cnx.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
+            while (rs.next()) users.add(mapResultSetToUser(rs));
         } catch (SQLException e) {
             throw new RuntimeException("Error searching users: " + e.getMessage(), e);
         }
         return users;
     }
 
-    /**
-     * Find users by specific role. Matches Symfony's UserRepository::findByRole()
-     */
     public List<User> findByRole(Role role) {
         return searchUsers(null, role, "id", "DESC");
     }
@@ -238,7 +271,7 @@ public class UserService implements IService<User> {
         return searchUsers(keyword, role, "id", "DESC");
     }
 
-    // ======================== COUNTS (Dashboard) ========================
+    // ======================== COUNTS ========================
 
     public int countAll() {
         return executeCount("SELECT COUNT(*) FROM user");
@@ -262,24 +295,19 @@ public class UserService implements IService<User> {
 
     public Map<String, Integer> getRoleCounts() {
         Map<String, Integer> counts = new HashMap<>();
-        counts.put("Admin", countByRole(Role.ROLE_ADMIN));
+        counts.put("Admin",  countByRole(Role.ROLE_ADMIN));
         counts.put("Parent", countByRole(Role.ROLE_PARENT));
-        counts.put("Eleve", countByRole(Role.ROLE_ELEVE));
+        counts.put("Eleve",  countByRole(Role.ROLE_ELEVE));
         return counts;
     }
 
-    /**
-     * Get recent users (last N registered). Matches Symfony admin dashboard.
-     */
     public List<User> getRecentUsers(int limit) {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM user ORDER BY id DESC LIMIT ?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
             ps.setInt(1, limit);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
+            while (rs.next()) users.add(mapResultSetToUser(rs));
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching recent users: " + e.getMessage(), e);
         }
@@ -288,9 +316,6 @@ public class UserService implements IService<User> {
 
     // ======================== BLOCK / UNBLOCK ========================
 
-    /**
-     * Toggle user active status (ban/unban). Matches Symfony's block() action.
-     */
     public void toggleBlock(int userId) {
         String sql = "UPDATE user SET is_active = NOT is_active WHERE id=?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
@@ -335,15 +360,15 @@ public class UserService implements IService<User> {
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         return new User(
-            rs.getInt("id"),
-            rs.getString("email"),
-            User.rolesFromJson(rs.getString("roles")),
-            rs.getString("password"),
-            rs.getString("first_name"),
-            rs.getString("last_name"),
-            rs.getBoolean("is_active"),
-            rs.getString("avatar"),
-            rs.getBoolean("is_verified")
+                rs.getInt("id"),
+                rs.getString("email"),
+                User.rolesFromJson(rs.getString("roles")),
+                rs.getString("password"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
+                rs.getBoolean("is_active"),
+                rs.getString("avatar"),
+                rs.getBoolean("is_verified")
         );
     }
 }

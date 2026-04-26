@@ -1,23 +1,7 @@
 /* ============================================================
-   EduKids - JavaFX Theme
-   Matching Symfony Web Application Color Palette
-
-   Primary:    #066ac9
-   Secondary:  #9a9ea4
-   Success:    #0cbc87
-   Info:       #17a2b8
-   Warning:    #f7c32e
-   Danger:     #d6293e
-   Light:      #f5f7f9
-   Dark:       #24292d
-   Blue:       #1d3b53
-   Gray-100:   #f5f7f9
-   Gray-200:   #eff1f2
-   Gray-500:   #9a9ea4
-   Gray-600:   #747579
-   Gray-800:   #24292d
-   Gray-900:   #0b0f13
-   ============================================================ */
+   EduKids - Light Theme (Mode Clair)
+   Original color palette
+============================================================ */
 
 /* ==================== GLOBAL ==================== */
 
@@ -111,21 +95,6 @@
 .combo-input .list-cell {
     -fx-text-fill: #24292d;
     -fx-font-size: 14px;
-}
-
-.search-input {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #0056b3;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 10 20;
-    -fx-font-size: 14px;
-    -fx-prompt-text-fill: #9a9ea4;
-}
-
-.search-input:focused {
-    -fx-border-color: #066ac9;
-    -fx-effect: dropshadow(gaussian, rgba(6,106,201,0.15), 8, 0, 0, 0);
 }
 
 .check-input {
@@ -295,9 +264,24 @@
     -fx-text-fill: white;
 }
 
-.btn-sm {
-    -fx-padding: 4 10;
-    -fx-font-size: 12px;
+.btn-google {
+    -fx-background-color: #db4437;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10 24;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-google:hover {
+    -fx-background-color: #c23321;
+    -fx-effect: dropshadow(gaussian, rgba(219,68,55,0.3), 10, 0, 0, 2);
+}
+
+.btn-google:pressed {
+    -fx-background-color: #a92c1f;
 }
 
 /* ==================== LINKS ==================== */
@@ -523,7 +507,7 @@
     -fx-padding: 20;
 }
 
-/* ==================== TABLE / USER LIST ==================== */
+/* ==================== USER LIST ==================== */
 
 .user-list {
     -fx-background-color: transparent;
@@ -566,54 +550,6 @@
     -fx-background-radius: 3;
 }
 
-/* ==================== TABLE HEADER ==================== */
-
-.table-header {
-    -fx-background-color: #066ac9;
-    -fx-padding: 12 15;
-    -fx-background-radius: 8 8 0 0;
-}
-
-.table-header-label {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-}
-
-/* ==================== AVATAR ==================== */
-
-.avatar-circle {
-    -fx-background-color: #066ac9;
-    -fx-background-radius: 20;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 16px;
-}
-
-.avatar-circle-sm {
-    -fx-background-color: #066ac9;
-    -fx-background-radius: 18;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 13px;
-    -fx-min-width: 35;
-    -fx-max-width: 35;
-    -fx-min-height: 35;
-    -fx-max-height: 35;
-}
-
-.avatar-circle-lg {
-    -fx-background-color: #066ac9;
-    -fx-background-radius: 50;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 36px;
-    -fx-min-width: 100;
-    -fx-max-width: 100;
-    -fx-min-height: 100;
-    -fx-max-height: 100;
-}
-
 /* ==================== BADGES ==================== */
 
 .badge {
@@ -648,173 +584,7 @@
     -fx-text-fill: #d6293e;
 }
 
-.badge-verified {
-    -fx-background-color: #d1f5ea;
-    -fx-text-fill: #0cbc87;
-}
-
-.badge-unverified {
-    -fx-background-color: #fff8e1;
-    -fx-text-fill: #f7c32e;
-}
-
-/* ==================== EDIT FORM ==================== */
-
-.edit-form {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: #eff1f2;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0, 0, 2);
-}
-
-/* ==================== SETTINGS CARDS ==================== */
-
-.settings-card {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: #eff1f2;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0, 0, 2);
-    -fx-cursor: hand;
-}
-
-.settings-card:hover {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-}
-
-.settings-card-primary {
-    -fx-border-width: 0 0 0 4;
-    -fx-border-color: #066ac9;
-}
-
-.settings-card-info {
-    -fx-border-width: 0 0 0 4;
-    -fx-border-color: #17a2b8;
-}
-
-.settings-card-warning {
-    -fx-border-width: 0 0 0 4;
-    -fx-border-color: #f7c32e;
-}
-
-.settings-card-danger {
-    -fx-border-width: 0 0 0 4;
-    -fx-border-color: #d6293e;
-}
-
-/* ==================== FILTER BAR ==================== */
-
-.filter-bar {
-    -fx-background-color: #ffffff;
-    -fx-padding: 15;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-border-color: #eff1f2;
-}
-
-/* ==================== TABS ==================== */
-
-.tab-pane > .tab-header-area {
-    -fx-padding: 0;
-}
-
-.tab-pane > .tab-header-area > .tab-header-background {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #eff1f2;
-    -fx-border-width: 0 0 1 0;
-}
-
-.tab {
-    -fx-background-color: transparent;
-    -fx-padding: 10 20;
-}
-
-.tab:selected {
-    -fx-background-color: transparent;
-}
-
-.tab:selected .tab-label {
-    -fx-text-fill: #066ac9;
-}
-
-.tab .tab-label {
-    -fx-text-fill: #747579;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-}
-
-.tab:hover .tab-label {
-    -fx-text-fill: #066ac9;
-}
-
-/* ==================== PROGRESS BAR ==================== */
-
-.progress-bar {
-    -fx-background-color: #eff1f2;
-    -fx-background-radius: 10;
-    -fx-padding: 0;
-    -fx-pref-height: 8;
-}
-
-.progress-bar .track {
-    -fx-background-color: #eff1f2;
-    -fx-background-radius: 10;
-}
-
-.progress-bar .bar {
-    -fx-background-color: #0cbc87;
-    -fx-background-radius: 10;
-    -fx-background-insets: 0;
-}
-
-/* ==================== SCROLLPANE ==================== */
-
-.scroll-pane-transparent {
-    -fx-background-color: transparent;
-    -fx-background: transparent;
-}
-
-.scroll-pane-transparent > .viewport {
-    -fx-background-color: transparent;
-}
-
-/* ==================== CHARTS ==================== */
-
-.chart-pie-label {
-    -fx-font-size: 12px;
-    -fx-fill: #747579;
-}
-
-.chart-title {
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-fill: #24292d;
-}
-
-/* Chart colors matching the role badges */
-.default-color0.chart-pie {
-    -fx-pie-color: #066ac9;
-}
-.default-color1.chart-pie {
-    -fx-pie-color: #17a2b8;
-}
-.default-color2.chart-pie {
-    -fx-pie-color: #0cbc87;
-}
-.default-color3.chart-pie {
-    -fx-pie-color: #f7c32e;
-}
-
-/* ==================== SEPARATOR ==================== */
-
-.separator .line {
-    -fx-border-color: #eff1f2;
-    -fx-border-width: 1 0 0 0;
-}
-
-/* ==================== ALERT ==================== */
+/* ==================== ALERTS ==================== */
 
 .alert-success {
     -fx-background-color: #d1f5ea;
@@ -848,18 +618,6 @@
     -fx-padding: 12 15;
 }
 
-/* ==================== PASSWORD SUGGESTION ==================== */
-
-.password-suggest-box {
-    -fx-background-color: #f5f7f9;
-    -fx-border-color: #066ac9;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 10 14;
-    -fx-font-family: "Consolas", "Courier New", monospace;
-    -fx-font-size: 14px;
-}
-
 /* ==================== TOOLTIP ==================== */
 
 .tooltip {
@@ -870,24 +628,10 @@
     -fx-padding: 6 10;
 }
 
-/* ==================== GOOGLE SIGN-IN BUTTON ==================== */
+/* ==================== SEPARATOR ==================== */
 
-.btn-google {
-    -fx-background-color: #db4437;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-padding: 10 24;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-cursor: hand;
+.separator .line {
+    -fx-border-color: #eff1f2;
+    -fx-border-width: 1 0 0 0;
 }
 
-.btn-google:hover {
-    -fx-background-color: #c23321;
-    -fx-effect: dropshadow(gaussian, rgba(219,68,55,0.3), 10, 0, 0, 2);
-}
-
-.btn-google:pressed {
-    -fx-background-color: #a92c1f;
-}
