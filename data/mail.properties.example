@@ -1,0 +1,8 @@
+smtp.host=azizlatrache2.gmail.com
+smtp.port=587
+smtp.username=azizlatrache2.gmail.com
+smtp.password=xlva hnrl puiz klfn
+smtp.from=azizlatrache2.gmail.com
+smtp.auth=true
+smtp.starttls=true
+smtp.ssl=false

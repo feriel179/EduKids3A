@@ -3,3 +3,6 @@
 *.iml
 *.log
 /.DS_Store
+/data/openai.properties
+/data/mail.properties
+/data/generated-images/

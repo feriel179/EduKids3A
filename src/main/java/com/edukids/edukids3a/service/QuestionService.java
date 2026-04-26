@@ -5,7 +5,7 @@ import com.edukids.edukids3a.persistence.QuestionRepository;
 import com.edukids.edukids3a.validation.QuestionValidator;
 import javafx.collections.ObservableList;
 
-public class QuestionService {
+public class    QuestionService {
     private final QuestionRepository repository;
     private final QuestionValidator validator = new QuestionValidator();
 

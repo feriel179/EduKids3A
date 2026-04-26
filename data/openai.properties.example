@@ -1,0 +1,2 @@
+# Copiez ce fichier vers data/openai.properties puis remplacez la valeur ci-dessous.
+openai.api.key=YOUR_OPENAI_API_KEY_HERE

@@ -21,9 +21,9 @@ public class QuizService {
         return repository.findAll();
     }
 
-    public void ajouterQuiz(Quiz quiz) {
+    public Quiz ajouterQuiz(Quiz quiz) {
         validator.validate(quiz);
-        repository.save(quiz);
+        return repository.save(quiz);
     }
 
     public void modifierQuiz(Quiz quiz) {

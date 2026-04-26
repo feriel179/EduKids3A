@@ -52,10 +52,22 @@ public class Question {
     }
 
     public String getTypeLabel() {
-        return type.name();
+        return type.getLabel();
     }
 
     public String getResumeReponses() {
+        if (type == TypeQuestion.RELIER_FLECHE) {
+            return reponses.stream()
+                    .map(reponse -> {
+                        String[] parts = reponse.getTexte().split("\\|\\|\\|", 2);
+                        if (parts.length == 2) {
+                            return parts[0] + " -> " + parts[1];
+                        }
+                        return reponse.getTexte();
+                    })
+                    .reduce((left, right) -> left + " | " + right)
+                    .orElse("");
+        }
         return reponses.stream()
                 .map(reponse -> reponse.getTexte() + (reponse.isCorrecte() ? " *" : ""))
                 .reduce((left, right) -> left + " | " + right)

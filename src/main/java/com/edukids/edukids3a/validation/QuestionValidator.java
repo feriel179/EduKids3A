@@ -23,12 +23,25 @@ public class QuestionValidator {
             throw new ValidationException("Les points doivent etre superieurs a 0.");
         }
 
-        if (question.getType() == TypeQuestion.REPONSE_LIBRE) {
+        if (question.getType().isTextAnswer()) {
             if (question.getReponses().isEmpty() || question.getReponses().get(0).getTexte().trim().isEmpty()) {
                 throw new ValidationException("La reponse attendue est obligatoire pour une question libre.");
             }
             if (question.getReponses().get(0).getTexte().trim().length() > 255) {
                 throw new ValidationException("La reponse libre ne doit pas depasser 255 caracteres.");
+            }
+            return;
+        }
+
+        if (question.getType() == TypeQuestion.RELIER_FLECHE) {
+            long validPairs = question.getReponses().stream()
+                    .map(Reponse::getTexte)
+                    .filter(text -> text != null && text.contains("|||"))
+                    .map(text -> text.split("\\|\\|\\|", 2))
+                    .filter(parts -> parts.length == 2 && !parts[0].trim().isEmpty() && !parts[1].trim().isEmpty())
+                    .count();
+            if (validPairs < 2) {
+                throw new ValidationException("Ajoutez au moins deux associations pour une question Relier par une fleche.");
             }
             return;
         }
@@ -39,7 +52,7 @@ public class QuestionValidator {
                 .count();
 
         if (filledAnswers < 2) {
-            throw new ValidationException("Ajoutez au moins deux reponses pour une question QCM ou QCU.");
+            throw new ValidationException("Ajoutez au moins deux reponses pour cette question.");
         }
 
         long correctAnswers = question.getReponses().stream().filter(Reponse::isCorrecte).count();
@@ -47,8 +60,8 @@ public class QuestionValidator {
             throw new ValidationException("Selectionnez au moins une bonne reponse.");
         }
 
-        if (question.getType() == TypeQuestion.QCU && correctAnswers > 1) {
-            throw new ValidationException("Une question QCU doit avoir une seule bonne reponse.");
+        if (question.getType().isSingleChoice() && correctAnswers > 1) {
+            throw new ValidationException("Cette question doit avoir une seule bonne reponse.");
         }
 
         boolean tooLongAnswer = question.getReponses().stream()

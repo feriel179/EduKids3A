@@ -1,0 +1,12 @@
+Rapport EduKids
+Genere le 2026-04-13 19:37:42
+
+Resume global
+- Quiz: 3
+- Questions: 6
+- Reponses: 24
+
+Details des quiz
+- physique | niveau=Debutant | statut=Brouillon | questions=2 | duree=20 min | score min=60%
+- Quiz SQL | niveau=Intermediaire | statut=Archive | questions=2 | duree=15 min | score min=50%
+- science | niveau=Debutant | statut=Brouillon | questions=2 | duree=20 min | score min=60%

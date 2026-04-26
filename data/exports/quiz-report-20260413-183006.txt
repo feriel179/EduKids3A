@@ -1,0 +1,15 @@
+Rapport EduKids
+Genere le 2026-04-13 18:30:06
+
+Resume global
+- Quiz: 6
+- Questions: 6
+- Reponses: 24
+
+Details des quiz
+- javafx | niveau=Debutant | statut=Brouillon | questions=2 | duree=20 min | score min=60%
+- math | niveau=Debutant | statut=Brouillon | questions=0 | duree=20 min | score min=60%
+- mathematique | niveau=Debutant | statut=Brouillon | questions=0 | duree=20 min | score min=60%
+- physique | niveau=Debutant | statut=Brouillon | questions=2 | duree=20 min | score min=60%
+- Quiz SQL | niveau=Intermediaire | statut=Brouillon | questions=0 | duree=15 min | score min=50%
+- science | niveau=Debutant | statut=Brouillon | questions=0 | duree=20 min | score min=60%

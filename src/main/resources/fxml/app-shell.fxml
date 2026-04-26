@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.edukids.edukids3a.controller.AppShellController"
+            prefHeight="760.0"
+            prefWidth="1120.0"
+            styleClass="app-shell">
+    <center>
+        <StackPane fx:id="contentHost" />
+    </center>
+</BorderPane>

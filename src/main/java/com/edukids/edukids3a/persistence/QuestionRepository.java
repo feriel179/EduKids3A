@@ -74,7 +74,7 @@ public class QuestionRepository {
             }
 
             connection.commit();
-            quizRepository.incrementQuestionCount(question.getQuiz());
+            quizRepository.synchronizeQuestionCount(question.getQuiz());
             questions.add(new Question(questionId, question.getQuiz(), question.getIntitule(), question.getType(), question.getPoints(), savedReponses));
         } catch (Exception e) {
             rollbackQuietly(connection);
@@ -127,12 +127,11 @@ public class QuestionRepository {
                     }
                 }
 
-                if (!originalQuestion.getQuiz().getId().equals(updatedQuestion.getQuiz().getId())) {
-                    quizRepository.decrementQuestionCount(originalQuestion.getQuiz());
-                    quizRepository.incrementQuestionCount(updatedQuestion.getQuiz());
-                }
-
                 connection.commit();
+                quizRepository.synchronizeQuestionCount(originalQuestion.getQuiz());
+                if (!originalQuestion.getQuiz().getId().equals(updatedQuestion.getQuiz().getId())) {
+                    quizRepository.synchronizeQuestionCount(updatedQuestion.getQuiz());
+                }
                 replaceInMemory(new Question(
                         originalQuestion.getId(),
                         updatedQuestion.getQuiz(),
@@ -166,7 +165,7 @@ public class QuestionRepository {
             }
 
             connection.commit();
-            quizRepository.decrementQuestionCount(question.getQuiz());
+            quizRepository.synchronizeQuestionCount(question.getQuiz());
             questions.removeIf(existing -> existing.getId() != null && existing.getId().equals(question.getId()));
         } catch (Exception e) {
             rollbackQuietly(connection);
@@ -180,7 +179,7 @@ public class QuestionRepository {
         ObservableList<Question> loadedQuestions = FXCollections.observableArrayList();
         String sql = """
                 SELECT q.id AS question_id, q.intitule, q.type, q.points,
-                       z.id AS quiz_id, z.titre, z.description, z.niveau, z.nombre_questions, z.duree_minutes, z.score_minimum, z.statut
+                       z.id AS quiz_id, z.titre, z.description, z.image_url, z.niveau, z.categorie_age, z.nombre_questions, z.duree_minutes, z.score_minimum, z.statut
                 FROM question q
                 JOIN quiz z ON z.id = q.quiz_id
                 ORDER BY q.id
@@ -196,7 +195,9 @@ public class QuestionRepository {
                             resultSet.getInt("quiz_id"),
                             resultSet.getString("titre"),
                             resultSet.getString("description"),
+                            resultSet.getString("image_url"),
                             resultSet.getString("niveau"),
+                            resultSet.getString("categorie_age"),
                             resultSet.getInt("nombre_questions"),
                             resultSet.getInt("duree_minutes"),
                             resultSet.getInt("score_minimum"),

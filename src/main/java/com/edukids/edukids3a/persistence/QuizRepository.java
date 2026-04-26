@@ -15,7 +15,7 @@ public class QuizRepository {
     public QuizRepository() {
         DatabaseManager.initialize();
         seedIfEmpty();
-        refreshQuestionCounts();
+        synchronizeQuestionCounts();
         quizzes.setAll(loadAll());
     }
 
@@ -23,57 +23,66 @@ public class QuizRepository {
         return quizzes;
     }
 
-    public void save(Quiz quiz) {
+    public Quiz save(Quiz quiz) {
         String sql = """
-                INSERT INTO quiz (titre, description, niveau, nombre_questions, duree_minutes, score_minimum, statut)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO quiz (titre, description, image_url, niveau, categorie_age, nombre_questions, duree_minutes, score_minimum, statut)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
-            statement.setString(3, quiz.getNiveau());
-            statement.setInt(4, quiz.getNombreQuestions());
-            statement.setInt(5, quiz.getDureeMinutes());
-            statement.setInt(6, quiz.getScoreMinimum());
-            statement.setString(7, quiz.getStatut());
+            statement.setString(3, quiz.getImageUrl());
+            statement.setString(4, quiz.getNiveau());
+            statement.setString(5, quiz.getCategorieAge());
+            statement.setInt(6, quiz.getNombreQuestions());
+            statement.setInt(7, quiz.getDureeMinutes());
+            statement.setInt(8, quiz.getScoreMinimum());
+            statement.setString(9, quiz.getStatut());
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    quizzes.add(new Quiz(
+                    Quiz savedQuiz = new Quiz(
                             generatedKeys.getInt(1),
                             quiz.getTitre(),
                             quiz.getDescription(),
+                            quiz.getImageUrl(),
                             quiz.getNiveau(),
+                            quiz.getCategorieAge(),
                             quiz.getNombreQuestions(),
                             quiz.getDureeMinutes(),
                             quiz.getScoreMinimum(),
                             quiz.getStatut()
-                    ));
+                    );
+                    quizzes.add(savedQuiz);
+                    return savedQuiz;
                 }
             }
         } catch (Exception e) {
             throw new IllegalStateException("Impossible d'enregistrer le quiz.", e);
         }
+        throw new IllegalStateException("Le quiz a ete insere mais aucun identifiant n'a ete retourne.");
     }
 
     public void update(Quiz quiz) {
         String sql = """
                 UPDATE quiz
-                SET titre = ?, description = ?, niveau = ?, nombre_questions = ?, duree_minutes = ?, score_minimum = ?, statut = ?
+                SET titre = ?, description = ?, image_url = ?, niveau = ?, categorie_age = ?, nombre_questions = ?, duree_minutes = ?, score_minimum = ?, statut = ?
                 WHERE id = ?
                 """;
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
-            statement.setString(3, quiz.getNiveau());
-            statement.setInt(4, quiz.getNombreQuestions());
-            statement.setInt(5, quiz.getDureeMinutes());
-            statement.setInt(6, quiz.getScoreMinimum());
-            statement.setString(7, quiz.getStatut());
-            statement.setInt(8, quiz.getId());
+            statement.setString(3, quiz.getImageUrl());
+            statement.setString(4, quiz.getNiveau());
+            statement.setString(5, quiz.getCategorieAge());
+            statement.setInt(6, quiz.getNombreQuestions());
+            statement.setInt(7, quiz.getDureeMinutes());
+            statement.setInt(8, quiz.getScoreMinimum());
+            statement.setString(9, quiz.getStatut());
+            statement.setInt(10, quiz.getId());
             statement.executeUpdate();
 
             replaceInMemory(quiz);
@@ -114,31 +123,33 @@ public class QuizRepository {
         }
     }
 
-    public void incrementQuestionCount(Quiz quiz) {
+    public void synchronizeQuestionCount(Quiz quiz) {
         if (quiz.getId() == null) {
             return;
         }
+        String sql = """
+                UPDATE quiz
+                SET nombre_questions = (
+                    SELECT COUNT(*)
+                    FROM question
+                    WHERE question.quiz_id = quiz.id
+                )
+                WHERE id = ?
+                """;
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE quiz SET nombre_questions = nombre_questions + 1 WHERE id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(sql);
+             PreparedStatement countStatement = connection.prepareStatement(
+                     "SELECT COUNT(*) FROM question WHERE quiz_id = ?")) {
             statement.setInt(1, quiz.getId());
             statement.executeUpdate();
-            quiz.incrementNombreQuestions();
-        } catch (Exception e) {
-            throw new IllegalStateException("Impossible de mettre a jour le nombre de questions du quiz.", e);
-        }
-    }
-
-    public void decrementQuestionCount(Quiz quiz) {
-        if (quiz.getId() == null) {
-            return;
-        }
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE quiz SET nombre_questions = CASE WHEN nombre_questions > 0 THEN nombre_questions - 1 ELSE 0 END WHERE id = ?")) {
-            statement.setInt(1, quiz.getId());
-            statement.executeUpdate();
-            quiz.decrementNombreQuestions();
+            countStatement.setInt(1, quiz.getId());
+            try (ResultSet resultSet = countStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int questionCount = resultSet.getInt(1);
+                    quiz.setNombreQuestions(questionCount);
+                    applyQuestionCount(quiz.getId(), questionCount);
+                }
+            }
         } catch (Exception e) {
             throw new IllegalStateException("Impossible de mettre a jour le nombre de questions du quiz.", e);
         }
@@ -154,7 +165,9 @@ public class QuizRepository {
                         resultSet.getInt("id"),
                         resultSet.getString("titre"),
                         resultSet.getString("description"),
+                        resultSet.getString("image_url"),
                         resultSet.getString("niveau"),
+                        resultSet.getString("categorie_age"),
                         resultSet.getInt("nombre_questions"),
                         resultSet.getInt("duree_minutes"),
                         resultSet.getInt("score_minimum"),
@@ -178,8 +191,9 @@ public class QuizRepository {
             throw new IllegalStateException("Impossible de verifier les quiz existants.", e);
         }
 
-        save(new Quiz("Quiz Java", "Quiz d'introduction au langage Java.", "Debutant", 0, 20, 60, "Publie"));
-        save(new Quiz("Quiz SQL", "Quiz de revision sur les bases SQL.", "Intermediaire", 0, 15, 50, "Brouillon"));
+        save(new Quiz("Vrai ou Faux Nature", "Quiz facile pour identifier des affirmations simples sur la nature.", "", "Debutant", Quiz.CATEGORIE_AGE_FACILE, 0, 10, 50, "Publie"));
+        save(new Quiz("Quiz Java", "Quiz d'introduction au langage Java.", "", "Debutant", Quiz.CATEGORIE_AGE_STANDARD, 0, 20, 60, "Publie"));
+        save(new Quiz("Quiz SQL", "Quiz de revision sur les bases SQL.", "", "Intermediaire", Quiz.CATEGORIE_AGE_STANDARD, 0, 15, 50, "Brouillon"));
         quizzes.clear();
     }
 
@@ -213,7 +227,7 @@ public class QuizRepository {
         }
     }
 
-    private void refreshQuestionCounts() {
+    private void synchronizeQuestionCounts() {
         String sql = """
                 UPDATE quiz
                 SET nombre_questions = (
@@ -227,6 +241,17 @@ public class QuizRepository {
             statement.executeUpdate();
         } catch (Exception e) {
             throw new IllegalStateException("Impossible de synchroniser le nombre de questions.", e);
+        }
+    }
+
+    private void applyQuestionCount(Integer quizId, int questionCount) {
+        if (quizId == null) {
+            return;
+        }
+        for (Quiz existing : quizzes) {
+            if (quizId.equals(existing.getId())) {
+                existing.setNombreQuestions(questionCount);
+            }
         }
     }
 }

@@ -25,6 +25,14 @@ public class QuizValidator {
             throw new ValidationException("La description ne doit pas depasser 1000 caracteres.");
         }
 
+        if (quiz.getImageUrl() != null && quiz.getImageUrl().trim().length() > 500) {
+            throw new ValidationException("L'URL de l'image ne doit pas depasser 500 caracteres.");
+        }
+
+        if (quiz.getCategorieAge() == null || quiz.getCategorieAge().isBlank()) {
+            throw new ValidationException("La categorie d'age est obligatoire.");
+        }
+
         if (quiz.getDureeMinutes() <= 0) {
             throw new ValidationException("La duree doit etre superieure a 0.");
         }
