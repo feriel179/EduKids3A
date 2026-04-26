@@ -4,5 +4,6 @@
 *.log
 /.DS_Store
 /data/openai.properties
+/data/database.properties
 /data/mail.properties
 /data/generated-images/

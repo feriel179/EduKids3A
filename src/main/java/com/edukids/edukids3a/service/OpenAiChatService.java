@@ -91,6 +91,43 @@ public class OpenAiChatService {
         );
     }
 
+    public String rewriteVerifiedQuizReply(
+            String apiKey,
+            Quiz quiz,
+            Question currentQuestion,
+            int questionNumber,
+            int totalQuestions,
+            String studentAnswer,
+            List<ChatTurn> history,
+            String userMessage,
+            String verifiedReply
+    ) throws IOException, InterruptedException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalArgumentException("La cle API OpenAI est requise.");
+        }
+
+        String safeVerifiedReply = verifiedReply == null ? "" : verifiedReply.trim();
+        if (safeVerifiedReply.isBlank()) {
+            return "";
+        }
+
+        return requestText(
+                apiKey,
+                buildVerifiedRewriteInstructions(),
+                buildVerifiedRewriteInput(
+                        quiz,
+                        currentQuestion,
+                        questionNumber,
+                        totalQuestions,
+                        studentAnswer,
+                        history,
+                        userMessage,
+                        safeVerifiedReply
+                ),
+                260
+        ).trim();
+    }
+
     public String generateQuizDescription(
             String apiKey,
             String title,
@@ -530,6 +567,52 @@ public class OpenAiChatService {
 
         builder.append("Latest student message: ").append(safeValue(userMessage)).append('\n');
         builder.append("Task: answer the latest student message now.");
+        return builder.toString();
+    }
+
+    private String buildVerifiedRewriteInstructions() {
+        return "You are EduKids Coach, a warm tutoring assistant inside a JavaFX quiz app for children. "
+                + "Your job is to rewrite a verified answer so it sounds natural and directly answers the student's latest message. "
+                + "Use the verified answer as the only factual source of truth. "
+                + "Do not add, remove, or alter any answer, option, explanation, matching pair, rule, or fact. "
+                + "If the verified answer gives only a hint, keep it as a hint and do not reveal more. "
+                + "If the verified answer contains the exact answer, you may keep it clear and direct. "
+                + "Prefer 2 to 5 short sentences. "
+                + "Reply in French unless the student writes in another language.";
+    }
+
+    private String buildVerifiedRewriteInput(
+            Quiz quiz,
+            Question currentQuestion,
+            int questionNumber,
+            int totalQuestions,
+            String studentAnswer,
+            List<ChatTurn> history,
+            String userMessage,
+            String verifiedReply
+    ) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Quiz context").append('\n');
+        builder.append("Title: ").append(safeValue(quiz.getTitre())).append('\n');
+        builder.append("Level: ").append(safeValue(quiz.getNiveau())).append('\n');
+        builder.append("Age category: ").append(safeValue(quiz.getCategorieAge())).append('\n');
+        builder.append("Current question: ").append(questionNumber).append(" / ").append(totalQuestions).append('\n');
+        builder.append("Question text: ").append(safeValue(currentQuestion.getIntitule())).append('\n');
+        builder.append("Question type: ").append(currentQuestion.getType() == null ? "-" : currentQuestion.getType().getLabel()).append('\n');
+        builder.append("Answer choices: ").append(formatList(getAnswerChoices(currentQuestion))).append('\n');
+        builder.append("Student current answer: ").append(formatStudentAnswer(studentAnswer, currentQuestion)).append('\n');
+        builder.append('\n');
+        builder.append("Recent conversation").append('\n');
+
+        int start = Math.max(0, history.size() - 4);
+        for (int index = start; index < history.size(); index++) {
+            ChatTurn turn = history.get(index);
+            builder.append(turn.role()).append(": ").append(turn.message()).append('\n');
+        }
+
+        builder.append("Latest student message: ").append(safeValue(userMessage)).append('\n');
+        builder.append("Verified answer to preserve exactly: ").append(safeValue(verifiedReply)).append('\n');
+        builder.append("Task: rewrite the verified answer so it is natural, supportive, and faithful.");
         return builder.toString();
     }
 

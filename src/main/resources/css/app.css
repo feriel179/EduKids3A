@@ -734,7 +734,6 @@
     -fx-border-radius: 18px;
     -fx-padding: 18;
     -fx-spacing: 12;
-    -fx-max-width: 350px;
 }
 
 .chatbot-title {
@@ -759,7 +758,7 @@
     -fx-padding: 7 11 7 11;
     -fx-background-radius: 999px;
     -fx-border-radius: 999px;
-    -fx-max-width: 120px;
+    -fx-max-width: 180px;
 }
 
 .chatbot-api-status-ready {
@@ -795,29 +794,6 @@
     -fx-text-fill: #a9bfd8;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
-}
-
-.chatbot-toggle-button {
-    -fx-background-color: linear-gradient(to bottom, #2487ff, #0d7cff);
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-font-weight: 800;
-    -fx-background-radius: 999px;
-    -fx-min-width: 58px;
-    -fx-min-height: 58px;
-    -fx-max-width: 58px;
-    -fx-max-height: 58px;
-    -fx-cursor: hand;
-}
-
-.chatbot-close-button {
-    -fx-background-color: rgba(255, 255, 255, 0.08);
-    -fx-text-fill: #d7e8ff;
-    -fx-background-radius: 999px;
-    -fx-padding: 8 12 8 12;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-    -fx-cursor: hand;
 }
 
 .chatbot-quick-button {

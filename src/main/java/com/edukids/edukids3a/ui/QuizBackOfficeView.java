@@ -2530,7 +2530,6 @@ public class QuizBackOfficeView {
             navigationBar.getStyleClass().add("front-question-navigation");
             List<OpenAiChatService.ChatTurn> chatHistory = new ArrayList<>();
             int[] lastChatQuestionIndex = {-1};
-            VBox[] chatbotCardRef = new VBox[1];
 
             Button previousButton = new Button("Précédent");
             previousButton.getStyleClass().add("secondary-action");
@@ -2545,6 +2544,16 @@ public class QuizBackOfficeView {
             installPlayfulButtonAnimations(validateQuizButton);
 
             int[] currentQuestionIndex = {0};
+            VBox chatbotCard = buildQuizChatbotCard(
+                    quiz,
+                    quizQuestions,
+                    currentQuestionIndex,
+                    chatHistory,
+                    freeTextAnswers,
+                    qcmAnswers,
+                    qcuAnswers,
+                    matchingAnswers
+            );
             Runnable[] renderCurrentQuestionRef = new Runnable[1];
             renderCurrentQuestionRef[0] = () -> {
                 Question currentQuestionView = quizQuestions.get(currentQuestionIndex[0]);
@@ -2561,9 +2570,9 @@ public class QuizBackOfficeView {
                 if (refreshProgressRef[0] != null) {
                     refreshProgressRef[0].run();
                 }
-                if (chatbotCardRef[0] != null && lastChatQuestionIndex[0] != currentQuestionIndex[0]) {
+                if (lastChatQuestionIndex[0] != currentQuestionIndex[0]) {
                     resetChatbotForQuestion(
-                            chatbotCardRef[0],
+                            chatbotCard,
                             chatHistory,
                             currentQuestionView,
                             currentQuestionIndex[0] + 1,
@@ -2583,52 +2592,6 @@ public class QuizBackOfficeView {
                     qcuAnswers,
                     matchingAnswers
             );
-
-            Button chatbotToggleButton = new Button("AI");
-            chatbotToggleButton.getStyleClass().add("chatbot-toggle-button");
-            installPlayfulButtonAnimations(chatbotToggleButton);
-            Runnable[] hideChatbotRef = new Runnable[1];
-            VBox chatbotCard = buildQuizChatbotCard(
-                    quiz,
-                    quizQuestions,
-                    currentQuestionIndex,
-                    chatHistory,
-                    freeTextAnswers,
-                    qcmAnswers,
-                    qcuAnswers,
-                    matchingAnswers,
-                    () -> {
-                        if (hideChatbotRef[0] != null) {
-                            hideChatbotRef[0].run();
-                        }
-                    }
-            );
-            chatbotCardRef[0] = chatbotCard;
-            chatbotCard.setVisible(false);
-            chatbotCard.setManaged(false);
-            hideChatbotRef[0] = () -> {
-                chatbotCard.setVisible(false);
-                chatbotCard.setManaged(false);
-                chatbotToggleButton.setVisible(true);
-                chatbotToggleButton.setManaged(true);
-                chatbotToggleButton.setDisable(false);
-                chatbotToggleButton.toFront();
-            };
-            chatbotToggleButton.setOnAction(event -> {
-                boolean showChatbot = !chatbotCard.isVisible();
-                chatbotCard.setVisible(showChatbot);
-                chatbotCard.setManaged(showChatbot);
-                if (showChatbot) {
-                    chatbotToggleButton.setVisible(false);
-                    chatbotToggleButton.setManaged(false);
-                    chatbotToggleButton.setDisable(true);
-                    chatbotCard.toFront();
-                    playEntranceAnimation(chatbotCard, 0, 26, 0, 0.96);
-                } else if (hideChatbotRef[0] != null) {
-                    hideChatbotRef[0].run();
-                }
-            });
-
             previousButton.setOnAction(event -> {
                 if (currentQuestionIndex[0] > 0) {
                     currentQuestionIndex[0]--;
@@ -2661,17 +2624,13 @@ public class QuizBackOfficeView {
             VBox stageHeader = new VBox(8, currentQuestionLabel, progressSummaryLabel, progressTrack);
             stageHeader.getStyleClass().add("front-question-stage-header");
 
-            VBox quizFlow = new VBox(18, stageHeader, questionHost, navigationBar);
+            VBox quizFlow = new VBox(18, stageHeader, questionHost, navigationBar, chatbotCard);
             quizFlow.getStyleClass().add("front-quiz-flow");
             HBox.setHgrow(quizFlow, Priority.ALWAYS);
             quizFlow.setMaxWidth(Double.MAX_VALUE);
 
-            StackPane quizArea = new StackPane(quizFlow, chatbotCard, chatbotToggleButton);
+            StackPane quizArea = new StackPane(quizFlow);
             quizArea.getStyleClass().add("front-quiz-area");
-            StackPane.setAlignment(chatbotCard, Pos.TOP_RIGHT);
-            StackPane.setMargin(chatbotCard, new Insets(0, 0, 0, 24));
-            StackPane.setAlignment(chatbotToggleButton, Pos.BOTTOM_RIGHT);
-            StackPane.setMargin(chatbotToggleButton, new Insets(0, 0, 6, 0));
             detailsCard.getChildren().add(quizArea);
             startQuizTimer(
                     quiz,
@@ -2680,12 +2639,12 @@ public class QuizBackOfficeView {
                     validateQuizButton,
                     navigationBar,
                     questionHost,
-            chatbotCard,
-            quizQuestions,
-            freeTextAnswers,
-            qcmAnswers,
-            qcuAnswers,
-            matchingAnswers
+                    chatbotCard,
+                    quizQuestions,
+                    freeTextAnswers,
+                    qcmAnswers,
+                    qcuAnswers,
+                    matchingAnswers
             );
         }
 
@@ -2710,35 +2669,52 @@ public class QuizBackOfficeView {
             Map<Question, TextField> freeTextAnswers,
             Map<Question, List<CheckBox>> qcmAnswers,
             Map<Question, ToggleGroup> qcuAnswers,
-            Map<Question, Map<String, String>> matchingAnswers,
-            Runnable onCloseChatbot
+            Map<Question, Map<String, String>> matchingAnswers
     ) {
         Label title = new Label("Chatbot quiz");
         title.getStyleClass().add("chatbot-title");
 
-        Label subtitle = new Label("Pose une question pendant le quiz pour recevoir une reponse verifiee a partir de la correction enregistree.");
+        Label subtitle = new Label("Pose une question pendant le quiz et le coach te repondra a partir de la correction de la question affichee.");
         subtitle.getStyleClass().add("chatbot-subtitle");
         subtitle.setWrapText(true);
 
-        Label chatHint = new Label("Tu peux demander la bonne reponse, une explication simple, une methode ou verifier ta reponse actuelle.");
+        Label chatHint = new Label("La bonne reponse et la verification restent exactes. OpenAI sert surtout a mieux expliquer quand c'est utile.");
         chatHint.getStyleClass().add("chatbot-helper");
         chatHint.setWrapText(true);
 
-        Label apiStatusLabel = new Label("Reponses verifiees par le quiz");
+        Label apiStatusLabel = new Label(openAiChatService.hasApiKeyConfigured()
+                ? "API OpenAI connectee"
+                : "Mode local verifie");
         apiStatusLabel.getStyleClass().addAll(
                 "chatbot-api-status",
-                "chatbot-api-status-ready"
+                openAiChatService.hasApiKeyConfigured() ? "chatbot-api-status-ready" : "chatbot-api-status-local"
         );
+
+        Runnable showApiReadyStatus = () -> {
+            apiStatusLabel.setText("API OpenAI connectee");
+            apiStatusLabel.getStyleClass().remove("chatbot-api-status-local");
+            if (!apiStatusLabel.getStyleClass().contains("chatbot-api-status-ready")) {
+                apiStatusLabel.getStyleClass().add("chatbot-api-status-ready");
+            }
+        };
+
+        Runnable showApiUnavailableStatus = () -> {
+            apiStatusLabel.setText("API OpenAI indisponible");
+            apiStatusLabel.getStyleClass().remove("chatbot-api-status-ready");
+            if (!apiStatusLabel.getStyleClass().contains("chatbot-api-status-local")) {
+                apiStatusLabel.getStyleClass().add("chatbot-api-status-local");
+            }
+        };
 
         TextArea transcriptArea = new TextArea();
         transcriptArea.setEditable(false);
         transcriptArea.setWrapText(true);
-        transcriptArea.setPrefRowCount(12);
+        transcriptArea.setPrefRowCount(10);
         transcriptArea.getStyleClass().addAll("app-field", "chatbot-transcript");
-        transcriptArea.setText("EduKids Coach: Bonjour, ecris ta question et je te repondrai avec la correction de la question actuelle du quiz.");
+        transcriptArea.setText("EduKids Coach: Bonjour, envoie ton message et je repondrai sur la question actuelle du quiz.");
 
         TextArea inputArea = new TextArea();
-        inputArea.setPromptText("Exemple: pourquoi cette reponse est correcte ?");
+        inputArea.setPromptText("Exemple: explique-moi cette reponse simplement");
         inputArea.setWrapText(true);
         inputArea.setPrefRowCount(3);
         inputArea.getStyleClass().addAll("app-field", "chatbot-input");
@@ -2767,7 +2743,16 @@ public class QuizBackOfficeView {
             inputArea.positionCaret(inputArea.getLength());
         };
 
+        Runnable lockChatControls = () -> {
+            sendButton.setDisable(true);
+            inputArea.setDisable(true);
+            hintButton.setDisable(true);
+            explainButton.setDisable(true);
+            methodButton.setDisable(true);
+        };
+
         Runnable sendMessage = () -> {
+            String apiKey = openAiChatService.resolveApiKey();
             String userMessage = inputArea.getText() == null ? "" : inputArea.getText().trim();
             if (userMessage.isBlank()) {
                 statusLabel.setText("Ecris un message avant d'envoyer.");
@@ -2781,8 +2766,6 @@ public class QuizBackOfficeView {
 
             Question currentQuestion = quizQuestions.get(currentQuestionIndex[0]);
             String studentAnswer = getCurrentStudentAnswer(currentQuestion, freeTextAnswers, qcmAnswers, qcuAnswers, matchingAnswers);
-            transcriptArea.appendText("\n\nToi: " + userMessage);
-            inputArea.clear();
             String verifiedResponse = openAiChatService.buildFallbackAssistantReply(
                     quiz,
                     currentQuestion,
@@ -2791,11 +2774,76 @@ public class QuizBackOfficeView {
                     studentAnswer,
                     userMessage
             );
-            chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
-            chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", verifiedResponse));
-            transcriptArea.appendText("\n\nEduKids Coach: " + verifiedResponse);
-            statusLabel.setText("Reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
-            unlockChatControls.run();
+            transcriptArea.appendText("\n\nToi: " + userMessage);
+            inputArea.clear();
+
+            if (apiKey == null || apiKey.isBlank() || openAiChatService.shouldUseVerifiedResponse(userMessage)) {
+                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
+                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", verifiedResponse));
+                transcriptArea.appendText("\n\nEduKids Coach: " + verifiedResponse);
+                if (apiKey == null || apiKey.isBlank()) {
+                    showApiUnavailableStatus.run();
+                } else {
+                    showApiReadyStatus.run();
+                }
+                statusLabel.setText("Reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
+                unlockChatControls.run();
+                return;
+            }
+
+            statusLabel.setText("Le coach IA reformule une reponse fiable...");
+            lockChatControls.run();
+            List<OpenAiChatService.ChatTurn> requestHistory = new ArrayList<>(chatHistory);
+
+            Task<String> task = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    return openAiChatService.rewriteVerifiedQuizReply(
+                            apiKey,
+                            quiz,
+                            currentQuestion,
+                            currentQuestionIndex[0] + 1,
+                            quizQuestions.size(),
+                            studentAnswer,
+                            requestHistory,
+                            userMessage,
+                            verifiedResponse
+                    );
+                }
+            };
+
+            task.setOnSucceeded(event -> {
+                String response = task.getValue();
+                if (response == null || response.isBlank()) {
+                    response = verifiedResponse;
+                    statusLabel.setText("Reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
+                } else {
+                    showApiReadyStatus.run();
+                    statusLabel.setText("Reponse IA affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
+                }
+                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
+                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", response));
+                transcriptArea.appendText("\n\nEduKids Coach: " + response);
+                unlockChatControls.run();
+            });
+
+            task.setOnFailed(event -> {
+                chatHistory.add(new OpenAiChatService.ChatTurn("User", userMessage));
+                chatHistory.add(new OpenAiChatService.ChatTurn("Assistant", verifiedResponse));
+                transcriptArea.appendText("\n\nEduKids Coach: " + verifiedResponse);
+                showApiUnavailableStatus.run();
+                statusLabel.setText("Service IA indisponible, reponse verifiee affichee pour la question " + (currentQuestionIndex[0] + 1) + ".");
+                unlockChatControls.run();
+            });
+
+            task.setOnCancelled(event -> {
+                statusLabel.setText("Le coach IA a ete interrompu. Tu peux reessayer.");
+                unlockChatControls.run();
+            });
+
+            Thread thread = new Thread(task, "openai-quiz-chat");
+            thread.setDaemon(true);
+            thread.start();
         };
 
         sendButton.setOnAction(event -> sendMessage.run());
@@ -2819,26 +2867,14 @@ public class QuizBackOfficeView {
         quickActions.setVgap(8);
         quickActions.getChildren().addAll(hintButton, explainButton, methodButton);
 
-        Button closeButton = new Button("Fermer");
-        closeButton.getStyleClass().add("chatbot-close-button");
-        closeButton.setOnAction(event -> {
-            if (onCloseChatbot != null) {
-                onCloseChatbot.run();
-            }
-        });
         installPlayfulButtonAnimations(sendButton);
         installPlayfulButtonAnimations(hintButton);
         installPlayfulButtonAnimations(explainButton);
         installPlayfulButtonAnimations(methodButton);
-        installPlayfulButtonAnimations(closeButton);
 
-        HBox headerRow = new HBox(title, new Region(), closeButton);
-        HBox.setHgrow(headerRow.getChildren().get(1), Priority.ALWAYS);
-
-        VBox card = new VBox(12, headerRow, subtitle, apiStatusLabel, chatHint, quickActions, transcriptArea, inputArea, actionRow, statusLabel);
+        VBox card = new VBox(12, title, subtitle, apiStatusLabel, chatHint, quickActions, transcriptArea, inputArea, actionRow, statusLabel);
         card.getStyleClass().add("chatbot-card");
-        card.setPrefWidth(350);
-        card.setMinWidth(320);
+        card.setMaxWidth(Double.MAX_VALUE);
         card.getProperties().put("chatTranscriptArea", transcriptArea);
         card.getProperties().put("chatStatusLabel", statusLabel);
         card.getProperties().put("chatInputArea", inputArea);
@@ -2860,7 +2896,7 @@ public class QuizBackOfficeView {
         Object transcriptNode = chatbotCard.getProperties().get("chatTranscriptArea");
         if (transcriptNode instanceof TextArea transcriptArea) {
             transcriptArea.setText(
-                    "EduKids Coach: Bonjour, je suis maintenant synchronise sur la question "
+                    "EduKids Coach: Bonjour, je suis synchronise sur la question "
                             + questionNumber
                             + " / "
                             + totalQuestions
@@ -2872,7 +2908,7 @@ public class QuizBackOfficeView {
 
         Object statusNode = chatbotCard.getProperties().get("chatStatusLabel");
         if (statusNode instanceof Label statusLabel) {
-            statusLabel.setText("Le coach IA suit maintenant la question " + questionNumber + " / " + totalQuestions + ".");
+            statusLabel.setText("Le coach suit maintenant la question " + questionNumber + " / " + totalQuestions + ".");
         }
 
         Object inputNode = chatbotCard.getProperties().get("chatInputArea");
