@@ -108,7 +108,11 @@ public class MainController {
     @FXML
     private ToggleButton toggleFrontOffice;
     @FXML
+    private ToggleButton toggleChat;
+    @FXML
     private ToggleButton toggleBackOffice;
+    @FXML
+    private StackPane paneChat;
     @FXML
     private TabPane tabPaneBack;
     private final ToggleGroup backEvViewGroup = new ToggleGroup();
@@ -294,6 +298,7 @@ public class MainController {
     @FXML
     private void initialize() {
         toggleFrontOffice.setToggleGroup(modeGroup);
+        toggleChat.setToggleGroup(modeGroup);
         toggleBackOffice.setToggleGroup(modeGroup);
         toggleBackEvListe.setToggleGroup(backEvViewGroup);
         toggleBackEvForm.setToggleGroup(backEvViewGroup);
@@ -352,7 +357,7 @@ public class MainController {
         cbFrontSortEvenements.setOnAction(e -> rafraichirCartesEvenementsFront());
 
         evenementsFiltresBack = new FilteredList<>(evenementsData, e -> true);
-        tableEvenements.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableEvenements.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableEvenements.setItems(evenementsFiltresBack);
         configurerTableEvenementsBackOffice();
         if (tfBackEvSearch != null) {
@@ -384,7 +389,7 @@ public class MainController {
         colPrPauseDebut.setCellValueFactory(new PropertyValueFactory<>("pauseDebut"));
         colPrPauseFin.setCellValueFactory(new PropertyValueFactory<>("pauseFin"));
 
-        tableProgrammes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableProgrammes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableProgrammes.setFixedCellSize(-1);
         tableProgrammes.setItems(programmesData);
         tableProgrammes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
@@ -443,13 +448,15 @@ public class MainController {
 
     private void configurerAccesSelonRole() {
         User user = AuthSession.getCurrentUser();
-        if (toggleFrontOffice == null || toggleBackOffice == null) {
+        if (toggleFrontOffice == null || toggleChat == null || toggleBackOffice == null) {
             return;
         }
 
         if (user == null || user.getRole() == null || user.getRole().isBlank()) {
             toggleFrontOffice.setVisible(true);
             toggleFrontOffice.setManaged(true);
+            toggleChat.setVisible(true);
+            toggleChat.setManaged(true);
             toggleBackOffice.setVisible(true);
             toggleBackOffice.setManaged(true);
             if (modeGroup.getSelectedToggle() == null) {
@@ -464,6 +471,8 @@ public class MainController {
 
         toggleFrontOffice.setVisible(!admin);
         toggleFrontOffice.setManaged(!admin);
+        toggleChat.setVisible(true);
+        toggleChat.setManaged(true);
         toggleBackOffice.setVisible(!parent);
         toggleBackOffice.setManaged(!parent);
 
@@ -476,16 +485,29 @@ public class MainController {
 
     private void appliquerMode(Toggle t) {
         boolean front = t == toggleFrontOffice;
+        boolean chat = t == toggleChat;
         paneFrontOffice.setVisible(front);
         paneFrontOffice.setManaged(front);
-        paneBackOffice.setVisible(!front);
-        paneBackOffice.setManaged(!front);
+        if (paneChat != null) {
+            paneChat.setVisible(chat);
+            paneChat.setManaged(chat);
+        }
+        paneBackOffice.setVisible(!front && !chat);
+        paneBackOffice.setManaged(!front && !chat);
         if (front) {
             rafraichirCartesEvenementsFront();
             rafraichirCartesProgrammesFront();
+        } else if (chat) {
+            // La vue de chat est chargee via fx:include et s'initialise elle-meme.
         } else {
             allerVueListeEvenements();
             allerVueListeProgrammes();
+        }
+    }
+
+    public void selectChatMode() {
+        if (toggleChat != null) {
+            toggleChat.setSelected(true);
         }
     }
 

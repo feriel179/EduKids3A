@@ -3,8 +3,9 @@ package com.edukids.edukids3a.service;
 import com.edukids.edukids3a.model.Conversation;
 import com.edukids.edukids3a.model.ConversationParticipant;
 import com.edukids.edukids3a.model.Message;
+import com.edukids.edukids3a.model.MessageAttachment;
 import com.edukids.edukids3a.model.User;
-import com.edukids.edukids3a.utils.DBConnection;
+import com.edukids.edukids3a.utils.Myconnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +13,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.DatabaseMetaData;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class ChatService {
@@ -30,6 +37,48 @@ public class ChatService {
     private static final int DEFAULT_SEARCH_LIMIT = 12;
     private static final Object SCHEMA_LOCK = new Object();
     private static volatile boolean schemaEnsured;
+    private static final List<AutoReplyRule> AUTO_REPLY_RULES = List.of(
+            new AutoReplyRule(List.of("bonjour"), List.of(
+                    "Bonjour {Nom}, merci de nous avoir contactés. Comment puis-je vous assister aujourd’hui ?")),
+            new AutoReplyRule(List.of("bjr"), List.of("Bonjour {Nom} 😄 Que puis-je faire pour vous ?")),
+            new AutoReplyRule(List.of("salut"), List.of("Bonjour {Nom} 👋")),
+            new AutoReplyRule(List.of("bjr", "slt", "coucou", "hey", "cc", "yo", "re bonjour", "bonjour à tous", "bonjour admin", "salut admin"), List.of(
+                    "Bonjour {Nom} 👋",
+                    "Bonjour {Nom}, comment puis-je vous aider ?",
+                    "Salut {Nom} 😄",
+                    "Bonjour {Nom}, bienvenue !",
+                    "Bonjour {Nom}, je suis disponible pour vous aider."
+            )),
+            new AutoReplyRule(List.of("comment ça va ?", "vous allez bien ?", "ça va admin ?", "ça va ?", "tout va bien ?"), List.of(
+                    "Merci {Nom}, je vais très bien 😊",
+                    "Je vais bien {Nom}, comment puis-je vous aider ?",
+                    "Merci pour votre message {Nom}."
+            )),
+            new AutoReplyRule(List.of("aide", "help", "besoin d’aide", "pouvez-vous m’aider ?", "j’ai un problème", "problème"), List.of(
+                    "Bien sûr {Nom}, expliquez-moi votre problème.",
+                    "Je suis là pour vous aider {Nom}.",
+                    "Pouvez-vous me donner plus de détails ?"
+            )),
+            new AutoReplyRule(List.of("merci", "merci beaucoup", "thanks", "merci admin", "c’est bon merci"), List.of(
+                    "Avec plaisir {Nom} 😊",
+                    "Je vous en prie {Nom}.",
+                    "Toujours à votre service 👌"
+            )),
+            new AutoReplyRule(List.of("ok", "d’accord", "c bon", "parfait", "nickel"), List.of(
+                    "Très bien {Nom} 👍",
+                    "Parfait {Nom}.",
+                    "D’accord, n’hésitez pas si besoin."
+            )),
+            new AutoReplyRule(List.of("bon matin", "bon après-midi", "bonne soirée", "bonne nuit"), List.of(
+                    "Bon après-midi {Nom} ☀️",
+                    "Bonne soirée {Nom} 🌙",
+                    "Bonne nuit {Nom}, à demain !"
+            )),
+            new AutoReplyRule(List.of("bonjour tout le monde", "salut à tous", "hello groupe"), List.of(
+                    "Bonjour {Nom} et bienvenue à tous 👋",
+                    "Salut {Nom} 😊"
+            ))
+    );
 
     public ChatService() {
         ensureSchema();
@@ -63,7 +112,7 @@ public class ChatService {
                 LIMIT ?
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, like);
             statement.setString(2, like);
@@ -108,7 +157,7 @@ public class ChatService {
                 ORDER BY last_name, first_name, email
                 """.formatted(placeholders);
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             for (int i = 0; i < orderedIds.size(); i++) {
                 statement.setLong(i + 1, orderedIds.get(i));
@@ -137,7 +186,7 @@ public class ChatService {
                 LIMIT 1
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, conversationId);
             statement.setLong(2, userId);
@@ -215,7 +264,7 @@ public class ChatService {
             throw new IllegalArgumentException("Cet utilisateur est déjà membre du groupe.");
         }
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = Myconnection.getInstance().getCnx()) {
             connection.setAutoCommit(false);
             try {
                 ConversationParticipant participant = findParticipant(conversationId, userId)
@@ -268,7 +317,7 @@ public class ChatService {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             LocalDateTime now = LocalDateTime.now();
             statement.setTimestamp(1, Timestamp.valueOf(now));
@@ -295,7 +344,7 @@ public class ChatService {
                 ORDER BY COALESCE(c.updated_at, c.created_at) DESC, c.id DESC
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, userId);
 
@@ -324,7 +373,7 @@ public class ChatService {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, conversationId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -350,7 +399,7 @@ public class ChatService {
                 ORDER BY CASE WHEN role = 'owner' THEN 0 ELSE 1 END, joined_at ASC, id ASC
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, conversationId);
 
@@ -382,7 +431,7 @@ public class ChatService {
             sql.append(" LIMIT ?");
         }
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             statement.setLong(1, conversationId);
             if (limit > 0 && limit != Integer.MAX_VALUE) {
@@ -411,7 +460,7 @@ public class ChatService {
                 LIMIT 1
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, conversationId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -448,6 +497,11 @@ public class ChatService {
             }
         }
 
+        String conversationTitle = title == null ? null : title.trim();
+        if (!group && (conversationTitle == null || conversationTitle.isBlank())) {
+            conversationTitle = "Conversation privée";
+        }
+
         if (!group) {
             long otherUserId = participants.stream()
                     .filter(id -> id != creatorUserId)
@@ -455,17 +509,19 @@ public class ChatService {
                     .orElseThrow(() -> new IllegalArgumentException("Participant manquant."));
             Conversation existing = findPrivateConversation(creatorUserId, otherUserId);
             if (existing != null) {
+                reactivatePrivateConversationForUser(existing.getId(), creatorUserId);
                 return existing;
             }
         }
 
         LocalDateTime now = LocalDateTime.now();
         Conversation conversation = new Conversation();
-        conversation.setTitle(title == null ? null : title.trim());
+        conversation.setTitle(conversationTitle);
         conversation.setGroup(group);
+        conversation.setPrivateKey(UUID.randomUUID().toString());
         conversation.setUpdatedAt(now);
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = Myconnection.getInstance().getCnx()) {
             connection.setAutoCommit(false);
             try {
                 long conversationId = insertConversation(connection, conversation);
@@ -497,8 +553,31 @@ public class ChatService {
     }
 
     public Message sendMessage(long conversationId, long senderId, String content) {
+        return sendMessage(conversationId, senderId, content, null, null);
+    }
+
+    public Message sendMessage(long conversationId, long senderId, String content, MessageAttachment attachment) {
+        String type = attachment == null ? null : attachment.getType();
+        String filePath = attachment == null ? null : attachment.getStoragePath();
+        Message message = sendMessage(conversationId, senderId, content, type, filePath);
+        if (attachment != null) {
+            attachment.setMessage(message);
+            attachment.setMessageId(message.getId());
+            message.setAttachments(List.of(attachment));
+        }
+        return message;
+    }
+
+    public Message sendMessage(long conversationId, long senderId, String content, String type, String filePath) {
+        return sendMessageInternal(conversationId, senderId, content, type, filePath, false);
+    }
+
+    private Message sendMessageInternal(long conversationId, long senderId, String content, String type, String filePath, boolean automaticReply) {
         String trimmed = content == null ? "" : content.trim();
-        if (trimmed.isBlank()) {
+        String normalizedType = normalizeMessageType(type, filePath);
+        String normalizedFilePath = normalizeFilePath(filePath);
+
+        if (trimmed.isBlank() && normalizedFilePath == null) {
             throw new IllegalArgumentException("Le message ne peut pas être vide.");
         }
 
@@ -506,9 +585,16 @@ public class ChatService {
         Message message = new Message();
         message.setConversationId(conversationId);
         message.setSenderId(senderId);
-        message.setContent(trimmed);
+        message.setContent(trimmed.isBlank() ? buildAttachmentLabel(normalizedType, normalizedFilePath) : trimmed);
+        message.setType(normalizedType);
+        message.setFilePath(normalizedFilePath);
+        if (automaticReply) {
+            message.setStatus("auto_reply");
+        }
+        message.setAttachments(buildAttachments(message));
         message.setCreatedAt(now);
         message.setUpdatedAt(now);
+        boolean shouldTryAutoReply = !automaticReply;
 
         String insertMessageSql = """
                 INSERT INTO message (sender_id, content, created_at, is_read, conversation_id, type, file_path, updated_at, deleted_at, status)
@@ -520,7 +606,7 @@ public class ChatService {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = Myconnection.getInstance().getCnx()) {
             connection.setAutoCommit(false);
             try (PreparedStatement insert = connection.prepareStatement(insertMessageSql, Statement.RETURN_GENERATED_KEYS);
                  PreparedStatement update = connection.prepareStatement(updateConversationSql)) {
@@ -532,6 +618,8 @@ public class ChatService {
                         message.setId(keys.getLong(1));
                     }
                 }
+
+                syncAttachmentsWithMessage(message);
 
                 update.setTimestamp(1, Timestamp.valueOf(now));
                 update.setLong(2, conversationId);
@@ -548,6 +636,360 @@ public class ChatService {
         } catch (SQLException e) {
             throw new IllegalStateException("Impossible d'envoyer le message.", e);
         }
+        finally {
+            if (shouldTryAutoReply) {
+                maybeSendAutomaticReply(message);
+            }
+        }
+    }
+
+    private void maybeSendAutomaticReply(Message incomingMessage) {
+        try {
+            Optional<AutoReplyMatch> match = buildAutoReplyMatch(incomingMessage);
+            if (match.isEmpty()) {
+                return;
+            }
+
+            AutoReplyMatch autoReply = match.get();
+            Message reply = sendMessageInternal(
+                    incomingMessage.getConversationId(),
+                    autoReply.adminUserId(),
+                    autoReply.replyText(),
+                    "text",
+                    null,
+                    true
+            );
+            markConversationAutoReply(incomingMessage.getConversationId(), reply.getCreatedAt());
+        } catch (RuntimeException ignored) {
+            // Les réponses automatiques ne doivent jamais bloquer le message principal.
+        }
+    }
+
+    private Optional<AutoReplyMatch> buildAutoReplyMatch(Message incomingMessage) {
+        if (incomingMessage == null || incomingMessage.getSenderId() == null) {
+            return Optional.empty();
+        }
+        if (!"text".equalsIgnoreCase(incomingMessage.getType())) {
+            return Optional.empty();
+        }
+        if ("auto_reply".equalsIgnoreCase(incomingMessage.getStatus())) {
+            return Optional.empty();
+        }
+        if (isAdminUser(incomingMessage.getSenderId())) {
+            return Optional.empty();
+        }
+
+        long conversationId = incomingMessage.getConversationId() == null ? -1L : incomingMessage.getConversationId();
+        Optional<Long> adminId = findConversationAdminUserId(conversationId);
+        if (adminId.isEmpty() || adminId.get() == incomingMessage.getSenderId()) {
+            return Optional.empty();
+        }
+
+        Map<Long, User> users = findUsersByIds(List.of(incomingMessage.getSenderId(), adminId.get()));
+        User sender = users.get(incomingMessage.getSenderId());
+        if (sender == null) {
+            return Optional.empty();
+        }
+
+        String normalizedMessage = normalizeForTrigger(incomingMessage.getContent());
+        if (normalizedMessage.isBlank()) {
+            return Optional.empty();
+        }
+
+        for (AutoReplyRule rule : AUTO_REPLY_RULES) {
+            if (!rule.matches(normalizedMessage)) {
+                continue;
+            }
+            String template = rule.randomResponse();
+            String replyText = template.replace("{Nom}", resolveRealName(sender));
+            return Optional.of(new AutoReplyMatch(adminId.get(), replyText));
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<Long> findConversationAdminUserId(long conversationId) {
+        if (conversationId <= 0) {
+            return Optional.empty();
+        }
+
+        List<ConversationParticipant> participants = loadParticipants(conversationId);
+        if (participants.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<Long, User> users = findUsersByIds(participants.stream()
+                .map(ConversationParticipant::getUserId)
+                .filter(Objects::nonNull)
+                .toList());
+
+        for (ConversationParticipant participant : participants) {
+            User user = users.get(participant.getUserId());
+            if (user != null && isAdminUser(user)) {
+                return Optional.of(user.getId().longValue());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private void markConversationAutoReply(long conversationId, LocalDateTime autoReplyAt) {
+        if (conversationId <= 0 || autoReplyAt == null) {
+            return;
+        }
+
+        String sql = """
+                UPDATE conversation
+                SET last_auto_reply_at = ?, updated_at = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connection = Myconnection.getInstance().getCnx();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, Timestamp.valueOf(autoReplyAt));
+            statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            statement.setLong(3, conversationId);
+            statement.executeUpdate();
+        } catch (SQLException ignored) {
+            // best effort
+        }
+    }
+
+    private boolean isAdminUser(long userId) {
+        if (userId <= 0) {
+            return false;
+        }
+        User user = findUsersByIds(List.of(userId)).get(userId);
+        return isAdminUser(user);
+    }
+
+    private static boolean isAdminUser(User user) {
+        if (user == null) {
+            return false;
+        }
+        return isAdminRole(user.getRole());
+    }
+
+    private String resolveRealName(User user) {
+        if (user == null) {
+            return "utilisateur";
+        }
+        if (user.getFirstName() != null && !user.getFirstName().isBlank()) {
+            return user.getFirstName().trim();
+        }
+        if (user.getLastName() != null && !user.getLastName().isBlank()) {
+            return user.getLastName().trim();
+        }
+        String fullName = user.getNom();
+        if (fullName != null && !fullName.isBlank()) {
+            return fullName.trim();
+        }
+        return "utilisateur";
+    }
+
+    private static String normalizeForTrigger(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD);
+        normalized = normalized.replaceAll("\\p{M}+", "");
+        normalized = normalized.toLowerCase(Locale.ROOT);
+        normalized = normalized.replaceAll("[^\\p{Alnum}\\s]", " ");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        return normalized;
+    }
+
+    private static boolean containsTrigger(String normalizedMessage, String normalizedTrigger) {
+        if (normalizedMessage == null || normalizedTrigger == null || normalizedMessage.isBlank() || normalizedTrigger.isBlank()) {
+            return false;
+        }
+        String haystack = " " + normalizedMessage + " ";
+        String needle = " " + normalizedTrigger + " ";
+        return haystack.contains(needle);
+    }
+
+    private String normalizeMessageType(String type, String filePath) {
+        String normalized = type == null ? "" : type.trim().toLowerCase(Locale.ROOT);
+        if (!normalized.isBlank()) {
+            return switch (normalized) {
+                case "image", "pdf", "word", "powerpoint", "excel", "audio", "file", "text" -> normalized;
+                default -> detectMessageTypeFromFilePath(filePath);
+            };
+        }
+        return detectMessageTypeFromFilePath(filePath);
+    }
+
+    private String detectMessageTypeFromFilePath(String filePath) {
+        String normalizedPath = normalizeFilePath(filePath);
+        if (normalizedPath == null) {
+            return "text";
+        }
+
+        String lower = normalizedPath.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".pdf")) {
+            return "pdf";
+        }
+        if (lower.endsWith(".doc") || lower.endsWith(".docx") || lower.endsWith(".rtf")) {
+            return "word";
+        }
+        if (lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".pptm")) {
+            return "powerpoint";
+        }
+        if (lower.endsWith(".xls") || lower.endsWith(".xlsx") || lower.endsWith(".xlsm")) {
+            return "excel";
+        }
+        if (lower.endsWith(".wav") || lower.endsWith(".aiff") || lower.endsWith(".au") || lower.endsWith(".mp3") || lower.endsWith(".m4a") || lower.endsWith(".aac") || lower.endsWith(".ogg")) {
+            return "audio";
+        }
+        if (lower.endsWith(".png")
+                || lower.endsWith(".jpg")
+                || lower.endsWith(".jpeg")
+                || lower.endsWith(".gif")
+                || lower.endsWith(".webp")
+                || lower.endsWith(".bmp")
+                || lower.endsWith(".svg")) {
+            return "image";
+        }
+        return "file";
+    }
+
+    private String normalizeFilePath(String filePath) {
+        String normalized = filePath == null ? "" : filePath.trim();
+        return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizeAttachmentType(String type, String filePath) {
+        String normalized = type == null ? "" : type.trim().toLowerCase(Locale.ROOT);
+        if (!normalized.isBlank()) {
+            return switch (normalized) {
+                case "image", "pdf", "word", "powerpoint", "excel", "audio", "file", "text" -> normalized;
+                default -> detectMessageTypeFromFilePath(filePath);
+            };
+        }
+        return detectMessageTypeFromFilePath(filePath);
+    }
+
+    private String buildAttachmentLabel(String type, String filePath) {
+        String fileName = filePath == null ? "fichier" : java.nio.file.Paths.get(filePath).getFileName().toString();
+        return switch (type == null ? "file" : type) {
+            case "image" -> "Image : " + fileName;
+            case "pdf" -> "PDF : " + fileName;
+            case "word" -> "Word : " + fileName;
+            case "powerpoint" -> "PowerPoint : " + fileName;
+            case "excel" -> "Excel : " + fileName;
+            case "audio" -> "Message vocal : " + fileName;
+            default -> "Fichier : " + fileName;
+        };
+    }
+
+    private List<MessageAttachment> buildAttachments(Message message) {
+        if (message == null || message.getFilePath() == null || message.getFilePath().isBlank()) {
+            return List.of();
+        }
+
+        Path path;
+        try {
+            path = Path.of(message.getFilePath().trim());
+        } catch (RuntimeException ex) {
+            return List.of();
+        }
+
+        MessageAttachment attachment = new MessageAttachment();
+        attachment.setMessage(message);
+        attachment.setOriginalName(path.getFileName() == null ? message.getFilePath() : path.getFileName().toString());
+        attachment.setStoredName(attachment.getOriginalName());
+        attachment.setStoragePath(message.getFilePath().trim());
+        attachment.setMimeType(detectMimeType(path));
+        attachment.setSize(readFileSize(path));
+        attachment.setImage("image".equalsIgnoreCase(message.getType()));
+        attachment.setType(normalizeAttachmentType(message.getType(), message.getFilePath()));
+        attachment.setDuration(readAudioDurationSeconds(path, attachment.getType()));
+        attachment.setCreatedAt(message.getCreatedAt());
+        return List.of(attachment);
+    }
+
+    private void syncAttachmentsWithMessage(Message message) {
+        if (message == null) {
+            return;
+        }
+        if (message.getAttachments() == null || message.getAttachments().isEmpty()) {
+            return;
+        }
+        for (MessageAttachment attachment : message.getAttachments()) {
+            if (attachment == null) {
+                continue;
+            }
+            attachment.setMessage(message);
+            attachment.setMessageId(message.getId());
+        }
+    }
+
+    private String detectMimeType(Path path) {
+        try {
+            String mimeType = Files.probeContentType(path);
+            if (mimeType != null && !mimeType.isBlank()) {
+                return mimeType;
+            }
+        } catch (Exception ignored) {
+            // best effort
+        }
+
+        String lower = (path.getFileName() == null ? path.toString() : path.getFileName().toString()).toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".pdf")) {
+            return "application/pdf";
+        }
+        if (lower.endsWith(".doc") || lower.endsWith(".docx")) {
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        }
+        if (lower.endsWith(".ppt") || lower.endsWith(".pptx")) {
+            return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        }
+        if (lower.endsWith(".xls") || lower.endsWith(".xlsx")) {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        if (lower.endsWith(".wav")) {
+            return "audio/wav";
+        }
+        if (lower.endsWith(".mp3")) {
+            return "audio/mpeg";
+        }
+        if (lower.endsWith(".m4a")) {
+            return "audio/mp4";
+        }
+        if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".gif") || lower.endsWith(".webp") || lower.endsWith(".bmp") || lower.endsWith(".svg")) {
+            return "image/*";
+        }
+        return "application/octet-stream";
+    }
+
+    private Integer readAudioDurationSeconds(Path path, String type) {
+        if (!"audio".equalsIgnoreCase(type) || path == null) {
+            return null;
+        }
+        try {
+            javax.sound.sampled.AudioInputStream stream = javax.sound.sampled.AudioSystem.getAudioInputStream(path.toFile());
+            try (stream) {
+                javax.sound.sampled.AudioFormat format = stream.getFormat();
+                long frames = stream.getFrameLength();
+                if (frames <= 0 || format.getFrameRate() <= 0) {
+                    return null;
+                }
+                return Math.max(1, (int) Math.round(frames / format.getFrameRate()));
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Long readFileSize(Path path) {
+        try {
+            if (Files.exists(path)) {
+                return Files.size(path);
+            }
+        } catch (Exception ignored) {
+            // best effort
+        }
+        return null;
     }
 
     public Message editMessage(long messageId, long senderId, String newContent) {
@@ -565,7 +1007,7 @@ public class ChatService {
                 """;
 
         LocalDateTime now = LocalDateTime.now();
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, trimmed);
             statement.setTimestamp(2, Timestamp.valueOf(now));
@@ -593,7 +1035,7 @@ public class ChatService {
                 """;
 
         LocalDateTime now = LocalDateTime.now();
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, Timestamp.valueOf(now));
             statement.setTimestamp(2, Timestamp.valueOf(now));
@@ -617,7 +1059,7 @@ public class ChatService {
                   AND hidden_at IS NULL
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
             statement.setLong(2, conversationId);
@@ -625,6 +1067,24 @@ public class ChatService {
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("Impossible de masquer la conversation.", e);
+        }
+    }
+
+    private void reactivatePrivateConversationForUser(long conversationId, long userId) {
+        String sql = """
+                UPDATE conversation_participant
+                SET hidden_at = NULL, deleted_at = NULL
+                WHERE conversation_id = ?
+                  AND user_id = ?
+                """;
+
+        try (Connection connection = Myconnection.getInstance().getCnx();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, conversationId);
+            statement.setLong(2, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Impossible de réactiver la conversation privée.", e);
         }
     }
 
@@ -642,7 +1102,7 @@ public class ChatService {
                 LIMIT 1
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, userA);
             statement.setLong(2, userB);
@@ -772,7 +1232,7 @@ public class ChatService {
                 return;
             }
 
-            try (Connection connection = DBConnection.getConnection();
+            try (Connection connection = Myconnection.getInstance().getCnx();
                  Statement statement = connection.createStatement()) {
                 statement.executeUpdate("""
                         CREATE TABLE IF NOT EXISTS conversation (
@@ -799,6 +1259,9 @@ public class ChatService {
                             CONSTRAINT fk_cp_user FOREIGN KEY (user_id) REFERENCES `user`(id) ON DELETE CASCADE
                         )
                         """);
+                ensureColumnExists(connection, "conversation", "private_key", "VARCHAR(255) NULL");
+                ensureColumnExists(connection, "conversation", "last_auto_reply_at", "DATETIME(6) NULL");
+                ensureColumnExists(connection, "conversation_participant", "hidden_at", "DATETIME(6) NULL");
                 statement.executeUpdate("""
                         CREATE TABLE IF NOT EXISTS message (
                             id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -831,6 +1294,19 @@ public class ChatService {
             statement.executeUpdate(sql);
         } catch (SQLException ignored) {
             // L'index existe déjà ou le SGBD refuse la création non bloquante.
+        }
+    }
+
+    private void ensureColumnExists(Connection connection, String tableName, String columnName, String columnDefinition) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        try (ResultSet columns = metaData.getColumns(connection.getCatalog(), null, tableName, columnName)) {
+            if (columns.next()) {
+                return;
+            }
+        }
+
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition);
         }
     }
 
@@ -871,6 +1347,7 @@ public class ChatService {
         message.setConversationId(rs.getLong("conversation_id"));
         message.setType(rs.getString("type"));
         message.setFilePath(rs.getString("file_path"));
+        message.setAttachments(buildAttachments(message));
         message.setUpdatedAt(toLocalDateTime(rs.getTimestamp("updated_at")));
         message.setDeletedAt(toLocalDateTime(rs.getTimestamp("deleted_at")));
         message.setStatus(rs.getString("status"));
@@ -884,7 +1361,7 @@ public class ChatService {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, messageId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -920,5 +1397,31 @@ public class ChatService {
         }
         String normalized = role.trim().toLowerCase(Locale.ROOT);
         return "owner".equals(normalized) || "admin".equals(normalized);
+    }
+
+    private record AutoReplyRule(List<String> triggers, List<String> responses) {
+        boolean matches(String normalizedMessage) {
+            if (normalizedMessage == null || normalizedMessage.isBlank()) {
+                return false;
+            }
+            for (String trigger : triggers) {
+                String normalizedTrigger = normalizeForTrigger(trigger);
+                if (containsTrigger(normalizedMessage, normalizedTrigger)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        String randomResponse() {
+            if (responses == null || responses.isEmpty()) {
+                return "";
+            }
+            int index = ThreadLocalRandom.current().nextInt(responses.size());
+            return responses.get(index);
+        }
+    }
+
+    private record AutoReplyMatch(long adminUserId, String replyText) {
     }
 }

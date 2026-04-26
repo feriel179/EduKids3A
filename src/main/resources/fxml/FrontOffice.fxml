@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.edukids.edukids3a.controller.FrontOfficeController">
+    <center>
+        <VBox spacing="12" alignment="CENTER" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+            <Label text="Front Office EduKids"/>
+            <Label fx:id="lblUserInfo" text="Utilisateur non connecté"/>
+        </VBox>
+    </center>
+</BorderPane>

@@ -5,15 +5,12 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -29,13 +26,11 @@
                     <Label text="Messagerie EduKids" styleClass="chat-title"/>
                     <Label fx:id="lblChatStatus" text="Module de messagerie" styleClass="chat-subtitle"/>
                 </VBox>
-                <Label fx:id="lblCurrentUser" text="Utilisateur connecté" styleClass="chat-user-pill"/>
-                <Button fx:id="btnRefreshConversations" text="Rafraîchir" onAction="#onRefreshConversations"
+                <Label fx:id="lblCurrentUser" text="Utilisateur connecte" styleClass="chat-user-pill"/>
+                <Button fx:id="btnRefreshConversations" text="Rafraichir" onAction="#onRefreshConversations"
                         styleClass="button-ghost chat-toolbar-button"/>
                 <Button fx:id="btnNewConversation" text="+ Nouvelle conversation" onAction="#onNewConversation"
                         styleClass="button-primary chat-toolbar-button"/>
-                <Button fx:id="btnConversationMenu" text="⋮" onAction="#onConversationMenu"
-                        visible="false" managed="false" styleClass="button-secondary chat-menu-button"/>
             </HBox>
         </top>
         <left>
@@ -56,16 +51,20 @@
         </left>
         <center>
             <VBox styleClass="chat-thread" spacing="14">
-                <VBox styleClass="chat-thread-header" spacing="4">
-                    <Label fx:id="lblConversationTitle" text="Sélectionnez une conversation"
-                           styleClass="chat-thread-title"/>
-                    <Label fx:id="lblConversationSubtitle"
-                           text="Choisissez une conversation à gauche ou créez-en une nouvelle."
-                           styleClass="chat-thread-subtitle"/>
-                </VBox>
+                <HBox styleClass="chat-thread-header" spacing="12" alignment="CENTER_LEFT">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="lblConversationTitle" text="Selectionnez une conversation"
+                               styleClass="chat-thread-title"/>
+                        <Label fx:id="lblConversationSubtitle"
+                               text="Choisissez une conversation a gauche ou creez-en une nouvelle."
+                               styleClass="chat-thread-subtitle"/>
+                    </VBox>
+                    <Button fx:id="btnConversationMenu" text="⋮" onAction="#onConversationMenu"
+                            visible="false" managed="false" styleClass="button-secondary chat-menu-button"/>
+                </HBox>
                 <StackPane VBox.vgrow="ALWAYS" styleClass="chat-message-stack">
                     <ListView fx:id="lvMessages" styleClass="chat-message-list"/>
-                    <Label fx:id="lblMessagesEmpty" text="Sélectionnez une conversation." wrapText="true"
+                    <Label fx:id="lblMessagesEmpty" text="Selectionnez une conversation." wrapText="true"
                            styleClass="chat-empty-overlay" StackPane.alignment="CENTER"/>
                 </StackPane>
                 <VBox styleClass="chat-compose" spacing="10">
@@ -79,16 +78,19 @@
                                 styleClass="button-ghost chat-attachment-clear"/>
                     </HBox>
                     <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button fx:id="btnEmoji" text="☺" onAction="#onEmojiPicker"
+                        <Button fx:id="btnEmoji" text=":)" onAction="#onEmojiPicker"
                                 styleClass="button-secondary chat-icon-button"/>
                         <Button fx:id="btnAttachFile" text="📎" onAction="#onAttachFile"
-                                styleClass="button-secondary chat-icon-button"/>
-                        <TextArea fx:id="taMessageDraft" promptText="Écrire un message..."
+                                styleClass="button-secondary chat-icon-button chat-attach-button"/>
+                        <Button fx:id="btnVoiceMessage" text="🎤" onAction="#onVoiceRecord"
+                                styleClass="button-secondary chat-icon-button chat-voice-button"/>
+                        <TextArea fx:id="taMessageDraft" promptText="Ecrire un message..."
                                   styleClass="chat-compose-field chat-compose-input" VBox.vgrow="NEVER"
                                   prefRowCount="2" wrapText="true" HBox.hgrow="ALWAYS"/>
                         <Button fx:id="btnSendMessage" text="Envoyer" onAction="#onSendMessage"
                                 styleClass="button-primary chat-send-button"/>
                     </HBox>
+                    <Label fx:id="lblVoiceRecordState" text="" styleClass="chat-voice-state"/>
                 </VBox>
             </VBox>
         </center>
@@ -99,14 +101,14 @@
         <VBox styleClass="chat-create-card" spacing="16" maxWidth="720">
             <VBox spacing="4">
                 <Label text="Nouvelle conversation" styleClass="chat-create-title"/>
-                <Label text="Créez une conversation privée ou un groupe, puis ajoutez des utilisateurs par recherche."
+                <Label text="Creer une conversation privee ou un groupe, puis ajouter des utilisateurs par recherche."
                        wrapText="true" styleClass="chat-create-subtitle"/>
             </VBox>
 
             <VBox spacing="10" styleClass="chat-create-section">
                 <Label text="Type de conversation" styleClass="chat-section-label"/>
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <RadioButton fx:id="rbPrivateConversation" text="Privée" onAction="#onConversationModeChanged"/>
+                    <RadioButton fx:id="rbPrivateConversation" text="Privee" onAction="#onConversationModeChanged"/>
                     <RadioButton fx:id="rbGroupConversation" text="Groupe" onAction="#onConversationModeChanged"/>
                 </HBox>
             </VBox>
@@ -134,17 +136,17 @@
             </VBox>
 
             <VBox spacing="10" styleClass="chat-create-section">
-                <Label text="Participants sélectionnés" styleClass="chat-section-label"/>
+                <Label text="Participants selectionnes" styleClass="chat-section-label"/>
                 <FlowPane fx:id="fpSelectedParticipants" hgap="10" vgap="10" styleClass="chat-chip-flow"/>
             </VBox>
 
-            <Label fx:id="lblCreateHint" text="Sélectionnez un seul destinataire pour une conversation privée."
+            <Label fx:id="lblCreateHint" text="Selectionnez un seul destinataire pour une conversation privee."
                    wrapText="true" styleClass="chat-create-hint"/>
 
             <HBox spacing="10" alignment="CENTER_RIGHT">
                 <Button fx:id="btnCancelCreate" text="Annuler" onAction="#onCancelNewConversation"
                         styleClass="button-ghost"/>
-                <Button fx:id="btnCreateConversation" text="Créer la conversation"
+                <Button fx:id="btnCreateConversation" text="Creer la conversation"
                         onAction="#onCreateConversation" styleClass="button-primary"/>
             </HBox>
         </VBox>

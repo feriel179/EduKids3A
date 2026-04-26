@@ -3,6 +3,7 @@ package com.edukids.edukids3a.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Conversation {
 
@@ -13,19 +14,17 @@ public class Conversation {
     private boolean isGroup;
     private String privateKey;
     private LocalDateTime lastAutoReplyAt;
-
     private List<Message> messages;
     private List<ConversationParticipant> participants;
 
-    // 🔹 Constructeur par défaut
     public Conversation() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
         this.messages = new ArrayList<>();
         this.participants = new ArrayList<>();
     }
 
-    // 🔹 Constructeur avec paramètres
     public Conversation(Long id, String title, boolean isGroup, String privateKey) {
         this();
         this.id = id;
@@ -33,8 +32,6 @@ public class Conversation {
         this.isGroup = isGroup;
         this.privateKey = privateKey;
     }
-
-    // 🔹 Getters & Setters
 
     public Long getId() {
         return id;
@@ -76,6 +73,10 @@ public class Conversation {
         isGroup = group;
     }
 
+    public boolean isPrivate() {
+        return !isGroup;
+    }
+
     public String getPrivateKey() {
         return privateKey;
     }
@@ -93,35 +94,82 @@ public class Conversation {
     }
 
     public List<Message> getMessages() {
+        if (messages == null) {
+            messages = new ArrayList<>();
+        }
         return messages;
     }
 
     public void setMessages(List<Message> messages) {
-        this.messages = messages;
+        this.messages = messages == null ? new ArrayList<>() : messages;
     }
 
     public void addMessage(Message message) {
-        this.messages.add(message);
-        this.updatedAt = LocalDateTime.now();
+        if (message == null) {
+            return;
+        }
+        getMessages().add(message);
+        updatedAt = LocalDateTime.now();
     }
 
     public void removeMessage(Message message) {
-        this.messages.remove(message);
+        if (message == null || messages == null) {
+            return;
+        }
+        if (messages.remove(message)) {
+            updatedAt = LocalDateTime.now();
+        }
     }
 
     public List<ConversationParticipant> getParticipants() {
+        if (participants == null) {
+            participants = new ArrayList<>();
+        }
         return participants;
     }
 
     public void setParticipants(List<ConversationParticipant> participants) {
-        this.participants = participants;
+        this.participants = participants == null ? new ArrayList<>() : participants;
     }
 
     public void addParticipant(ConversationParticipant participant) {
-        this.participants.add(participant);
+        if (participant == null) {
+            return;
+        }
+        getParticipants().add(participant);
     }
 
     public void removeParticipant(ConversationParticipant participant) {
-        this.participants.remove(participant);
+        if (participant == null || participants == null) {
+            return;
+        }
+        participants.remove(participant);
+    }
+
+    @Override
+    public String toString() {
+        if (title != null && !title.isBlank()) {
+            return title;
+        }
+        if (isGroup) {
+            return "Conversation de groupe";
+        }
+        return "Conversation privée";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Conversation that)) {
+            return false;
+        }
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

@@ -1,7 +1,7 @@
 package com.edukids.edukids3a.service;
 
 import com.edukids.edukids3a.model.User;
-import com.edukids.edukids3a.utils.DBConnection;
+import com.edukids.edukids3a.utils.Myconnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +20,7 @@ public class AuthService {
                 LIMIT 1
                 """;
 
-        try (Connection connection = DBConnection.getConnection();
+        try (Connection connection = Myconnection.getInstance().getCnx();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, emailOrUsername);

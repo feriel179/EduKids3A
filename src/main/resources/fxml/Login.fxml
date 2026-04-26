@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.edukids.edukids3a.controller.LoginController"
+           stylesheets="@../css/login.css"
+           styleClass="login-shell">
+    <VBox alignment="CENTER" spacing="20" maxWidth="440" styleClass="login-card">
+        <padding>
+            <Insets top="36" right="36" bottom="36" left="36"/>
+        </padding>
+
+        <VBox alignment="CENTER" spacing="8">
+            <Label text="EduKids" styleClass="login-brand"/>
+            <Label text="Connectez-vous pour acceder au front office, au back office et au chat."
+                   wrapText="true" maxWidth="320" styleClass="login-subtitle"/>
+        </VBox>
+
+        <VBox spacing="8">
+            <Label text="Identifiant" styleClass="login-label"/>
+            <TextField fx:id="tfIdentifier" promptText="Email, prenom ou nom"
+                       styleClass="login-field" onAction="#onLogin"/>
+        </VBox>
+
+        <VBox spacing="8">
+            <Label text="Mot de passe" styleClass="login-label"/>
+            <PasswordField fx:id="pfPassword" promptText="Mot de passe"
+                           styleClass="login-field" onAction="#onLogin"/>
+        </VBox>
+
+        <Label fx:id="lblError" text="" visible="false" managed="false" wrapText="true"
+               maxWidth="320" styleClass="login-error"/>
+
+        <HBox alignment="CENTER_RIGHT" maxWidth="Infinity">
+            <Button text="Se connecter" defaultButton="true" onAction="#onLogin" styleClass="login-button"/>
+        </HBox>
+    </VBox>
+</StackPane>

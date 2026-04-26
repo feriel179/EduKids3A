@@ -350,7 +350,7 @@ public class MainController {
         cbFrontSortEvenements.setOnAction(e -> rafraichirCartesEvenementsFront());
 
         evenementsFiltresBack = new FilteredList<>(evenementsData, e -> true);
-        tableEvenements.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableEvenements.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableEvenements.setItems(evenementsFiltresBack);
         configurerTableEvenementsBackOffice();
         if (tfBackEvSearch != null) {
@@ -382,7 +382,7 @@ public class MainController {
         colPrPauseDebut.setCellValueFactory(new PropertyValueFactory<>("pauseDebut"));
         colPrPauseFin.setCellValueFactory(new PropertyValueFactory<>("pauseFin"));
 
-        tableProgrammes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableProgrammes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableProgrammes.setFixedCellSize(-1);
         tableProgrammes.setItems(programmesData);
         tableProgrammes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {

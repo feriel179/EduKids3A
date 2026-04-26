@@ -5,7 +5,6 @@ import com.edukids.edukids3a.security.AuthSession;
 import com.edukids.edukids3a.service.AuthService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -60,13 +59,10 @@ public class LoginController {
         String role = user.getRole() == null ? "" : user.getRole().trim().toLowerCase(Locale.ROOT);
         AuthSession.setCurrentUser(user);
 
-        String targetFxml;
         String title;
         if ("parent".equals(role)) {
-            targetFxml = "/fxml/FrontOffice.fxml";
             title = "EduKids - Front Office";
         } else if ("admin".equals(role)) {
-            targetFxml = "/fxml/BackOffice.fxml";
             title = "EduKids - Back Office";
         } else {
             AuthSession.clear();
@@ -75,25 +71,19 @@ public class LoginController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(targetFxml));
-            Parent root = loader.load();
-
-            Object controller = loader.getController();
-            if (controller instanceof FrontOfficeController frontController) {
-                frontController.setConnectedUser(user);
-            } else if (controller instanceof BackOfficeController backController) {
-                backController.setConnectedUser(user);
-            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
+            Scene scene = new Scene(loader.load());
 
             Stage stage = (Stage) tfIdentifier.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            stage.setScene(scene);
             stage.setTitle(title);
             stage.setMinWidth(920);
             stage.setMinHeight(620);
             stage.setMaximized(true);
         } catch (IOException e) {
+            e.printStackTrace();
             AuthSession.clear();
-            showError("Erreur lors de l'ouverture de l'interface.");
+            showError(buildUiErrorMessage(e));
         }
     }
 
@@ -118,5 +108,22 @@ public class LoginController {
         }
 
         return "Connexion base impossible : " + detail;
+    }
+
+    private String buildUiErrorMessage(Throwable error) {
+        Throwable current = error;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+
+        String detail = current.getMessage();
+        if (detail == null || detail.isBlank()) {
+            detail = error.getMessage();
+        }
+        if (detail == null || detail.isBlank()) {
+            detail = "cause inconnue";
+        }
+
+        return "Erreur lors de l'ouverture de l'interface : " + detail;
     }
 }

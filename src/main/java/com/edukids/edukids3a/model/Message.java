@@ -1,6 +1,8 @@
 package com.edukids.edukids3a.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Message {
 
@@ -12,6 +14,7 @@ public class Message {
     private Long conversationId;
     private String type;
     private String filePath;
+    private List<MessageAttachment> attachments;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
     private String status;
@@ -23,6 +26,7 @@ public class Message {
         this.isRead = false;
         this.type = "text";
         this.status = "sent";
+        this.attachments = new ArrayList<>();
     }
 
     // 🔹 Getters & Setters
@@ -89,6 +93,28 @@ public class Message {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public List<MessageAttachment> getAttachments() {
+        if (attachments == null) {
+            attachments = new ArrayList<>();
+        }
+        return attachments;
+    }
+
+    public void setAttachments(List<MessageAttachment> attachments) {
+        this.attachments = attachments == null ? new ArrayList<>() : attachments;
+    }
+
+    public void addAttachment(MessageAttachment attachment) {
+        if (attachment == null) {
+            return;
+        }
+        attachment.setMessage(this);
+        if (id != null) {
+            attachment.setMessageId(id);
+        }
+        getAttachments().add(attachment);
     }
 
     public LocalDateTime getUpdatedAt() {

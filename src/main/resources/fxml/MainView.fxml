@@ -26,7 +26,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.edukids.edukids3a.ui.MainController"
+            fx:controller="com.edukids.edukids3a.controller.MainController"
             stylesheets="@../css/edukids.css">
     <top>
         <HBox styleClass="app-nav" alignment="CENTER_LEFT" spacing="16">
@@ -34,12 +34,17 @@
             <Region HBox.hgrow="ALWAYS"/>
             <ToggleButton fx:id="toggleFrontOffice" mnemonicParsing="false" text="Front office"
                           selected="true" styleClass="mode-toggle"/>
+            <ToggleButton fx:id="toggleChat" mnemonicParsing="false" text="Chat"
+                          styleClass="mode-toggle"/>
             <ToggleButton fx:id="toggleBackOffice" mnemonicParsing="false" text="Back office"
                           styleClass="mode-toggle"/>
         </HBox>
     </top>
     <center>
         <StackPane BorderPane.alignment="CENTER">
+            <StackPane fx:id="paneChat" visible="false" managed="false">
+                <fx:include source="chat/ChatView.fxml"/>
+            </StackPane>
             <!-- Back office -->
             <VBox fx:id="paneBackOffice" visible="false" managed="false" spacing="0" styleClass="front-root">
                 <TabPane fx:id="tabPaneBack" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"
@@ -101,7 +106,7 @@
                                                 <VBox styleClass="back-form-header">
                                                     <Label text="Fiche événement" styleClass="back-form-title"/>
                                                     <Label styleClass="back-form-subtitle"
-                                                           text="Depuis la liste : « Modifier la sélection » ou « Nouvel événement ». Les champs marqués * sont obligatoires."/>
+                                                           text="Depuis la liste : Â« Modifier la sélection Â» ou Â« Nouvel événement Â». Les champs marqués * sont obligatoires."/>
                                                 </VBox>
                                                 <VBox styleClass="form-section-card">
                                                     <Label text="Présentation" styleClass="form-section-title"/>
@@ -479,6 +484,35 @@
                                 </VBox>
                             </StackPane>
                         </VBox>
+                    </Tab>
+                    <Tab text="Statistiques chat" closable="false">
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <fx:include source="chat/ChatStatisticsDashboard.fxml"/>
+                            <VBox visible="false" managed="false" spacing="16.0" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="20.0" left="24.0" right="24.0" top="16.0"/>
+                            </padding>
+                            <VBox spacing="4.0">
+                                <Label text="Statistiques chat" styleClass="back-form-title"/>
+                                <Label text="Espace réservé pour les indicateurs de messagerie et les réponses automatiques."
+                                       styleClass="back-form-subtitle" wrapText="true"/>
+                            </VBox>
+                            <HBox spacing="16.0" fillHeight="true">
+                                <VBox spacing="8.0" styleClass="form-section-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Conversations" styleClass="form-section-title"/>
+                                    <Label text="À venir" styleClass="back-detail-body"/>
+                                </VBox>
+                                <VBox spacing="8.0" styleClass="form-section-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Messages" styleClass="form-section-title"/>
+                                    <Label text="À venir" styleClass="back-detail-body"/>
+                                </VBox>
+                                <VBox spacing="8.0" styleClass="form-section-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Réponses auto" styleClass="form-section-title"/>
+                                    <Label text="À venir" styleClass="back-detail-body"/>
+                                </VBox>
+                                </HBox>
+                            </VBox>
+                        </StackPane>
                     </Tab>
                 </TabPane>
             </VBox>

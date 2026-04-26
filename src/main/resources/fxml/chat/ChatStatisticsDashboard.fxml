@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.controller.ChatStatisticsDashboardController"
+      stylesheets="@../../css/chat-dashboard.css"
+      styleClass="chat-dashboard-root" spacing="16.0">
+    <padding>
+        <Insets bottom="18.0" left="18.0" right="18.0" top="18.0"/>
+    </padding>
+
+    <HBox spacing="16.0" alignment="CENTER_LEFT" styleClass="chat-dashboard-header">
+        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+            <Label fx:id="lblDashboardTitle" text="Statistiques du Chat" styleClass="chat-dashboard-title"/>
+            <Label text="Vue temps reel et indicateurs de moderation." styleClass="chat-dashboard-subtitle"/>
+        </VBox>
+        <VBox spacing="4.0" alignment="CENTER_RIGHT">
+            <Label fx:id="lblTimezone" text="Fuseau horaire: -" styleClass="chat-dashboard-meta"/>
+            <Label fx:id="lblGeneratedAt" text="Derniere mise a jour: -" styleClass="chat-dashboard-meta"/>
+        </VBox>
+        <Label fx:id="lblLiveBadge" text="Live" styleClass="chat-dashboard-live-badge"/>
+    </HBox>
+
+    <HBox spacing="12.0" alignment="CENTER_LEFT" styleClass="chat-dashboard-period-bar">
+        <Label fx:id="lblPeriodSummary" text="Periode active: Aujourd'hui" styleClass="chat-dashboard-period-label"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ToggleButton fx:id="btnPeriodToday" text="Aujourd'hui" styleClass="chat-dashboard-period-button"/>
+        <ToggleButton fx:id="btnPeriod7Days" text="7 jours" styleClass="chat-dashboard-period-button"/>
+        <ToggleButton fx:id="btnPeriod30Days" text="30 jours" styleClass="chat-dashboard-period-button"/>
+        <Button fx:id="btnRefresh" text="Rafraichir" onAction="#onManualRefresh"
+                styleClass="chat-dashboard-refresh-button"/>
+    </HBox>
+
+    <HBox spacing="14.0" styleClass="chat-dashboard-kpi-row">
+        <VBox styleClass="chat-dashboard-kpi-card" HBox.hgrow="ALWAYS" spacing="6.0">
+            <Label text="Total messages" styleClass="chat-dashboard-kpi-label"/>
+            <Label fx:id="lblTotalMessages" text="0" styleClass="chat-dashboard-kpi-value"/>
+        </VBox>
+        <VBox styleClass="chat-dashboard-kpi-card" HBox.hgrow="ALWAYS" spacing="6.0">
+            <Label text="Total utilisateurs" styleClass="chat-dashboard-kpi-label"/>
+            <Label fx:id="lblTotalUsers" text="0" styleClass="chat-dashboard-kpi-value"/>
+        </VBox>
+        <VBox styleClass="chat-dashboard-kpi-card" HBox.hgrow="ALWAYS" spacing="6.0">
+            <Label text="Actifs 7 jours" styleClass="chat-dashboard-kpi-label"/>
+            <Label fx:id="lblActiveUsers7" text="0" styleClass="chat-dashboard-kpi-value"/>
+        </VBox>
+        <VBox styleClass="chat-dashboard-kpi-card" HBox.hgrow="ALWAYS" spacing="6.0">
+            <Label text="Actifs 30 jours" styleClass="chat-dashboard-kpi-label"/>
+            <Label fx:id="lblActiveUsers30" text="0" styleClass="chat-dashboard-kpi-value"/>
+        </VBox>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" pannable="false" styleClass="chat-dashboard-scroll" VBox.vgrow="ALWAYS">
+        <VBox spacing="18.0" styleClass="chat-dashboard-body">
+            <HBox spacing="18.0">
+                <VBox spacing="12.0" styleClass="chat-dashboard-panel" HBox.hgrow="ALWAYS">
+                    <HBox spacing="10.0" alignment="CENTER_LEFT">
+                        <Label text="Activite des messages par heure" styleClass="chat-dashboard-panel-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblMessagesToday" text="0" styleClass="chat-dashboard-chip"/>
+                    </HBox>
+                    <AreaChart fx:id="hourlyChart" animated="true" createSymbols="false" verticalGridLinesVisible="false"
+                               horizontalGridLinesVisible="true" legendVisible="false" VBox.vgrow="ALWAYS">
+                        <xAxis>
+                            <CategoryAxis label="Heure"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis label="Messages"/>
+                        </yAxis>
+                    </AreaChart>
+                </VBox>
+
+                <VBox spacing="16.0" styleClass="chat-dashboard-side-column" prefWidth="330.0">
+                    <VBox spacing="12.0" styleClass="chat-dashboard-panel">
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                            <Label text="Repartition actifs / inactifs" styleClass="chat-dashboard-panel-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="lblMessagesWeek" text="0" styleClass="chat-dashboard-chip"/>
+                        </HBox>
+                        <PieChart fx:id="donutChart" labelsVisible="true" legendVisible="true" prefHeight="250.0"/>
+                    </VBox>
+
+                    <VBox spacing="12.0" styleClass="chat-dashboard-panel" VBox.vgrow="ALWAYS">
+                        <Label text="Activite recente" styleClass="chat-dashboard-panel-title"/>
+                        <VBox fx:id="boxRecentActivity" spacing="10.0" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="12.0" styleClass="chat-dashboard-panel">
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Tendance sur 7 jours" styleClass="chat-dashboard-panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblFocusedUser" text="Vue globale" styleClass="chat-dashboard-chip"/>
+                    <Label fx:id="lblTopUserName" text="Top utilisateur: -" styleClass="chat-dashboard-chip"/>
+                </HBox>
+                <LineChart fx:id="dailyChart" animated="true" createSymbols="true" legendVisible="false" prefHeight="260.0">
+                    <xAxis>
+                        <CategoryAxis label="Jour"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Messages"/>
+                    </yAxis>
+                </LineChart>
+            </VBox>
+
+            <VBox spacing="12.0" styleClass="chat-dashboard-panel">
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Top 10 utilisateurs les plus actifs" styleClass="chat-dashboard-panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTopUserMessages" text="0 messages" styleClass="chat-dashboard-chip"/>
+                </HBox>
+                <TableView fx:id="tableTopUsers" prefHeight="340.0">
+                    <columns>
+                        <TableColumn fx:id="colRank" text="#" prefWidth="60.0"/>
+                        <TableColumn fx:id="colName" text="Nom utilisateur" prefWidth="220.0"/>
+                        <TableColumn fx:id="colEmail" text="Email" prefWidth="220.0"/>
+                        <TableColumn fx:id="colMessages" text="Messages" prefWidth="100.0"/>
+                        <TableColumn fx:id="colProgress" text="Progression" prefWidth="180.0"/>
+                        <TableColumn fx:id="colLastActivity" text="Derniere activite" prefWidth="160.0"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

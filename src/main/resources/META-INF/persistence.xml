@@ -7,18 +7,23 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <class>com.edukids.edukids3a.model.Evenement</class>
         <class>com.edukids.edukids3a.model.Programme</class>
+        <class>com.edukids.edukids3a.model.User</class>
+        <class>com.edukids.edukids3a.model.Message</class>
+        <class>com.edukids.edukids3a.model.Conversation</class>
+        <class>com.edukids.edukids3a.model.ConversationParticipant</class>
+        <class>com.edukids.edukids3a.model.TypeEvenement</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-            <!-- Base MySQL à créer une fois : CREATE DATABASE edukidsj CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; -->
-            <!-- Adapter user / password / host / port selon ton installation -->
             <property name="jakarta.persistence.jdbc.url"
-                      value="jdbc:mysql://localhost:3306/edukidsj?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;characterEncoding=UTF-8&amp;connectTimeout=8000&amp;socketTimeout=45000"/>
+                      value="jdbc:mysql://localhost:3308/edukids?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;characterEncoding=UTF-8&amp;connectTimeout=8000&amp;socketTimeout=45000&amp;autoReconnect=true&amp;maxReconnects=3"/>
             <property name="jakarta.persistence.jdbc.user" value="root"/>
             <property name="jakarta.persistence.jdbc.password" value=""/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.jdbc.time_zone" value="UTC"/>
+            <property name="hibernate.connection.autocommit" value="true"/>
+            <property name="hibernate.connection.pool_size" value="10"/>
         </properties>
     </persistence-unit>
 </persistence>
