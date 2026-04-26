@@ -12,6 +12,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.text.TextFlow?>
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controllers.app.MainController" fx:id="paneBackPagePrForm" spacing="14.0" fillWidth="true" visible="false"
       managed="false" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
     <padding>
@@ -88,14 +90,23 @@
                                GridPane.rowIndex="0" GridPane.hgrow="ALWAYS"
                                minHeight="100.0" prefHeight="108.0">
                             <HBox spacing="8.0" alignment="CENTER_RIGHT">
+                                <Button fx:id="btnPrModeEditionActivites" mnemonicParsing="false"
+                                        onAction="#onBasculerEditionActivitesProgramme"
+                                        text="Modifier" styleClass="button-ghost"/>
                                 <Button fx:id="btnPrGenererActivitesIa" mnemonicParsing="false"
                                         onAction="#onGenererActivitesProgrammeIa"
                                         text="Générer activités IA" styleClass="button-ai-image"/>
                             </HBox>
-                            <TextArea fx:id="taPrActivites" prefRowCount="4"
-                                      wrapText="true" styleClass="text-area-dark"
-                                      minHeight="100.0" prefHeight="100.0"
-                                      maxHeight="200.0" VBox.vgrow="NEVER"/>
+                            <StackPane minHeight="108.0" prefHeight="128.0" maxHeight="220.0">
+                                <!-- Champ technique conservé pour la persistance/sauvegarde -->
+                                <TextArea fx:id="taPrActivites" prefRowCount="4"
+                                          wrapText="true" visible="false" managed="false"
+                                          styleClass="text-area-dark"/>
+                                <ScrollPane fx:id="spPrActivitesPreview" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                                            styleClass="programme-activites-scroll" maxHeight="220.0">
+                                    <TextFlow fx:id="flowPrActivitesPreview" styleClass="programme-activites-preview"/>
+                                </ScrollPane>
+                            </StackPane>
                             <Label text="Détail des activités prévues" styleClass="form-hint"/>
                         </VBox>
                         <Label text="Documents requis *" GridPane.columnIndex="0"

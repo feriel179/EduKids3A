@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -18,10 +17,6 @@
             <Region HBox.hgrow="ALWAYS"/>
             <Button mnemonicParsing="false" text="Déconnexion" onAction="#onDeconnexion"
                     styleClass="button,button-ghost" focusTraversable="false"/>
-            <ToggleButton fx:id="toggleFrontOffice" mnemonicParsing="false" text="Front office"
-                          selected="true" styleClass="mode-toggle"/>
-            <ToggleButton fx:id="toggleBackOffice" mnemonicParsing="false" text="Back office"
-                          styleClass="mode-toggle"/>
         </HBox>
     </top>
     <center>

@@ -67,6 +67,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
@@ -97,6 +102,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import java.io.ByteArrayInputStream;
 
@@ -173,11 +180,6 @@ public class MainController {
     private VBox paneFrontOffice;
     @FXML
     private VBox paneBackOffice;
-    private final ToggleGroup modeGroup = new ToggleGroup();
-    @FXML
-    private ToggleButton toggleFrontOffice;
-    @FXML
-    private ToggleButton toggleBackOffice;
     private final ToggleGroup backNavGroup = new ToggleGroup();
     @FXML
     private ToggleButton toggleBackNavEvListe;
@@ -507,6 +509,12 @@ public class MainController {
     @FXML
     private TextArea taPrActivites;
     @FXML
+    private ScrollPane spPrActivitesPreview;
+    @FXML
+    private TextFlow flowPrActivitesPreview;
+    @FXML
+    private Button btnPrModeEditionActivites;
+    @FXML
     private Button btnPrGenererActivitesIa;
     @FXML
     private TextArea taPrDocuments;
@@ -515,6 +523,10 @@ public class MainController {
 
     private Programme programmeEnEdition;
     private Evenement evenementEnEdition;
+    private boolean editionActivitesProgramme = false;
+    private static final Pattern ACTIVITE_PREVIEW_PATTERN = Pattern.compile(
+            "^\\s*[-•]?\\s*(De\\s+\\d{1,2}:\\d{2}\\s+à\\s+\\d{1,2}:\\d{2})\\s*:\\s*([^\\-\\n]+?)\\s*(?:-\\s*(.*))?$",
+            Pattern.CASE_INSENSITIVE);
 
     /**
      * À appeler une fois après {@link javafx.fxml.FXMLLoader#load()} sur MainView.
@@ -522,8 +534,6 @@ public class MainController {
      * JavaFX l’exécuterait trop tôt (champs d’autres pages encore null).
      */
     public void initialiserApresChargementFxml() {
-        toggleFrontOffice.setToggleGroup(modeGroup);
-        toggleBackOffice.setToggleGroup(modeGroup);
         toggleBackNavEvListe.setToggleGroup(backNavGroup);
         toggleBackNavEvForm.setToggleGroup(backNavGroup);
         toggleBackNavPrListe.setToggleGroup(backNavGroup);
@@ -591,6 +601,11 @@ public class MainController {
         cbFrontSortEvenements.setItems(FXCollections.observableArrayList(SORT_RECENT, SORT_ANCIEN, SORT_TITRE));
         cbFrontSortEvenements.getSelectionModel().selectFirst();
         cbFrontSortEvenements.setOnAction(e -> rafraichirCartesEvenementsFront());
+        if (taPrActivites != null) {
+            taPrActivites.textProperty().addListener((obs, oldV, newV) -> rafraichirApercuActivitesProgramme(newV));
+            rafraichirApercuActivitesProgramme(taPrActivites.getText());
+        }
+        appliquerModeEditionActivitesProgramme(false);
 
         if (toggleFrontEvListe != null && toggleFrontEvCalendrier != null) {
             toggleFrontEvListe.setToggleGroup(frontEvViewGroup);
@@ -693,8 +708,7 @@ public class MainController {
             }
         });
 
-        modeGroup.selectedToggleProperty().addListener((obs, old, t) -> appliquerMode(t));
-        appliquerMode(modeGroup.getSelectedToggle());
+        appliquerMode(ouvrirFrontOfficeParDefaut());
 
         backNavGroup.selectedToggleProperty().addListener((obs, o, n) -> syncPageBackOffice(n));
         frontNavGroup.selectedToggleProperty().addListener((obs, o, n) -> syncPageFrontOffice(n));
@@ -749,8 +763,7 @@ public class MainController {
         majBadgeFavoris();
     }
 
-    private void appliquerMode(Toggle t) {
-        boolean front = t == toggleFrontOffice;
+    private void appliquerMode(boolean front) {
         paneFrontOffice.setVisible(front);
         paneFrontOffice.setManaged(front);
         paneBackOffice.setVisible(!front);
@@ -767,6 +780,14 @@ public class MainController {
                 toggleBackNavEvListe.setSelected(true);
             }
         }
+    }
+
+    private boolean ouvrirFrontOfficeParDefaut() {
+        var u = SessionManager.getCurrentUser();
+        if (u == null || u.getRoles() == null || u.getRoles().isEmpty()) {
+            return true;
+        }
+        return !u.getRoles().contains(Role.ROLE_ADMIN);
     }
 
     private void montrerSeulementPageBack(int index) {
@@ -983,7 +1004,7 @@ public class MainController {
 
     @FXML
     private void onDeconnexion() {
-        Node n = toggleFrontOffice != null ? toggleFrontOffice : paneFrontOffice;
+        Node n = paneFrontOffice != null ? paneFrontOffice : paneBackOffice;
         Window w = n != null && n.getScene() != null ? n.getScene().getWindow() : null;
         if (w instanceof Stage st) {
             MainFX.afficherSceneConnexion(st);
@@ -3222,6 +3243,7 @@ public class MainController {
                         fPauseFin))
                 .thenAccept(text -> Platform.runLater(() -> {
                     taPrActivites.setText(text);
+                    rafraichirApercuActivitesProgramme(text);
                     if (btnPrGenererActivitesIa != null) {
                         btnPrGenererActivitesIa.setDisable(false);
                     }
@@ -3237,6 +3259,26 @@ public class MainController {
                     });
                     return null;
                 });
+    }
+
+    @FXML
+    private void onBasculerEditionActivitesProgramme() {
+        appliquerModeEditionActivitesProgramme(!editionActivitesProgramme);
+    }
+
+    private void appliquerModeEditionActivitesProgramme(boolean edition) {
+        editionActivitesProgramme = edition;
+        if (taPrActivites != null) {
+            taPrActivites.setVisible(edition);
+            taPrActivites.setManaged(edition);
+        }
+        if (spPrActivitesPreview != null) {
+            spPrActivitesPreview.setVisible(!edition);
+            spPrActivitesPreview.setManaged(!edition);
+        }
+        if (btnPrModeEditionActivites != null) {
+            btnPrModeEditionActivites.setText(edition ? "Aperçu" : "Modifier");
+        }
     }
 
     private void remplirFormulaireEvenement(Evenement e) {
@@ -3306,6 +3348,8 @@ public class MainController {
         programmeEnEdition = p;
         appliquerPauseAuxSpinnersProgramme(p.getPauseDebut(), p.getPauseFin());
         taPrActivites.setText(nvl(p.getActivites()));
+        rafraichirApercuActivitesProgramme(taPrActivites.getText());
+        appliquerModeEditionActivitesProgramme(false);
         taPrDocuments.setText(nvl(p.getDocumentsRequis()));
         taPrMateriels.setText(nvl(p.getMaterielsRequis()));
 
@@ -3326,6 +3370,8 @@ public class MainController {
         cbPrEvenement.getSelectionModel().clearSelection();
         appliquerPauseAuxSpinnersProgramme(null, null);
         taPrActivites.clear();
+        rafraichirApercuActivitesProgramme("");
+        appliquerModeEditionActivitesProgramme(false);
         taPrDocuments.clear();
         taPrMateriels.clear();
     }
@@ -3357,6 +3403,60 @@ public class MainController {
                 .toList();
         cbPrEvenement.setItems(FXCollections.observableArrayList(sansProgramme));
         cbPrEvenement.setDisable(false);
+    }
+
+    private void rafraichirApercuActivitesProgramme(String raw) {
+        if (flowPrActivitesPreview == null) {
+            return;
+        }
+        flowPrActivitesPreview.getChildren().clear();
+        String txt = raw == null ? "" : raw.trim();
+        if (txt.isEmpty()) {
+            Text hint = new Text("Aperçu coloré des activités IA.");
+            hint.setFill(Color.web("#94a3b8"));
+            hint.setFont(Font.font("System", 12));
+            flowPrActivitesPreview.getChildren().add(hint);
+            return;
+        }
+
+        String[] lines = txt.split("\\R");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line == null || line.isBlank()) {
+                continue;
+            }
+            Matcher m = ACTIVITE_PREVIEW_PATTERN.matcher(line);
+            if (m.matches()) {
+                String time = m.group(1);
+                String titre = m.group(2);
+                String detail = m.group(3);
+
+                Text tTime = new Text("• " + time + " : ");
+                tTime.setFill(Color.web("#38bdf8"));
+                tTime.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+                flowPrActivitesPreview.getChildren().add(tTime);
+
+                Text tTitre = new Text(titre.trim());
+                tTitre.setFill(Color.web("#fbbf24"));
+                tTitre.setFont(Font.font("System", FontWeight.BOLD, 13));
+                flowPrActivitesPreview.getChildren().add(tTitre);
+
+                if (detail != null && !detail.isBlank()) {
+                    Text tDetail = new Text(" — " + detail.trim());
+                    tDetail.setFill(Color.web("#cbd5e1"));
+                    tDetail.setFont(Font.font("System", 12.5));
+                    flowPrActivitesPreview.getChildren().add(tDetail);
+                }
+            } else {
+                Text tRaw = new Text(line.trim());
+                tRaw.setFill(Color.web("#e2e8f0"));
+                tRaw.setFont(Font.font("System", 12.5));
+                flowPrActivitesPreview.getChildren().add(tRaw);
+            }
+            if (i < lines.length - 1) {
+                flowPrActivitesPreview.getChildren().add(new Text("\n"));
+            }
+        }
     }
 
     private static String nvl(String s) {

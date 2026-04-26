@@ -1294,6 +1294,24 @@
     -fx-background-color: #262626;
 }
 
+.programme-activites-preview {
+    -fx-padding: 10 12 10 12;
+    -fx-background-color: rgba(18, 26, 41, 0.6);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(148, 163, 184, 0.25);
+    -fx-border-radius: 10;
+    -fx-line-spacing: 4;
+}
+
+.programme-activites-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.programme-activites-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
 .separator-dark {
     -fx-opacity: 0.35;
 }
