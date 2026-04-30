@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserService implements IService<User> {
 
@@ -39,6 +40,29 @@ public class UserService implements IService<User> {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error adding user: " + e.getMessage(), e);
+        }
+    }
+
+    public void addOAuthUser(User user) {
+        String sql = "INSERT INTO user (email, roles, password, first_name, last_name, is_active, avatar, is_verified) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.rolesToJson());
+            ps.setString(3, BCrypt.hashpw(UUID.randomUUID().toString(), BCrypt.gensalt()));
+            ps.setString(4, user.getFirstName());
+            ps.setString(5, user.getLastName());
+            ps.setBoolean(6, user.isActive());
+            ps.setString(7, user.getAvatar());
+            ps.setBoolean(8, user.isVerified());
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                user.setId(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error adding OAuth user: " + e.getMessage(), e);
         }
     }
 

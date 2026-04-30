@@ -77,7 +77,7 @@ public class MainFX extends Application {
 
     public void showStudentShell(Student student) throws Exception {
         Parent root = loadView("/tn/esprit/fxml/student/student-shell.fxml");
-        setScene(root, "CourseApp - Student Panel - " + student.getName());
+        setScene(root, "CourseApp - Student Panel - " + student.getName(), "/tn/esprit/css/styles.css", "/com/edukids/css/style.css");
     }
 
     public void showAdminCourses() throws Exception {

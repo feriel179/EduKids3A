@@ -1,7 +1,7 @@
 package tn.esprit.controllers.student;
 
+import javafx.concurrent.Task;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,22 +17,19 @@ import javafx.scene.shape.Rectangle;
 import tn.esprit.models.Course;
 import tn.esprit.models.CourseProgressSummary;
 import tn.esprit.models.Lesson;
-import tn.esprit.models.LessonExercise;
-import tn.esprit.services.ExerciseService;
+import tn.esprit.models.Student;
 import tn.esprit.services.LessonService;
+import tn.esprit.services.LocalAiContentService;
 import tn.esprit.services.StudentService;
 import tn.esprit.util.SweetAlert;
+import tn.esprit.util.StudentAiSupportDialogs;
 
-import javax.imageio.ImageIO;
 import java.awt.Desktop;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -65,8 +62,8 @@ public class CourseDetailController {
     private VBox lessonContainer;
 
     private final LessonService lessonService = new LessonService();
-    private final ExerciseService exerciseService = new ExerciseService();
     private final StudentService studentService = new StudentService();
+    private final LocalAiContentService localAiContentService = new LocalAiContentService();
     private final Rectangle heroClip = new Rectangle();
     private Course currentCourse;
     private ObservableList<Lesson> currentLessons;
@@ -125,7 +122,6 @@ public class CourseDetailController {
 
     private VBox createLessonCard(Lesson lesson) {
         boolean completed = completedLessonIds.contains(lesson.getId());
-        List<LessonExercise> exercises = exerciseService.getExercisesByLesson(lesson);
         boolean drawingEnabled = isDrawingEnabled();
 
         Label lessonOrderBadge = new Label("Lesson " + lesson.getOrder());
@@ -166,9 +162,9 @@ public class CourseDetailController {
             helperLabel.setText("No PDF, video, or YouTube resource is available yet. You can still open the exercise studio.");
         }
 
-        Label exerciseSummaryLabel = new Label(exercises.isEmpty()
-                ? "No exercise yet for this lesson."
-                : exercises.size() + (exercises.size() == 1 ? " exercise ready in the studio." : " exercises ready in the studio."));
+        Label exerciseSummaryLabel = new Label(drawingEnabled
+                ? "Exercises and drawing tools will load when you open the studio."
+                : "Exercises will load when you open the studio.");
         exerciseSummaryLabel.getStyleClass().add("student-detail-section-subtitle");
         exerciseSummaryLabel.setWrapText(true);
 
@@ -180,18 +176,21 @@ public class CourseDetailController {
             }
         });
 
-        VBox card = new VBox(12, badgeRow, titleLabel, helperLabel, actions, exerciseSummaryLabel, studioButton);
+        Button askAiButton = new Button("Ask AI");
+        askAiButton.getStyleClass().addAll("student-lesson-action-button", "student-lesson-action-ai");
+        askAiButton.setOnAction(event -> handleAskAiForLesson(lesson, askAiButton));
+
+        HBox aiActionRow = new HBox(10, askAiButton, studioButton);
+        aiActionRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(12, badgeRow, titleLabel, helperLabel, actions, exerciseSummaryLabel, aiActionRow);
         card.getStyleClass().add("student-lesson-card");
         card.setPadding(new Insets(18));
         return card;
     }
 
     private boolean isDrawingEnabled() {
-        if (studentService.getCurrentStudent() == null) {
-            return false;
-        }
-        int age = studentService.getCurrentStudent().getAge();
-        return age >= 8 && age <= 10;
+        return true;
     }
 
     private Button createResourceButton(String text, String location, String resourceType) {
@@ -230,6 +229,62 @@ public class CourseDetailController {
         completedLessonIds = studentService.getCompletedLessonIds(currentCourse);
         updateCurrentCourseProgress(summary);
         renderLessons();
+    }
+
+    private void handleAskAiForLesson(Lesson lesson, Button sourceButton) {
+        if (lesson == null || currentCourse == null) {
+            SweetAlert.warning("AI Tutor", "Open a lesson before asking the AI tutor.");
+            return;
+        }
+
+        String helperText = "Ask a question about \"" + safeText(lesson.getTitle(), "this lesson")
+                + "\". Example: explique-moi cette lecon plus simplement.";
+        String defaultQuestion = "Explique-moi cette lecon plus simplement.";
+
+        var question = StudentAiSupportDialogs.promptQuestion("Ask AI", helperText, defaultQuestion);
+        if (question.isEmpty()) {
+            return;
+        }
+        if (question.get().isBlank()) {
+            SweetAlert.warning("AI Tutor", "Write a question before asking the AI tutor.");
+            return;
+        }
+
+        sourceButton.setDisable(true);
+
+        Student student = studentService.getCurrentStudent();
+        int studentAge = student == null ? 10 : Math.max(8, student.getAge());
+
+        Task<String> tutorTask = new Task<>() {
+            @Override
+            protected String call() {
+                return localAiContentService.answerLessonQuestion(
+                        currentCourse.getTitle(),
+                        currentCourse.getSubject(),
+                        currentCourse.getLevel(),
+                        currentCourse.getDescription(),
+                        lesson.getTitle(),
+                        lesson.getUrlSummary(),
+                        studentAge,
+                        question.get()
+                );
+            }
+        };
+
+        tutorTask.setOnSucceeded(event -> {
+            sourceButton.setDisable(false);
+            StudentAiSupportDialogs.showTutorAnswer("AI Tutor - " + safeText(lesson.getTitle(), "Lesson"), tutorTask.getValue());
+        });
+
+        tutorTask.setOnFailed(event -> {
+            sourceButton.setDisable(false);
+            String message = tutorTask.getException() == null ? "The AI tutor is unavailable right now." : tutorTask.getException().getMessage();
+            SweetAlert.error("AI Tutor", message);
+        });
+
+        Thread worker = new Thread(tutorTask, "lesson-ai-tutor");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     private void updateCurrentCourseProgress(CourseProgressSummary summary) {
@@ -290,32 +345,21 @@ public class CourseDetailController {
             return;
         }
 
-        Image image = loadStaticImage(imageSource);
-        if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
-            courseImageView.setImage(null);
-            courseImageView.setVisible(false);
-            courseImageView.setManaged(false);
-            courseInitialsLabel.setVisible(true);
-            courseInitialsLabel.setManaged(true);
-            return;
-        }
-
+        Image image = new Image(imageSource, true);
         courseImageView.setImage(image);
         courseImageView.setVisible(true);
         courseImageView.setManaged(true);
         courseInitialsLabel.setVisible(false);
         courseInitialsLabel.setManaged(false);
-    }
-
-    private Image loadStaticImage(String imageSource) {
-        try {
-            BufferedImage bufferedImage = ImageIO.read(new URL(imageSource));
-            if (bufferedImage != null) {
-                return SwingFXUtils.toFXImage(bufferedImage, null);
+        image.errorProperty().addListener((obs, oldValue, hasError) -> {
+            if (Boolean.TRUE.equals(hasError)) {
+                courseImageView.setImage(null);
+                courseImageView.setVisible(false);
+                courseImageView.setManaged(false);
+                courseInitialsLabel.setVisible(true);
+                courseInitialsLabel.setManaged(true);
             }
-        } catch (IOException ignored) {
-        }
-        return new Image(imageSource, false);
+        });
     }
 
     private String buildHeroStyle(Course course) {

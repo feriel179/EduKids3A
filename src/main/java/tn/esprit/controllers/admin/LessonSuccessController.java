@@ -40,11 +40,11 @@ public class LessonSuccessController {
 
     @FXML
     private void handleBackToLessons() {
-        AdminShellController.getInstance().showLessons();
+        AdminModuleNavigator.showLessons();
     }
 
     @FXML
     private void handleCreateAnother() {
-        AdminShellController.getInstance().showCreateLesson(currentCourse);
+        AdminModuleNavigator.showCreateLesson(currentCourse);
     }
 }

@@ -8,13 +8,29 @@ import com.edukids.utils.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import com.edukids.edukids3a.controller.QuestionController;
+import com.edukids.edukids3a.controller.QuizController;
+import com.edukids.edukids3a.controller.QuizResultController;
+import com.edukids.edukids3a.persistence.DatabaseManager;
+import com.edukids.edukids3a.service.QuestionService;
+import com.edukids.edukids3a.service.QuizResultService;
+import com.edukids.edukids3a.service.QuizService;
+import com.edukids.edukids3a.ui.QuizBackOfficeView;
 import tn.esprit.MainFX;
+import tn.esprit.controllers.admin.CourseFormController;
+import tn.esprit.controllers.admin.CourseSuccessController;
+import tn.esprit.controllers.admin.LessonFormController;
+import tn.esprit.controllers.admin.LessonSuccessController;
+import tn.esprit.models.Course;
+import tn.esprit.models.Lesson;
 
 import java.net.URL;
 import java.util.List;
@@ -22,21 +38,38 @@ import java.util.ResourceBundle;
 
 public class DashboardController implements Initializable {
 
+    private static DashboardController instance;
+
     // --- Sidebar ---
     @FXML private Label currentUserLabel;
     @FXML private Button dashboardButton;
     @FXML private Button allUsersButton;
+    @FXML private Button coursButton;
     @FXML private VBox userSubmenuBox;
+    @FXML private VBox courseSubmenuBox;
+    @FXML private VBox quizSubmenuBox;
     @FXML private Button adminsButton;
     @FXML private Button studentsButton;
     @FXML private Button parentsButton;
+    @FXML private Button createCourseButton;
+    @FXML private Button lessonsButton;
+    @FXML private Button createLessonButton;
+    @FXML private Button quizButton;
+    @FXML private Button quizListButton;
+    @FXML private Button quizFormButton;
+    @FXML private Button quizQuestionsButton;
+    @FXML private Button quizQuestionFormButton;
+    @FXML private Button quizStatsButton;
     @FXML private HBox rootPane;
     @FXML private Label topbarRoleLabel;
     @FXML private Label topbarNameLabel;
     @FXML private Label topbarAvatarLabel;
+    @FXML private Label topbarKickerLabel;
+    @FXML private Label topbarTitleLabel;
 
     // --- Main content area ---
     @FXML private StackPane contentArea;
+    @FXML private StackPane moduleView;
 
     // --- Dashboard View ---
     @FXML private VBox dashboardView;
@@ -74,9 +107,12 @@ public class DashboardController implements Initializable {
     private User selectedUser;
     private boolean isCreateMode = false;
     private Role currentRoleFilter = null; // null = all users
+    private BorderPane quizBackOfficeRoot;
+    private QuizBackOfficeView quizBackOfficeView;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        instance = this;
         User current = SessionManager.getCurrentUser();
         if (current != null) {
             currentUserLabel.setText(current.getFullName());
@@ -101,7 +137,11 @@ public class DashboardController implements Initializable {
         userManagementView.setVisible(false);
         userManagementView.setManaged(false);
         showUserSubmenu(false);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
 
         setActiveNavigation(dashboardButton);
         loadDashboardStats();
@@ -110,13 +150,29 @@ public class DashboardController implements Initializable {
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
     }
 
+    public static DashboardController getInstance() {
+        return instance;
+    }
+
+    public boolean isAttachedToShowingWindow() {
+        return rootPane != null
+                && rootPane.getScene() != null
+                && rootPane.getScene().getWindow() != null
+                && rootPane.getScene().getWindow().isShowing();
+    }
+
     // ======================== SIDEBAR NAV ========================
 
     @FXML
     private void handleDashboardNav() {
         showUserSubmenu(false);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
         setActiveNavigation(dashboardButton);
+        setTopbarContext("Users space", "Dashboard");
         showView("dashboard");
         loadDashboardStats();
     }
@@ -127,8 +183,13 @@ public class DashboardController implements Initializable {
         userMgmtTitle.setText("Users Management");
         roleFilterCombo.setValue("All Roles");
         showUserSubmenu(true);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
         setActiveNavigation(allUsersButton);
+        setTopbarContext("Users space", "All Users");
         showView("users");
         applyFilters();
     }
@@ -139,8 +200,13 @@ public class DashboardController implements Initializable {
         userMgmtTitle.setText("Admins Management");
         roleFilterCombo.setValue("Admin");
         showUserSubmenu(true);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(adminsButton);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
         setActiveNavigation(allUsersButton);
+        setTopbarContext("Users space", "Admins");
         showView("users");
         applyFilters();
     }
@@ -151,8 +217,13 @@ public class DashboardController implements Initializable {
         userMgmtTitle.setText("Students Management");
         roleFilterCombo.setValue("Student (Eleve)");
         showUserSubmenu(true);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(studentsButton);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
         setActiveNavigation(allUsersButton);
+        setTopbarContext("Users space", "Students");
         showView("users");
         applyFilters();
     }
@@ -163,39 +234,162 @@ public class DashboardController implements Initializable {
         userMgmtTitle.setText("Parents Management");
         roleFilterCombo.setValue("Parent");
         showUserSubmenu(true);
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         setActiveUserFilter(parentsButton);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(null);
         setActiveNavigation(allUsersButton);
+        setTopbarContext("Users space", "Parents");
         showView("users");
         applyFilters();
     }
 
     @FXML
     private void handleCoursNav() {
-        try {
-            MainFX.getInstance().showAdminCourses();
-        } catch (Exception exception) {
-            showAlert(Alert.AlertType.ERROR, "Navigation", "Unable to open the courses module.");
-            exception.printStackTrace();
-        }
+        showCourses();
+    }
+
+    @FXML
+    private void handleCreateCourseNav() {
+        showCreateCourse();
+    }
+
+    @FXML
+    private void handleLessonsNav() {
+        showLessons();
+    }
+
+    @FXML
+    private void handleCreateLessonNav() {
+        showCreateLesson(null);
     }
 
     @FXML
     private void handleEventsNav() {
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         // TODO: Navigate to Events management
     }
 
     @FXML
     private void handleProduitsNav() {
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         // TODO: Navigate to Produits management
     }
 
     @FXML
     private void handleChatNav() {
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         // TODO: Navigate to Chat management
     }
 
     @FXML
+    private void handleQuizNav() {
+        showQuizList();
+    }
+
+    @FXML
+    private void handleQuizListNav() {
+        showQuizList();
+    }
+
+    @FXML
+    private void handleQuizFormNav() {
+        showQuizForm();
+    }
+
+    @FXML
+    private void handleQuizQuestionsNav() {
+        showQuizQuestions();
+    }
+
+    @FXML
+    private void handleQuizQuestionFormNav() {
+        showQuizQuestionForm();
+    }
+
+    @FXML
+    private void handleQuizStatsNav() {
+        showQuizStats();
+    }
+
+    private QuizBackOfficeView openQuizModule(String kicker, String title, Button activeSubButton) {
+        showUserSubmenu(false);
+        showCourseSubmenu(false);
+        showQuizSubmenu(true);
+        setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveQuizSubNavigation(activeSubButton);
+        setActiveNavigation(quizButton);
+        setTopbarContext(kicker, title);
+        showView("module");
+
+        if (quizBackOfficeRoot == null) {
+            try {
+                DatabaseManager.initialize();
+                QuizService quizService = new QuizService();
+                QuizController quizController = new QuizController(quizService);
+                QuestionController questionController = new QuestionController(new QuestionService(quizService));
+                QuizResultController quizResultController = new QuizResultController(new QuizResultService());
+                quizBackOfficeView = new QuizBackOfficeView(
+                        quizController,
+                        questionController,
+                        quizResultController
+                );
+                quizBackOfficeRoot = quizBackOfficeView.buildDashboardEmbedded();
+            } catch (RuntimeException exception) {
+                showAlert(Alert.AlertType.ERROR, "Quiz", exception.getMessage());
+                exception.printStackTrace();
+                return null;
+            }
+        }
+
+        moduleView.getChildren().setAll(quizBackOfficeRoot);
+        return quizBackOfficeView;
+    }
+
+    public void showQuizList() {
+        QuizBackOfficeView quizView = openQuizModule("Quiz space", "Liste des quiz", quizListButton);
+        if (quizView != null) {
+            quizView.showQuizList();
+        }
+    }
+
+    public void showQuizForm() {
+        QuizBackOfficeView quizView = openQuizModule("Quiz editor", "Creer un quiz", quizFormButton);
+        if (quizView != null) {
+            quizView.showQuizForm();
+        }
+    }
+
+    public void showQuizQuestions() {
+        QuizBackOfficeView quizView = openQuizModule("Quiz space", "Questions", quizQuestionsButton);
+        if (quizView != null) {
+            quizView.showQuestionList();
+        }
+    }
+
+    public void showQuizQuestionForm() {
+        QuizBackOfficeView quizView = openQuizModule("Question editor", "Creer une question", quizQuestionFormButton);
+        if (quizView != null) {
+            quizView.showQuestionForm();
+        }
+    }
+
+    public void showQuizStats() {
+        QuizBackOfficeView quizView = openQuizModule("Quiz analytics", "Statistiques", quizStatsButton);
+        if (quizView != null) {
+            quizView.showStatisticsPage();
+        }
+    }
+
+    @FXML
     private void handleProfileNav() {
+        showCourseSubmenu(false);
+        showQuizSubmenu(false);
         Navigator.navigateTo("profile.fxml", Navigator.getStageFromNode(rootPane));
     }
 
@@ -219,6 +413,99 @@ public class DashboardController implements Initializable {
         userManagementView.setManaged("users".equals(view));
         editFormPane.setVisible(false);
         editFormPane.setManaged(false);
+        moduleView.setVisible("module".equals(view));
+        moduleView.setManaged("module".equals(view));
+    }
+
+    public void showCourses() {
+        setModuleContext("Course space", "Cours");
+        setActiveCourseSubNavigation(null);
+        loadModuleView("/tn/esprit/fxml/admin/courses.fxml", null);
+    }
+
+    public void showCreateCourse() {
+        setModuleContext("Course editor", "Create Course");
+        setActiveCourseSubNavigation(createCourseButton);
+        loadModuleView("/tn/esprit/fxml/admin/course-form.fxml", loader -> {
+            CourseFormController controller = loader.getController();
+            controller.initForCreate();
+        });
+    }
+
+    public void showEditCourse(Course course) {
+        setModuleContext("Course editor", "Edit Course");
+        setActiveCourseSubNavigation(createCourseButton);
+        loadModuleView("/tn/esprit/fxml/admin/course-form.fxml", loader -> {
+            CourseFormController controller = loader.getController();
+            controller.initForEdit(course);
+        });
+    }
+
+    public void showCourseSuccess(Course course, boolean updated) {
+        setModuleContext("Course result", "Course saved");
+        setActiveCourseSubNavigation(null);
+        loadModuleView("/tn/esprit/fxml/admin/course-success.fxml", loader -> {
+            CourseSuccessController controller = loader.getController();
+            controller.setResult(course, updated);
+        });
+    }
+
+    public void showLessons() {
+        setModuleContext("Lesson space", "Lessons");
+        setActiveCourseSubNavigation(lessonsButton);
+        loadModuleView("/tn/esprit/fxml/admin/lessons.fxml", null);
+    }
+
+    public void showCreateLesson(Course preselectedCourse) {
+        setModuleContext("Lesson editor", "Create Lesson");
+        setActiveCourseSubNavigation(createLessonButton);
+        loadModuleView("/tn/esprit/fxml/admin/lesson-form.fxml", loader -> {
+            LessonFormController controller = loader.getController();
+            controller.initForCreate(preselectedCourse);
+        });
+    }
+
+    public void showEditLesson(Lesson lesson) {
+        setModuleContext("Lesson editor", "Edit Lesson");
+        setActiveCourseSubNavigation(createLessonButton);
+        loadModuleView("/tn/esprit/fxml/admin/lesson-form.fxml", loader -> {
+            LessonFormController controller = loader.getController();
+            controller.initForEdit(lesson);
+        });
+    }
+
+    public void showLessonSuccess(Lesson lesson, boolean updated) {
+        setModuleContext("Lesson result", "Lesson saved");
+        setActiveCourseSubNavigation(lessonsButton);
+        loadModuleView("/tn/esprit/fxml/admin/lesson-success.fxml", loader -> {
+            LessonSuccessController controller = loader.getController();
+            controller.setResult(lesson, updated);
+        });
+    }
+
+    private void setModuleContext(String kicker, String title) {
+        showUserSubmenu(false);
+        showCourseSubmenu(true);
+        showQuizSubmenu(false);
+        setActiveUserFilter(null);
+        setActiveQuizSubNavigation(null);
+        setActiveNavigation(coursButton);
+        setTopbarContext(kicker, title);
+        showView("module");
+    }
+
+    private void loadModuleView(String fxmlPath, LoaderCallback callback) {
+        try {
+            FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(fxmlPath));
+            Parent view = loader.load();
+            if (callback != null) {
+                callback.accept(loader);
+            }
+            moduleView.getChildren().setAll(view);
+        } catch (Exception exception) {
+            showAlert(Alert.AlertType.ERROR, "Navigation", "Unable to open the requested module.");
+            exception.printStackTrace();
+        }
     }
 
     // ======================== DASHBOARD ========================
@@ -573,7 +860,9 @@ public class DashboardController implements Initializable {
     private void setActiveNavigation(Button activeButton) {
         List<Button> buttons = List.of(
                 dashboardButton,
-                allUsersButton
+                allUsersButton,
+                coursButton,
+                quizButton
         );
 
         for (Button button : buttons) {
@@ -601,9 +890,63 @@ public class DashboardController implements Initializable {
         }
     }
 
+    private void setActiveCourseSubNavigation(Button activeButton) {
+        List<Button> buttons = List.of(
+                createCourseButton,
+                lessonsButton,
+                createLessonButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-sub-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-sub-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-sub-button-active");
+        }
+    }
+
+    private void setActiveQuizSubNavigation(Button activeButton) {
+        List<Button> buttons = List.of(
+                quizListButton,
+                quizFormButton,
+                quizQuestionsButton,
+                quizQuestionFormButton,
+                quizStatsButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-sub-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-sub-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-sub-button-active");
+        }
+    }
+
     private void showUserSubmenu(boolean visible) {
         userSubmenuBox.setVisible(visible);
         userSubmenuBox.setManaged(visible);
+    }
+
+    private void showCourseSubmenu(boolean visible) {
+        courseSubmenuBox.setVisible(visible);
+        courseSubmenuBox.setManaged(visible);
+    }
+
+    private void showQuizSubmenu(boolean visible) {
+        quizSubmenuBox.setVisible(visible);
+        quizSubmenuBox.setManaged(visible);
+    }
+
+    private void setTopbarContext(String kicker, String title) {
+        topbarKickerLabel.setText(kicker);
+        topbarTitleLabel.setText(title);
+    }
+
+    @FunctionalInterface
+    private interface LoaderCallback {
+        void accept(FXMLLoader loader);
     }
 
     private String buildInitials(User user) {

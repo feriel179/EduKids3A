@@ -89,6 +89,8 @@
                                                 <children>
                                                     <Label fx:id="studioStatusLabel" styleClass="student-exercise-status" text="Start by drawing or writing the answer." wrapText="true" />
                                                     <Region HBox.hgrow="ALWAYS" />
+                                                    <Button fx:id="askAiButton" mnemonicParsing="false" onAction="#handleAskAi" styleClass="student-lesson-action-button,student-lesson-action-ai" text="Ask AI" />
+                                                    <Button fx:id="reviewAnswerButton" mnemonicParsing="false" onAction="#handleReviewAnswer" styleClass="student-lesson-action-button,student-lesson-action-review" text="AI Review" />
                                                     <Button fx:id="clearDrawingButton" mnemonicParsing="false" onAction="#handleClearDrawing" styleClass="ghost-button" text="Clear Drawing" />
                                                     <Button mnemonicParsing="false" onAction="#handleSaveExercise" styleClass="primary-button" text="Save Exercise" />
                                                 </children>

@@ -46,7 +46,7 @@ public class RegisterController implements Initializable {
         // Bind password fields
         passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
 
-        roleComboBox.getItems().addAll("Student (Eleve)", "Parent");
+        roleComboBox.getItems().addAll("Admin", "Student (Eleve)", "Parent");
         roleComboBox.setValue("Student (Eleve)");
     }
 
@@ -101,7 +101,12 @@ public class RegisterController implements Initializable {
             return;
         }
 
-        Role selectedRole = roleComboBox.getValue().contains("Eleve") ? Role.ROLE_ELEVE : Role.ROLE_PARENT;
+        String selectedRoleValue = roleComboBox.getValue();
+        Role selectedRole = switch (selectedRoleValue) {
+            case "Admin" -> Role.ROLE_ADMIN;
+            case "Parent" -> Role.ROLE_PARENT;
+            default -> Role.ROLE_ELEVE;
+        };
         User user = new User(email, password, firstName, lastName, List.of(selectedRole));
         user.setActive(true);
         user.setVerified(false);

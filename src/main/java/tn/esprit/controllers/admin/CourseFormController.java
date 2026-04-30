@@ -176,11 +176,14 @@ public class CourseFormController {
 
             String actionLabel = editMode ? "Course updated" : "Course added";
             String successMessage = "The course \"" + course.getTitle() + "\" was saved successfully.";
-            if (!notificationResult.message().isBlank()) {
+            if (notificationResult.success() && !notificationResult.message().isBlank()) {
                 successMessage += System.lineSeparator() + System.lineSeparator() + notificationResult.message();
             }
             SweetAlert.success(actionLabel, successMessage);
-            AdminShellController.getInstance().showCourses();
+            if (notificationResult.attempted() && !notificationResult.success() && !notificationResult.message().isBlank()) {
+                SweetAlert.warning("SMS not sent", notificationResult.message());
+            }
+            AdminModuleNavigator.showCourses();
         } catch (RuntimeException exception) {
             SweetAlert.error("Database Error", exception.getMessage());
         }
@@ -188,7 +191,7 @@ public class CourseFormController {
 
     @FXML
     private void handleCancel() {
-        AdminShellController.getInstance().showCourses();
+        AdminModuleNavigator.showCourses();
     }
 
     @FXML

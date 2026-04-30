@@ -24,6 +24,8 @@
 
 <HBox fx:id="rootPane" prefHeight="820.0" prefWidth="1380.0" styleClass="admin-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.controllers.DashboardController">
     <children>
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxWidth="320.0" minWidth="320.0" prefWidth="320.0" styleClass="admin-sidebar-scroll,scroll-pane-transparent">
+            <content>
         <VBox maxWidth="320.0" minWidth="320.0" prefWidth="320.0" styleClass="admin-sidebar">
             <padding>
                 <Insets bottom="24.0" left="22.0" right="22.0" top="22.0" />
@@ -63,10 +65,27 @@
 
                 <Label styleClass="sidebar-section" text="Modules" />
 
-                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCoursNav" styleClass="shell-nav-button" text="Cours" />
-                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
-                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Produits" />
-                <Button alignment="CENTER_LEFT" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Chat" />
+                <Button fx:id="coursButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCoursNav" styleClass="shell-nav-button" text="Cours" />
+                <VBox fx:id="courseSubmenuBox" managed="false" spacing="6.0" visible="false">
+                    <children>
+                        <Button fx:id="createCourseButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateCourseNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Create Course" />
+                        <Button fx:id="lessonsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLessonsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Lessons" />
+                        <Button fx:id="createLessonButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateLessonNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Create Lesson" />
+                    </children>
+                </VBox>
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Produits" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Chat" />
+                <Button fx:id="quizButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizNav" styleClass="shell-nav-button" text="Quiz" />
+                <VBox fx:id="quizSubmenuBox" managed="false" spacing="6.0" visible="false">
+                    <children>
+                        <Button fx:id="quizListButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizListNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Liste des quiz" />
+                        <Button fx:id="quizFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer un quiz" />
+                        <Button fx:id="quizQuestionsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizQuestionsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Questions" />
+                        <Button fx:id="quizQuestionFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizQuestionFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer une question" />
+                        <Button fx:id="quizStatsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizStatsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Statistiques" />
+                    </children>
+                </VBox>
 
                 <VBox VBox.vgrow="ALWAYS" />
 
@@ -91,6 +110,8 @@
                 <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLogout" styleClass="shell-logout-button" text="Sign Out" />
             </children>
         </VBox>
+            </content>
+        </ScrollPane>
 
         <VBox minWidth="0.0" styleClass="admin-main" HBox.hgrow="ALWAYS">
             <padding>
@@ -104,8 +125,8 @@
                     <children>
                         <VBox spacing="4.0">
                             <children>
-                                <Label styleClass="topbar-kicker" text="Users space" />
-                                <Label styleClass="topbar-title" text="Dashboard" />
+                                <Label fx:id="topbarKickerLabel" styleClass="topbar-kicker" text="Users space" />
+                                <Label fx:id="topbarTitleLabel" styleClass="topbar-title" text="Dashboard" />
                             </children>
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
@@ -348,9 +369,10 @@
                                             </children>
                                         </HBox>
                                     </children>
-                                </VBox>
-                            </children>
-                        </StackPane>
+	                                </VBox>
+                                <StackPane fx:id="moduleView" managed="false" visible="false" />
+	                            </children>
+	                        </StackPane>
                     </content>
                 </ScrollPane>
             </children>

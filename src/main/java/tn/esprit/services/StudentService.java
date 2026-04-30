@@ -23,6 +23,10 @@ public class StudentService {
     private static Student currentStudent;
     private final Connection cnx = MyConnection.getInstance().getCnx();
 
+    public static void clearCurrentStudent() {
+        currentStudent = null;
+    }
+
     public Student loginOrCreateStudent(String identifier) {
         return loginOrCreateStudent(identifier, null, null);
     }

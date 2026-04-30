@@ -34,11 +34,11 @@ public class CourseSuccessController {
 
     @FXML
     private void handleBackToCourses() {
-        AdminShellController.getInstance().showCourses();
+        AdminModuleNavigator.showCourses();
     }
 
     @FXML
     private void handleCreateAnother() {
-        AdminShellController.getInstance().showCreateCourse();
+        AdminModuleNavigator.showCreateCourse();
     }
 }

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Arc?>
+<?import javafx.scene.shape.ArcType?>
+<?import javafx.scene.shape.Circle?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.MyCourseController">
     <children>
@@ -33,24 +39,93 @@
                 </HBox>
                 <HBox spacing="16.0" styleClass="my-course-stats-row">
                     <children>
-                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card my-course-stat-primary">
+                        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="12.0">
+                            <styleClass>
+                                <String fx:value="my-course-stat-card" />
+                                <String fx:value="my-course-stat-primary" />
+                            </styleClass>
                             <children>
+                                <StackPane styleClass="my-course-ring-shell">
+                                    <children>
+                                        <Pane maxHeight="108.0" maxWidth="108.0" minHeight="108.0" minWidth="108.0" mouseTransparent="true" pickOnBounds="false" prefHeight="108.0" prefWidth="108.0">
+                                            <children>
+                                                <Circle centerX="54.0" centerY="54.0" fill="TRANSPARENT" radius="44.0" strokeWidth="10.0" styleClass="my-course-ring-track" />
+                                                <Arc fx:id="coursesReadArc" centerX="54.0" centerY="54.0" fill="TRANSPARENT" length="0.0" radiusX="44.0" radiusY="44.0" startAngle="90.0" strokeLineCap="ROUND" strokeWidth="10.0" type="OPEN">
+                                                    <styleClass>
+                                                        <String fx:value="my-course-ring-arc" />
+                                                        <String fx:value="my-course-ring-arc-blue" />
+                                                    </styleClass>
+                                                </Arc>
+                                            </children>
+                                        </Pane>
+                                        <VBox alignment="CENTER" spacing="2.0">
+                                            <children>
+                                                <Label fx:id="coursesReadPercentLabel" text="0%">
+                                                    <styleClass>
+                                                        <String fx:value="my-course-ring-value" />
+                                                        <String fx:value="my-course-ring-value-primary" />
+                                                    </styleClass>
+                                                </Label>
+                                                <Label styleClass="my-course-ring-hint" text="read" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </StackPane>
                                 <Label styleClass="my-course-stat-title" text="Courses Read" />
-                                <Label fx:id="coursesReadPercentLabel" styleClass="my-course-stat-value my-course-stat-value-primary" text="0%" />
                                 <Label fx:id="coursesReadMetaLabel" styleClass="my-course-stat-meta" text="0 of 0 courses read" wrapText="true" />
                             </children>
                         </VBox>
-                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card">
+                        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="12.0" styleClass="my-course-stat-card">
                             <children>
+                                <StackPane styleClass="my-course-ring-shell">
+                                    <children>
+                                        <Pane maxHeight="108.0" maxWidth="108.0" minHeight="108.0" minWidth="108.0" mouseTransparent="true" pickOnBounds="false" prefHeight="108.0" prefWidth="108.0">
+                                            <children>
+                                                <Circle centerX="54.0" centerY="54.0" fill="TRANSPARENT" radius="44.0" strokeWidth="10.0" styleClass="my-course-ring-track" />
+                                                <Arc fx:id="completedCoursesArc" centerX="54.0" centerY="54.0" fill="TRANSPARENT" length="0.0" radiusX="44.0" radiusY="44.0" startAngle="90.0" strokeLineCap="ROUND" strokeWidth="10.0" type="OPEN">
+                                                    <styleClass>
+                                                        <String fx:value="my-course-ring-arc" />
+                                                        <String fx:value="my-course-ring-arc-green" />
+                                                    </styleClass>
+                                                </Arc>
+                                            </children>
+                                        </Pane>
+                                        <VBox alignment="CENTER" spacing="2.0">
+                                            <children>
+                                                <Label fx:id="completedCoursesValueLabel" styleClass="my-course-ring-value" text="0/0" />
+                                                <Label styleClass="my-course-ring-hint" text="done" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </StackPane>
                                 <Label styleClass="my-course-stat-title" text="Completed" />
-                                <Label fx:id="completedCoursesValueLabel" styleClass="my-course-stat-value" text="0/0" />
                                 <Label fx:id="completedCoursesMetaLabel" styleClass="my-course-stat-meta" text="courses completed" wrapText="true" />
                             </children>
                         </VBox>
-                        <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="my-course-stat-card">
+                        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="12.0" styleClass="my-course-stat-card">
                             <children>
+                                <StackPane styleClass="my-course-ring-shell">
+                                    <children>
+                                        <Pane maxHeight="108.0" maxWidth="108.0" minHeight="108.0" minWidth="108.0" mouseTransparent="true" pickOnBounds="false" prefHeight="108.0" prefWidth="108.0">
+                                            <children>
+                                                <Circle centerX="54.0" centerY="54.0" fill="TRANSPARENT" radius="44.0" strokeWidth="10.0" styleClass="my-course-ring-track" />
+                                                <Arc fx:id="remainingCoursesArc" centerX="54.0" centerY="54.0" fill="TRANSPARENT" length="0.0" radiusX="44.0" radiusY="44.0" startAngle="90.0" strokeLineCap="ROUND" strokeWidth="10.0" type="OPEN">
+                                                    <styleClass>
+                                                        <String fx:value="my-course-ring-arc" />
+                                                        <String fx:value="my-course-ring-arc-gold" />
+                                                    </styleClass>
+                                                </Arc>
+                                            </children>
+                                        </Pane>
+                                        <VBox alignment="CENTER" spacing="2.0">
+                                            <children>
+                                                <Label fx:id="remainingCoursesValueLabel" styleClass="my-course-ring-value" text="0" />
+                                                <Label styleClass="my-course-ring-hint" text="left" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </StackPane>
                                 <Label styleClass="my-course-stat-title" text="Remaining" />
-                                <Label fx:id="remainingCoursesValueLabel" styleClass="my-course-stat-value" text="0" />
                                 <Label fx:id="remainingCoursesMetaLabel" styleClass="my-course-stat-meta" text="courses left" wrapText="true" />
                             </children>
                         </VBox>

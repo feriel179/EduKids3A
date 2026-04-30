@@ -1,5 +1,13 @@
 package tn.esprit.controllers.student;
 
+import com.edukids.edukids3a.controller.QuestionController;
+import com.edukids.edukids3a.controller.QuizController;
+import com.edukids.edukids3a.controller.QuizResultController;
+import com.edukids.edukids3a.persistence.DatabaseManager;
+import com.edukids.edukids3a.service.QuestionService;
+import com.edukids.edukids3a.service.QuizResultService;
+import com.edukids.edukids3a.service.QuizService;
+import com.edukids.edukids3a.ui.QuizBackOfficeView;
 import tn.esprit.MainFX;
 import tn.esprit.models.Course;
 import tn.esprit.models.Lesson;
@@ -8,27 +16,37 @@ import tn.esprit.services.StudentService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 
-import java.io.IOException;
-
 public class StudentShellController {
+
     private static StudentShellController instance;
 
     @FXML
     private StackPane contentPane;
+
     @FXML
     private Button catalogButton;
+
     @FXML
     private Button myCoursesButton;
+
+    @FXML
+    private Button quizButton;
+
     @FXML
     private Button profileButton;
+
     @FXML
     private Label studentNameLabel;
+
     @FXML
     private Label studentEmailLabel;
+
     @FXML
     private Label studentAvatarLabel;
 
@@ -64,11 +82,38 @@ public class StudentShellController {
     }
 
     @FXML
+    public void showQuiz() {
+        try {
+            DatabaseManager.initialize();
+            QuizService quizService = new QuizService();
+            QuizController quizController = new QuizController(quizService);
+            QuestionController questionController = new QuestionController(new QuestionService(quizService));
+            QuizResultController quizResultController = new QuizResultController(new QuizResultService());
+            BorderPane quizRoot = new QuizBackOfficeView(
+                    quizController,
+                    questionController,
+                    quizResultController
+            ).buildStudent();
+
+            contentPane.getChildren().setAll(quizRoot);
+            setActiveNavigation(quizButton);
+        } catch (RuntimeException exception) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Quiz");
+            alert.setHeaderText("Impossible d'ouvrir les quiz");
+            alert.setContentText(exception.getMessage());
+            alert.showAndWait();
+            exception.printStackTrace();
+        }
+    }
+
+    // 🔥 CORRECTION ICI
+    @FXML
     private void handleLogout() {
         try {
             MainFX.getInstance().showLoginView();
-        } catch (IOException exception) {
-            exception.printStackTrace();
+        } catch (Exception e) {   // ✅ FIX
+            e.printStackTrace();
         }
     }
 
@@ -88,21 +133,26 @@ public class StudentShellController {
         setActiveNavigation(catalogButton);
     }
 
+    // 🔥 BONUS FIX
     private void loadCenterView(String fxmlPath, LoaderCallback callback) {
         try {
             FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(fxmlPath));
             Parent view = loader.load();
+
             if (callback != null) {
                 callback.accept(loader);
             }
+
             contentPane.getChildren().setAll(view);
-        } catch (IOException exception) {
-            exception.printStackTrace();
+
+        } catch (Exception e) {  // ✅ FIX
+            e.printStackTrace();
         }
     }
 
     private void populateStudentHeader() {
         Student student = studentService.getCurrentStudent();
+
         if (student == null) {
             studentNameLabel.setText("EduKids Learner");
             studentEmailLabel.setText("student@edukids.local");
@@ -121,13 +171,15 @@ public class StudentShellController {
 
     private void setActiveNavigation(Button activeButton) {
         clearNavigationState();
+
         if (activeButton != null && !activeButton.getStyleClass().contains("student-nav-button-active")) {
             activeButton.getStyleClass().add("student-nav-button-active");
         }
     }
 
     private void clearNavigationState() {
-        Button[] buttons = {catalogButton, myCoursesButton, profileButton};
+        Button[] buttons = {catalogButton, myCoursesButton, quizButton, profileButton};
+
         for (Button button : buttons) {
             if (button != null) {
                 button.getStyleClass().remove("student-nav-button-active");
@@ -137,16 +189,19 @@ public class StudentShellController {
 
     private String buildInitials(String name, String email) {
         String source = name != null && !name.isBlank() ? name : email;
+
         if (source == null || source.isBlank()) {
             return "ST";
         }
 
         String[] parts = source.trim().split("\\s+");
+
         if (parts.length >= 2) {
             return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
         }
 
         String clean = source.replaceAll("[^A-Za-z0-9]", "");
+
         if (clean.length() >= 2) {
             return clean.substring(0, 2).toUpperCase();
         }

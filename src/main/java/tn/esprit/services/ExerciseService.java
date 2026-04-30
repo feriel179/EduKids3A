@@ -183,7 +183,7 @@ public class ExerciseService {
         String courseTitle = course == null ? "this course" : safeText(course.getTitle(), "this course");
         String courseDescription = course == null ? "" : safeText(course.getDescription(), "");
         String subjectKey = normalizeKey(course == null ? "" : course.getSubject());
-        boolean drawingEnabled = age >= 8 && age <= 10;
+        boolean drawingEnabled = true;
 
         try {
             LocalAiContentService.GeneratedExerciseQuestions generatedQuestions = localAiContentService.generateExerciseQuestions(
@@ -367,12 +367,7 @@ public class ExerciseService {
     }
 
     private boolean isDrawingEnabledForCurrentStudent() {
-        Student student = studentService.getCurrentStudent();
-        if (student == null) {
-            return false;
-        }
-        int age = student.getAge();
-        return age >= 8 && age <= 10;
+        return true;
     }
 
     private String normalizeKey(String value) {

@@ -9,13 +9,14 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-import java.io.IOException;
-
 public class LoginController {
+
     @FXML
     private ComboBox<String> roleComboBox;
+
     @FXML
     private TextField studentNameField;
+
     @FXML
     private Label studentNameLabel;
 
@@ -25,38 +26,54 @@ public class LoginController {
     private void initialize() {
         roleComboBox.getItems().addAll("Admin", "Student");
         roleComboBox.setValue("Student");
+
         toggleStudentFields();
-        roleComboBox.valueProperty().addListener((obs, oldValue, newValue) -> toggleStudentFields());
+
+        roleComboBox.valueProperty().addListener(
+                (obs, oldValue, newValue) -> toggleStudentFields()
+        );
     }
 
     @FXML
     private void handleLogin() {
         String role = roleComboBox.getValue();
+
         try {
+            // 🔥 ADMIN
             if ("Admin".equals(role)) {
                 MainFX.getInstance().showAdminShell();
                 return;
             }
 
+            // 🔥 STUDENT
             String identifier = studentNameField.getText();
+
             if (identifier == null || identifier.isBlank()) {
-                showAlert(Alert.AlertType.WARNING, "Validation", "Please enter a student name or email.");
+                showAlert(Alert.AlertType.WARNING,
+                        "Validation",
+                        "Please enter a student name or email.");
                 return;
             }
 
             Student student = studentService.loginOrCreateStudent(identifier);
+
             MainFX.getInstance().showStudentShell(student);
-        } catch (IOException exception) {
-            showAlert(Alert.AlertType.ERROR, "Navigation Error", exception.getMessage());
-        } catch (RuntimeException exception) {
-            showAlert(Alert.AlertType.ERROR, "Database Error", exception.getMessage());
+
+        } catch (Exception exception) { // 🔥 CORRECTION ICI
+            showAlert(Alert.AlertType.ERROR,
+                    "Error",
+                    exception.getMessage());
+
+            exception.printStackTrace();
         }
     }
 
     private void toggleStudentFields() {
         boolean studentMode = "Student".equals(roleComboBox.getValue());
+
         studentNameField.setVisible(studentMode);
         studentNameField.setManaged(studentMode);
+
         studentNameLabel.setVisible(studentMode);
         studentNameLabel.setManaged(studentMode);
     }

@@ -98,7 +98,7 @@ public class CourseController {
 
     @FXML
     private void handleCreateCourse() {
-        AdminShellController.getInstance().showCreateCourse();
+        AdminModuleNavigator.showCreateCourse();
     }
 
     @FXML
@@ -108,7 +108,7 @@ public class CourseController {
             SweetAlert.warning("No Selection", "Please select a course to edit.");
             return;
         }
-        AdminShellController.getInstance().showEditCourse(course);
+        AdminModuleNavigator.showEditCourse(course);
     }
 
     @FXML

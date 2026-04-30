@@ -115,7 +115,7 @@ public class LessonController {
 
     @FXML
     private void handleCreateLesson() {
-        AdminShellController.getInstance().showCreateLesson(courseComboBox.getValue());
+        AdminModuleNavigator.showCreateLesson(courseComboBox.getValue());
     }
 
     @FXML
@@ -125,7 +125,7 @@ public class LessonController {
             SweetAlert.warning("No Selection", "Please select a lesson to edit.");
             return;
         }
-        AdminShellController.getInstance().showEditLesson(lesson);
+        AdminModuleNavigator.showEditLesson(lesson);
     }
 
     @FXML

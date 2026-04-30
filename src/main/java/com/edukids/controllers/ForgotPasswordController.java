@@ -1,6 +1,7 @@
 package com.edukids.controllers;
 
 import com.edukids.services.UserService;
+import com.edukids.utils.EmailService;
 import com.edukids.utils.Navigator;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -53,11 +54,14 @@ public class ForgotPasswordController implements Initializable {
         generatedOtp = String.valueOf(100000 + new Random().nextInt(900000));
         verifiedEmail = email;
 
-        // TODO: Send email via SendGrid
-        // For now, show OTP in console for development
-        System.out.println("OTP for " + email + ": " + generatedOtp);
+        boolean sent = EmailService.sendOTP(email, generatedOtp);
+        if (!sent) {
+            System.out.println("OTP for " + email + ": " + generatedOtp);
+            showError("Email service is not configured. Development OTP was printed in console.");
+        } else {
+            showSuccess("Verification code sent to your email.");
+        }
 
-        showSuccess("Verification code sent to your email.");
         otpField.setVisible(true);
         otpField.setManaged(true);
         verifyBtn.setVisible(true);

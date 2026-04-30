@@ -157,7 +157,7 @@ public class LessonFormController {
 
             String actionLabel = editMode ? "Lesson updated" : "Lesson added";
             SweetAlert.success(actionLabel, "The lesson \"" + lesson.getTitle() + "\" was saved successfully.");
-            AdminShellController.getInstance().showLessons();
+            AdminModuleNavigator.showLessons();
         } catch (RuntimeException exception) {
             SweetAlert.error("Database Error", exception.getMessage());
         }
@@ -165,7 +165,7 @@ public class LessonFormController {
 
     @FXML
     private void handleCancel() {
-        AdminShellController.getInstance().showLessons();
+        AdminModuleNavigator.showLessons();
     }
 
     @FXML

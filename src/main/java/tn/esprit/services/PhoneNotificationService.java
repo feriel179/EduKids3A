@@ -60,7 +60,7 @@ public class PhoneNotificationService {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                 if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                    return NotificationResult.failed("Phone notification not sent: Twilio returned HTTP " + response.statusCode() + ".");
+                    return NotificationResult.failed("Phone notification not sent: " + formatTwilioError(response));
                 }
                 sentCount++;
             } catch (InterruptedException exception) {
@@ -72,9 +72,78 @@ public class PhoneNotificationService {
         }
 
         String successMessage = sentCount == 1
-                ? "Phone notification sent to " + maskPhone(recipients.getFirst()) + "."
+                ? "Phone notification sent to " + maskPhone(recipients.get(0)) + "."
                 : "Phone notification sent to " + sentCount + " recipients.";
         return NotificationResult.sent(successMessage);
+    }
+
+    private String formatTwilioError(HttpResponse<String> response) {
+        String responseBody = safeText(response.body(), "");
+        String message = extractJsonField(responseBody, "message");
+        String code = extractJsonField(responseBody, "code");
+
+        if (!message.isBlank()) {
+            return code.isBlank()
+                    ? "Twilio returned HTTP " + response.statusCode() + " - " + message
+                    : "Twilio returned HTTP " + response.statusCode() + " (code " + code + ") - " + message;
+        }
+
+        if (response.statusCode() == 401) {
+            return "Twilio returned HTTP 401 - check the Account SID and Auth Token.";
+        }
+
+        return "Twilio returned HTTP " + response.statusCode() + ".";
+    }
+
+    private String extractJsonField(String json, String fieldName) {
+        if (json == null || json.isBlank() || fieldName == null || fieldName.isBlank()) {
+            return "";
+        }
+
+        String marker = "\"" + fieldName + "\"";
+        int fieldIndex = json.indexOf(marker);
+        if (fieldIndex < 0) {
+            return "";
+        }
+
+        int colonIndex = json.indexOf(':', fieldIndex + marker.length());
+        if (colonIndex < 0) {
+            return "";
+        }
+
+        int valueStart = colonIndex + 1;
+        while (valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart))) {
+            valueStart++;
+        }
+
+        if (valueStart >= json.length()) {
+            return "";
+        }
+
+        if (json.charAt(valueStart) != '"') {
+            int valueEnd = valueStart;
+            while (valueEnd < json.length() && json.charAt(valueEnd) != ',' && json.charAt(valueEnd) != '}') {
+                valueEnd++;
+            }
+            return json.substring(valueStart, valueEnd).trim();
+        }
+
+        StringBuilder value = new StringBuilder();
+        boolean escaped = false;
+        for (int index = valueStart + 1; index < json.length(); index++) {
+            char current = json.charAt(index);
+            if (escaped) {
+                value.append(current);
+                escaped = false;
+            } else if (current == '\\') {
+                escaped = true;
+            } else if (current == '"') {
+                return value.toString().trim();
+            } else {
+                value.append(current);
+            }
+        }
+        return "";
     }
 
     public String describeStatus() {
@@ -89,7 +158,7 @@ public class PhoneNotificationService {
 
         List<String> recipients = readRecipients();
         if (recipients.size() == 1) {
-        return "SMS alerts ready for " + maskPhone(recipients.getFirst()) + " when a course is published.";
+        return "SMS alerts ready for " + maskPhone(recipients.get(0)) + " when a course is published.";
     }
         return "SMS alerts ready for " + recipients.size() + " recipients when a course is published.";
     }

@@ -17,7 +17,7 @@ public final class DatabaseInitializer {
                     CREATE TABLE IF NOT EXISTS cours (
                         id INT NOT NULL AUTO_INCREMENT,
                         titre VARCHAR(255) NOT NULL,
-                        description VARCHAR(255) NOT NULL,
+                        description TEXT NOT NULL,
                         niveau INT NOT NULL,
                         matiere VARCHAR(255) NOT NULL,
                         image VARCHAR(255) NOT NULL,
@@ -59,6 +59,8 @@ public final class DatabaseInitializer {
                         age INT DEFAULT NULL,
                         preferred_subject VARCHAR(255) DEFAULT NULL,
                         is_active TINYINT(1) NOT NULL,
+                        avatar VARCHAR(255) DEFAULT NULL,
+                        is_verified TINYINT(1) NOT NULL DEFAULT 0,
                         PRIMARY KEY (id),
                         UNIQUE KEY uniq_user_email (email)
                     )
@@ -125,11 +127,14 @@ public final class DatabaseInitializer {
             boolean courseStatusAdded = addColumnIfMissing(cnx, "cours", "status", "VARCHAR(20) NOT NULL DEFAULT 'DRAFT'");
             addColumnIfMissing(cnx, "cours", "lesson_count", "INT NOT NULL DEFAULT 0");
             addColumnIfMissing(cnx, "cours", "total_duration_minutes", "INT NOT NULL DEFAULT 0");
+            widenColumn(cnx, "cours", "description", "TEXT NOT NULL");
 
             boolean lessonStatusAdded = addColumnIfMissing(cnx, "lecon", "status", "VARCHAR(20) NOT NULL DEFAULT 'DRAFT'");
             addColumnIfMissing(cnx, "lecon", "duration_minutes", "INT NOT NULL DEFAULT 10");
             addColumnIfMissing(cnx, "user", "age", "INT DEFAULT NULL");
             addColumnIfMissing(cnx, "user", "preferred_subject", "VARCHAR(255) DEFAULT NULL");
+            addColumnIfMissing(cnx, "user", "avatar", "VARCHAR(255) DEFAULT NULL");
+            addColumnIfMissing(cnx, "user", "is_verified", "TINYINT(1) NOT NULL DEFAULT 0");
             addColumnIfMissing(cnx, "student_exercise_work", "drawing_path", "VARCHAR(512) DEFAULT NULL");
 
             if (courseStatusAdded) {
@@ -163,6 +168,16 @@ public final class DatabaseInitializer {
         DatabaseMetaData metaData = cnx.getMetaData();
         try (ResultSet resultSet = metaData.getColumns(cnx.getCatalog(), null, tableName, columnName)) {
             return resultSet.next();
+        }
+    }
+
+    private static void widenColumn(Connection cnx, String tableName, String columnName, String definition) throws SQLException {
+        if (!columnExists(cnx, tableName, columnName)) {
+            return;
+        }
+
+        try (Statement statement = cnx.createStatement()) {
+            statement.executeUpdate("ALTER TABLE " + tableName + " MODIFY COLUMN " + columnName + " " + definition);
         }
     }
 

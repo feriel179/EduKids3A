@@ -13,6 +13,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.Rectangle;
 import tn.esprit.models.Course;
 import tn.esprit.models.Student;
@@ -40,13 +41,19 @@ public class MyCourseController {
     @FXML
     private Label coursesReadMetaLabel;
     @FXML
+    private Arc coursesReadArc;
+    @FXML
     private Label completedCoursesValueLabel;
     @FXML
     private Label completedCoursesMetaLabel;
     @FXML
+    private Arc completedCoursesArc;
+    @FXML
     private Label remainingCoursesValueLabel;
     @FXML
     private Label remainingCoursesMetaLabel;
+    @FXML
+    private Arc remainingCoursesArc;
 
     private final StudentService studentService = new StudentService();
 
@@ -201,15 +208,30 @@ public class MyCourseController {
         long completedCourses = courses.stream().filter(this::isCourseCompleted).count();
         long remainingCourses = Math.max(0, totalCourses - completedCourses);
         int readPercent = totalCourses == 0 ? 0 : (int) Math.round((readCourses * 100.0) / totalCourses);
+        double readRatio = totalCourses == 0 ? 0.0 : readCourses / (double) totalCourses;
+        double completedRatio = totalCourses == 0 ? 0.0 : completedCourses / (double) totalCourses;
+        double remainingRatio = totalCourses == 0 ? 0.0 : remainingCourses / (double) totalCourses;
 
         coursesReadPercentLabel.setText(readPercent + "%");
         coursesReadMetaLabel.setText(readCourses + " of " + totalCourses + (totalCourses == 1 ? " course read" : " courses read"));
+        updateRing(coursesReadArc, readRatio);
 
         completedCoursesValueLabel.setText(completedCourses + "/" + totalCourses);
         completedCoursesMetaLabel.setText(totalCourses == 1 ? "course completed" : "courses completed");
+        updateRing(completedCoursesArc, completedRatio);
 
         remainingCoursesValueLabel.setText(String.valueOf(remainingCourses));
         remainingCoursesMetaLabel.setText(remainingCourses == 1 ? "course left" : "courses left");
+        updateRing(remainingCoursesArc, remainingRatio);
+    }
+
+    private void updateRing(Arc arc, double ratio) {
+        if (arc == null) {
+            return;
+        }
+
+        double normalizedRatio = Math.max(0.0, Math.min(1.0, ratio));
+        arc.setLength(-360.0 * normalizedRatio);
     }
 
     private boolean isCourseCompleted(Course course) {
