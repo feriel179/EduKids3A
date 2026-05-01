@@ -1,0 +1,284 @@
+.chat-dashboard-root {
+    -fx-background-color: linear-gradient(to bottom right, #0f172a, #111827 45%, #0b1220);
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.chat-dashboard-header {
+    -fx-background-color: rgba(255, 255, 255, 0.04);
+    -fx-background-radius: 22;
+    -fx-padding: 18 20 18 20;
+    -fx-border-color: rgba(125, 211, 252, 0.18);
+    -fx-border-radius: 22;
+    -fx-border-width: 1;
+}
+
+.chat-dashboard-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+}
+
+.chat-dashboard-subtitle {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+}
+
+.chat-dashboard-meta {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 12px;
+}
+
+.chat-dashboard-live-badge,
+.chat-dashboard-chip,
+.chat-dashboard-mini-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 6 12 6 12;
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #dbeafe;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.chat-dashboard-live-badge {
+    -fx-background-color: linear-gradient(to right, #22c55e, #10b981);
+    -fx-text-fill: white;
+}
+
+.chat-dashboard-period-bar {
+    -fx-padding: 4 2 2 2;
+}
+
+.chat-dashboard-period-label {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.chat-dashboard-period-button,
+.chat-dashboard-refresh-button {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 10 16 10 16;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.chat-dashboard-period-button {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-text-fill: #cbd5e1;
+    -fx-border-color: rgba(148, 163, 184, 0.20);
+}
+
+.chat-dashboard-period-button:selected,
+.chat-dashboard-period-button.selected {
+    -fx-background-color: linear-gradient(to right, #2563eb, #0ea5e9);
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+
+.chat-dashboard-refresh-button {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);
+    -fx-text-fill: white;
+}
+
+.chat-dashboard-kpi-card,
+.chat-dashboard-panel,
+.chat-dashboard-activity-card {
+    -fx-background-color: rgba(15, 23, 42, 0.70);
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-border-color: rgba(148, 163, 184, 0.15);
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.chat-dashboard-kpi-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 0.08em;
+}
+
+.chat-dashboard-kpi-value {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 30px;
+    -fx-font-weight: 800;
+}
+
+.chat-dashboard-kpi-row {
+    -fx-padding: 0 0 2 0;
+}
+
+.chat-dashboard-panel-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
+
+.chat-dashboard-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.chat-dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.chat-dashboard-body {
+    -fx-padding: 0 0 8 0;
+}
+
+.chat-dashboard-side-column {
+    -fx-pref-width: 330px;
+}
+
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 6;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: rgba(148, 163, 184, 0.16);
+}
+
+.axis-label, .axis {
+    -fx-tick-label-fill: #94a3b8;
+    -fx-text-fill: #94a3b8;
+}
+
+.chart-title {
+    -fx-text-fill: #f8fafc;
+}
+
+.pie-chart {
+    -fx-pie-inner-radius: 64%;
+}
+
+.default-color0.chart-pie {
+    -fx-pie-color: #38bdf8;
+}
+
+.default-color1.chart-pie {
+    -fx-pie-color: #1d4ed8;
+}
+
+.default-color0.chart-series-area-line,
+.default-color0.chart-line-symbol,
+.default-color0.chart-legend-item-symbol {
+    -fx-background-color: #38bdf8, white;
+}
+
+.default-color0.chart-series-area-fill {
+    -fx-fill: linear-gradient(to bottom, rgba(56, 189, 248, 0.55), rgba(56, 189, 248, 0.10));
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #38bdf8;
+    -fx-stroke-width: 2px;
+}
+
+.chat-dashboard-activity-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.chat-dashboard-activity-subtitle {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 12px;
+}
+
+.chat-dashboard-activity-timestamp {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+}
+
+.chat-dashboard-mini-badge-messages {
+    -fx-background-color: rgba(59, 130, 246, 0.25);
+}
+
+.chat-dashboard-mini-badge-pic {
+    -fx-background-color: rgba(249, 115, 22, 0.25);
+}
+
+.chat-dashboard-mini-badge-users {
+    -fx-background-color: rgba(34, 197, 94, 0.25);
+}
+
+.chat-dashboard-mini-badge-recent {
+    -fx-background-color: rgba(168, 85, 247, 0.25);
+}
+
+.chat-dashboard-mini-badge-info {
+    -fx-background-color: rgba(148, 163, 184, 0.20);
+}
+
+.chat-dashboard-empty {
+    -fx-text-fill: #94a3b8;
+    -fx-font-style: italic;
+}
+
+.chat-dashboard-table {
+    -fx-background-color: rgba(15, 23, 42, 0.55);
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(148, 163, 184, 0.15);
+    -fx-padding: 2;
+}
+
+.chat-dashboard-table .column-header-background {
+    -fx-background-color: linear-gradient(to right, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.92));
+    -fx-background-radius: 18 18 0 0;
+}
+
+.chat-dashboard-table .column-header,
+.chat-dashboard-table .filler {
+    -fx-background-color: transparent;
+}
+
+.chat-dashboard-table .column-header .label {
+    -fx-text-fill: #f8fafc;
+    -fx-font-weight: 800;
+    -fx-padding: 10 12 10 12;
+}
+
+.chat-dashboard-table .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-table-cell-border-color: transparent;
+}
+
+.chat-dashboard-table .table-row-cell:odd {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+}
+
+.chat-dashboard-table .table-row-cell:even {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+}
+
+.chat-dashboard-table .table-row-cell:filled:hover {
+    -fx-background-color: rgba(37, 99, 235, 0.16);
+}
+
+.chat-dashboard-table .table-row-cell:filled:selected {
+    -fx-background-color: linear-gradient(to right, rgba(37, 99, 235, 0.38), rgba(14, 165, 233, 0.28));
+}
+
+.chat-dashboard-table .table-cell {
+    -fx-text-fill: #f8fafc;
+    -fx-border-color: transparent;
+    -fx-padding: 12 12 12 12;
+}
+
+.chat-dashboard-table .table-cell .label {
+    -fx-text-fill: #f8fafc;
+}
+
+.chat-dashboard-table-progress-label {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 11px;
+}

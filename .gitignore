@@ -1,0 +1,15 @@
+.idea/
+.m2/
+.m2repo/
+target/
+*.iml
+*.log
+.env
+.env.local
+data/
+edukids_recovery_*.sql
+src/main/resources/client_secret.json
+generated/course-images/
+generated/exercise-drawings/reviews/
+generated/exercise-drawings/*.png
+uploads/

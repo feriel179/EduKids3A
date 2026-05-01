@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.CatalogController">
+    <children>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <content>
+                <VBox spacing="24.0" styleClass="student-catalog-page">
+                    <padding>
+                        <Insets bottom="28.0" left="24.0" right="24.0" top="24.0" />
+                    </padding>
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="student-banner">
+                            <padding>
+                                <Insets bottom="28.0" left="30.0" right="30.0" top="28.0" />
+                            </padding>
+                            <children>
+                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="student-banner-kicker" text="Personalized student space" />
+                                        <Label styleClass="student-banner-title" text="Choose an age and open the right courses" wrapText="true" />
+                                        <Label styleClass="student-banner-subtitle" text="This internal page builds the learning path after login, then lets the student continue to lessons and exercises adapted to that age." wrapText="true" />
+                                    </children>
+                                </VBox>
+                                <VBox alignment="CENTER_RIGHT" spacing="10.0">
+                                    <children>
+                                        <Label fx:id="heroStudentChipLabel" styleClass="student-banner-chip" text="Welcome, Student" />
+                                        <Label fx:id="heroSavedCoursesChipLabel" styleClass="student-banner-chip-light" text="0 saved courses" />
+                                        <Label fx:id="heroPersonalizationChipLabel" styleClass="student-banner-chip" text="Personalization for ages 8-10" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="14.0">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="student-search-card" HBox.hgrow="ALWAYS">
+                                    <padding>
+                                        <Insets bottom="8.0" left="10.0" right="10.0" top="8.0" />
+                                    </padding>
+                                    <children>
+                                        <TextField fx:id="searchField" promptText="Find your course" styleClass="student-search-field" HBox.hgrow="ALWAYS" />
+                                        <Button mnemonicParsing="false" onAction="#applyFilters" styleClass="primary-button" text="Search" />
+                                    </children>
+                                </HBox>
+                                <ComboBox fx:id="sortComboBox" prefWidth="210.0" />
+                                <Label fx:id="resultCountLabel" styleClass="student-result-text" text="Showing 0 courses" />
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="TOP_LEFT" spacing="24.0">
+                            <children>
+                                <VBox spacing="18.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <HBox spacing="16.0">
+                                            <children>
+                                                <VBox alignment="CENTER_LEFT" spacing="12.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Available Courses" wrapText="true" />
+                                                        <Label fx:id="totalCoursesValueLabel" styleClass="metric-value-blue" text="0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER_LEFT" spacing="12.0" styleClass="metric-card-green" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Subjects" wrapText="true" />
+                                                        <Label fx:id="subjectsValueLabel" styleClass="metric-value-green" text="0" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER_LEFT" spacing="12.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <Label styleClass="metric-title" text="Saved Courses" wrapText="true" />
+                                                        <Label fx:id="savedCoursesValueLabel" styleClass="metric-value-gold" text="0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <TilePane fx:id="catalogContainer" hgap="16.0" prefColumns="3" prefTileHeight="404.0" prefTileWidth="248.0" vgap="16.0" />
+
+                                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                            <children>
+                                                <Label fx:id="paginationSummaryLabel" styleClass="pagination-summary" text="Page 1 of 1" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <HBox fx:id="paginationBox" spacing="8.0" />
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="48.0" styleClass="eduport-footer">
+                                            <padding>
+                                                <Insets bottom="20.0" left="22.0" right="22.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="footer-title" text="EduKids Students" />
+                                                        <Label styleClass="footer-text" text="A course discovery page inspired by Eduport and powered by your JavaFX catalog." wrapText="true" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6.0">
+                                                    <children>
+                                                        <Label styleClass="footer-title" text="Discover" />
+                                                        <Label styleClass="footer-link" text="Browse subjects" />
+                                                        <Label styleClass="footer-link" text="Compare levels" />
+                                                        <Label styleClass="footer-link" text="Open course details" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6.0">
+                                                    <children>
+                                                        <Label styleClass="footer-title" text="Learning" />
+                                                        <Label styleClass="footer-link" text="Save courses" />
+                                                        <Label styleClass="footer-link" text="Track your list" />
+                                                        <Label styleClass="footer-link" text="Grow your skills" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox minWidth="280.0" prefWidth="280.0" spacing="18.0">
+                                    <children>
+                                        <VBox spacing="12.0" styleClass="student-filter-card">
+                                            <padding>
+                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="section-title" text="Personalization" />
+                                                <Label styleClass="section-subtitle" text="Set the student's age and favorite category here, inside the app." wrapText="true" />
+                                                <Label styleClass="student-filter-caption" text="Student Age" />
+                                                <ComboBox fx:id="agePersonalizationComboBox" prefWidth="250.0" />
+                                                <Label styleClass="student-filter-caption" text="Preferred Category" />
+                                                <ComboBox fx:id="preferredCategoryComboBox" prefWidth="250.0" />
+                                                <Label styleClass="student-filter-caption" text="Learning Path" />
+                                                <Label fx:id="learningPathLabel" styleClass="student-featured-course" text="Set the age to build the correct learning path." wrapText="true" />
+                                                <Button mnemonicParsing="false" onAction="#handleSavePersonalization" styleClass="primary-button" text="Apply Personalization" />
+                                            </children>
+                                        </VBox>
+
+                                        <VBox spacing="12.0" styleClass="student-filter-card">
+                                            <padding>
+                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="section-title" text="Category" />
+                                                <Label styleClass="section-subtitle" text="Refine the catalog by subject." wrapText="true" />
+                                                <ComboBox fx:id="subjectFilterComboBox" prefWidth="250.0" />
+                                            </children>
+                                        </VBox>
+
+                                        <VBox spacing="12.0" styleClass="student-filter-card">
+                                            <padding>
+                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="section-title" text="Skill Level" />
+                                                <Label styleClass="section-subtitle" text="Choose the level that matches the learner." wrapText="true" />
+                                                <ComboBox fx:id="levelFilterComboBox" prefWidth="250.0" />
+                                            </children>
+                                        </VBox>
+
+                                        <VBox spacing="12.0" styleClass="student-filter-card">
+                                            <padding>
+                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="section-title" text="Student Snapshot" />
+                                                <Label fx:id="studentSnapshotNameLabel" styleClass="student-filter-strong" text="Student Name" />
+                                                <Label fx:id="studentSnapshotEmailLabel" styleClass="student-filter-muted" text="student@edukids.local" wrapText="true" />
+                                                <Label styleClass="student-filter-caption" text="Age" />
+                                                <Label fx:id="studentProfileAgeLabel" styleClass="student-featured-course" text="Ages 8-10" wrapText="true" />
+                                                <Label styleClass="student-filter-caption" text="Favorite Category" />
+                                                <Label fx:id="studentProfileCategoryLabel" styleClass="student-featured-course" text="General" wrapText="true" />
+                                                <Label styleClass="student-filter-caption" text="Featured course" />
+                                                <Label fx:id="featuredCourseLabel" styleClass="student-featured-course" text="No recommendation yet." wrapText="true" />
+                                                <Button mnemonicParsing="false" onAction="#openMyCoursesPage" styleClass="secondary-button" text="Open My Courses" />
+                                            </children>
+                                        </VBox>
+
+                                        <VBox spacing="12.0" styleClass="student-filter-card">
+                                            <padding>
+                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="section-title" text="Quick Actions" />
+                                                <Label styleClass="section-subtitle" text="Reset the current search or refresh the grid whenever you want." wrapText="true" />
+                                                <Button mnemonicParsing="false" onAction="#handleClearFilters" styleClass="ghost-button" text="Reset Filters" />
+                                                <Button mnemonicParsing="false" onAction="#applyFilters" styleClass="primary-button" text="Refresh Results" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane styleClass="admin-page-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.admin.CourseController">
+    <children>
+        <VBox AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="26.0" AnchorPane.rightAnchor="26.0" AnchorPane.topAnchor="18.0" spacing="16.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label styleClass="page-kicker" text="Course management" />
+                                <Label styleClass="page-hero-title" text="Courses" />
+                                <Label styleClass="page-hero-subtitle" text="Manage your course catalog with fast search, sort, and pagination in a cleaner admin interface." wrapText="true" />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button minWidth="126.0" mnemonicParsing="false" onAction="#handleRefreshCourses" prefWidth="126.0" styleClass="toolbar-refresh-button" text="Refresh" />
+                        <Button minWidth="196.0" mnemonicParsing="false" onAction="#handleCreateCourse" prefWidth="196.0" styleClass="toolbar-create-button" text="Create a Course" />
+                    </children>
+                </HBox>
+
+                <HBox spacing="14.0">
+                    <children>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Total Courses" />
+                                <Label fx:id="totalCoursesMetricLabel" styleClass="metric-value-blue" text="0" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-green" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Published Courses" />
+                                <Label fx:id="publishedCoursesMetricLabel" styleClass="metric-value-green" text="0" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="18.0" left="22.0" right="22.0" top="18.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Course Lessons" />
+                                <Label fx:id="totalLessonsMetricLabel" styleClass="metric-value-gold" text="0" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <VBox spacing="14.0" styleClass="admin-table-card" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="16.0" left="18.0" right="18.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="table-toolbar">
+                            <children>
+                                <TextField fx:id="searchField" promptText="Search by title, subject, level, or ID" styleClass="toolbar-search-field" HBox.hgrow="ALWAYS" />
+                                <ComboBox fx:id="sortComboBox" prefWidth="230.0" styleClass="toolbar-combo-box" />
+                                <Button minWidth="150.0" mnemonicParsing="false" onAction="#handleEditCourse" prefWidth="150.0" styleClass="table-edit-button" text="Edit Selected" />
+                                <Button minWidth="176.0" mnemonicParsing="false" onAction="#handleDeleteCourse" prefWidth="176.0" styleClass="table-delete-button" text="Delete Selected" />
+                            </children>
+                        </HBox>
+
+                        <TableView fx:id="courseTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="idColumn" prefWidth="90.0" text="ID" />
+                                <TableColumn fx:id="titleColumn" prefWidth="300.0" text="Course Name" />
+                                <TableColumn fx:id="subjectColumn" prefWidth="200.0" text="Subject" />
+                                <TableColumn fx:id="levelColumn" prefWidth="180.0" text="Level" />
+                                <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status" />
+                                <TableColumn fx:id="lessonCountColumn" prefWidth="120.0" text="Lessons" />
+                                <TableColumn fx:id="durationColumn" prefWidth="150.0" text="Duration" />
+                            </columns>
+                        </TableView>
+
+                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                            <children>
+                                <Label fx:id="pageSummaryLabel" styleClass="pagination-summary" text="Showing 0 of 0 entries" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <HBox fx:id="paginationBox" alignment="CENTER_RIGHT" spacing="8.0" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

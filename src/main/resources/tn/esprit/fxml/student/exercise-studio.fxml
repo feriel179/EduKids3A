@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.ExerciseStudioController">
+    <children>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <content>
+                <VBox spacing="18.0" styleClass="student-catalog-page">
+                    <padding>
+                        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                    </padding>
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0">
+                            <children>
+                                <Button mnemonicParsing="false" onAction="#handleBackToCourse" styleClass="ghost-button" text="Back To Course" />
+                                <VBox spacing="4.0">
+                                    <children>
+                                        <Label styleClass="page-title" text="Exercise Studio" />
+                                        <Label fx:id="headerSubtitleLabel" styleClass="section-subtitle" text="Draw and write in one place for the selected lesson." wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <VBox spacing="10.0" styleClass="student-detail-section">
+                            <padding>
+                                <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
+                            </padding>
+                                        <children>
+                                <Label fx:id="courseTitleLabel" styleClass="page-title" text="Course" wrapText="true" />
+                                <Label fx:id="lessonTitleLabel" styleClass="student-featured-course" text="Lesson" wrapText="true" />
+                                <Label fx:id="studentAgeLabel" styleClass="student-detail-section-subtitle" text="Age profile" wrapText="true" />
+                                        </children>
+                                    </VBox>
+
+                        <HBox alignment="TOP_LEFT" spacing="18.0">
+                            <children>
+                                <VBox minWidth="250.0" prefWidth="250.0" spacing="12.0" styleClass="student-filter-card">
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                    <children>
+                                        <Label styleClass="section-title" text="Exercises" />
+                                        <Label styleClass="section-subtitle" text="Open one exercise at a time in the studio." wrapText="true" />
+                                        <HBox fx:id="exerciseSelectorBox" spacing="8.0" />
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                                    <VBox spacing="10.0" styleClass="student-detail-section">
+                                        <padding>
+                                            <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
+                                        </padding>
+                                        <children>
+                                            <Label fx:id="selectedExerciseTitleLabel" styleClass="section-title" text="Exercise" wrapText="true" />
+                                            <Label styleClass="student-filter-caption" text="Instruction" />
+                                            <TextArea fx:id="promptTextArea" prefRowCount="4" promptText="Edit the instruction here..." styleClass="student-exercise-textarea" wrapText="true" />
+                                            <Label styleClass="student-filter-caption" text="Student Writing" />
+                                            <TextArea fx:id="answerTextArea" prefRowCount="6" promptText="Write the answer here..." styleClass="student-exercise-textarea" wrapText="true" VBox.vgrow="ALWAYS" />
+                                        </children>
+                                    </VBox>
+
+                                    <VBox spacing="10.0" styleClass="student-detail-section">
+                                        <padding>
+                                            <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
+                                        </padding>
+                                        <children>
+                                            <VBox fx:id="drawingContentBox" spacing="10.0">
+                                                <children>
+                                                    <Label styleClass="section-title" text="Drawing Area" />
+                                                    <Label styleClass="student-detail-section-subtitle" text="The student can sketch, draw, or organize ideas before saving." wrapText="true" />
+                                                    <Label styleClass="student-filter-caption" text="Drawing Question" />
+                                                    <Label fx:id="drawingPromptLabel" styleClass="student-studio-drawing-prompt" text="Use the drawing area to represent the lesson, then explain your drawing." wrapText="true" />
+                                                    <StackPane fx:id="drawingSurfacePane" minHeight="320.0" prefHeight="320.0" styleClass="student-studio-canvas-wrap" />
+                                                </children>
+                                            </VBox>
+                                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                <children>
+                                                    <Label fx:id="studioStatusLabel" styleClass="student-exercise-status" text="Start by drawing or writing the answer." wrapText="true" />
+                                                    <Region HBox.hgrow="ALWAYS" />
+                                                    <Button fx:id="askAiButton" mnemonicParsing="false" onAction="#handleAskAi" styleClass="student-lesson-action-button,student-lesson-action-ai" text="Ask AI" />
+                                                    <Button fx:id="reviewAnswerButton" mnemonicParsing="false" onAction="#handleReviewAnswer" styleClass="student-lesson-action-button,student-lesson-action-review" text="AI Review" />
+                                                    <Button fx:id="clearDrawingButton" mnemonicParsing="false" onAction="#handleClearDrawing" styleClass="ghost-button" text="Clear Drawing" />
+                                                    <Button mnemonicParsing="false" onAction="#handleSaveExercise" styleClass="primary-button" text="Save Exercise" />
+                                                </children>
+                                            </HBox>
+                                        </children>
+                                    </VBox>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>

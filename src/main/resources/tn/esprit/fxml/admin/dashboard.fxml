@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane styleClass="admin-page-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.admin.AdminDashboardController">
+    <children>
+        <VBox AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="26.0" AnchorPane.rightAnchor="26.0" AnchorPane.topAnchor="26.0" spacing="22.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label styleClass="page-kicker" text="Platform overview" />
+                                <Label styleClass="page-hero-title" text="Dashboard" />
+                                <Label styleClass="page-hero-subtitle" text="A quick visual snapshot of the EduKids learning platform, with direct access to courses and lessons." wrapText="true" />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                    </children>
+                </HBox>
+
+                <HBox spacing="18.0">
+                    <children>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Total Courses" />
+                                <Label fx:id="totalCoursesLabel" styleClass="metric-value-blue" text="0" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-green" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Total Lessons" />
+                                <Label fx:id="totalLessonsLabel" styleClass="metric-value-green" text="0" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="22.0" left="24.0" right="24.0" top="22.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="metric-title" text="Total Students" />
+                                <Label fx:id="totalStudentsLabel" styleClass="metric-value-gold" text="0" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <HBox spacing="18.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <VBox spacing="12.0" styleClass="dashboard-spotlight-card" HBox.hgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="26.0" left="26.0" right="26.0" top="26.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="hero-badge" text="Admin focus" />
+                                <Label styleClass="hero-title" text="Everything is now grouped inside a cleaner blue workspace." wrapText="true" />
+                                <Label styleClass="hero-text" text="Use the sidebar to jump between the dashboard, course list, lesson list, and creation pages without losing the new visual consistency." wrapText="true" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

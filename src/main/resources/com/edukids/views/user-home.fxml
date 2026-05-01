@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<HBox fx:id="rootPane" prefHeight="820.0" prefWidth="1380.0" styleClass="admin-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.controllers.UserHomeController">
+    <children>
+        <VBox maxWidth="320.0" minWidth="320.0" prefWidth="320.0" styleClass="admin-sidebar">
+            <padding>
+                <Insets bottom="24.0" left="22.0" right="22.0" top="22.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="sidebar-brand-wrap">
+                    <children>
+                        <StackPane maxHeight="88.0" maxWidth="88.0" minHeight="88.0" minWidth="88.0" prefHeight="88.0" prefWidth="88.0" styleClass="sidebar-logo-frame">
+                            <children>
+                                <ImageView fitHeight="88.0" fitWidth="88.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                                    <image>
+                                        <Image url="@/tn/esprit/images/edukids-logo.png" />
+                                    </image>
+                                </ImageView>
+                            </children>
+                        </StackPane>
+                        <TextFlow maxWidth="184.0" minWidth="184.0" prefWidth="184.0" styleClass="sidebar-brand-flow" translateY="3.0">
+                            <children>
+                                <Text styleClass="sidebar-brand-accent" text="Edu" />
+                                <Text styleClass="sidebar-brand-light" text="Kids" />
+                            </children>
+                        </TextFlow>
+                    </children>
+                </HBox>
+
+                <Label styleClass="sidebar-section" text="Explore" />
+
+                <Button fx:id="homeButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHome" styleClass="shell-nav-button,shell-nav-button-active" text="Home" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCoursNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Cours" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Quiz" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Chat" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleShopNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Shop" />
+
+                <VBox VBox.vgrow="ALWAYS" />
+
+                <VBox spacing="8.0" styleClass="sidebar-footer-card">
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <Label styleClass="sidebar-footer-title" text="Learning first" />
+                        <Label styleClass="sidebar-footer-text" text="Students and parents now see the same polished navigation language as the admin course space." wrapText="true" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="sidebar-footer-text" text="Current role" />
+                        <Label fx:id="roleLabel" styleClass="shell-sidebar-user" text="Learner" />
+                    </children>
+                </VBox>
+
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProfileNav" styleClass="shell-nav-button" text="Profile" />
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLogout" styleClass="shell-logout-button" text="Sign Out" />
+            </children>
+        </VBox>
+
+        <VBox minWidth="0.0" styleClass="admin-main" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets bottom="18.0" left="18.0" right="18.0" top="18.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="18.0" styleClass="admin-topbar">
+                    <padding>
+                        <Insets bottom="16.0" left="22.0" right="22.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label styleClass="topbar-kicker" text="Learning space" />
+                                <Label fx:id="welcomeLabel" styleClass="topbar-title" text="Welcome" />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="admin-search-shell">
+                            <children>
+                                <Label styleClass="admin-search-prefix" text="Search" />
+                                <TextField promptText="Find a page or a feature" styleClass="admin-search-field" />
+                            </children>
+                        </HBox>
+                        <StackPane styleClass="topbar-circle-button">
+                            <children>
+                                <Label styleClass="topbar-circle-text" text="4" />
+                            </children>
+                        </StackPane>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="topbar-profile-chip">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label fx:id="topbarRoleLabel" styleClass="topbar-profile-role" text="User" />
+                                        <Label fx:id="topbarNameLabel" styleClass="topbar-profile-name" text="EduKids Member" />
+                                    </children>
+                                </VBox>
+                                <StackPane styleClass="topbar-avatar">
+                                    <children>
+                                        <Label fx:id="topbarAvatarLabel" styleClass="topbar-avatar-text" text="EK" />
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent" VBox.vgrow="ALWAYS">
+                    <content>
+                        <VBox spacing="22.0" styleClass="admin-content-area">
+                            <padding>
+                                <Insets bottom="26.0" left="26.0" right="26.0" top="26.0" />
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                    <children>
+                                        <VBox spacing="4.0">
+                                            <children>
+                                                <Label styleClass="page-kicker" text="Welcome aboard" />
+                                                <Label styleClass="page-hero-title" text="Discover EduKids" />
+                                                <Label styleClass="page-hero-subtitle" text="Your personal space now follows the same refined layout as the course administration area, with a consistent sidebar and modern cards." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button mnemonicParsing="false" onAction="#handleProfileNav" styleClass="toolbar-refresh-button" text="Open Profile" />
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="18.0">
+                                    <children>
+                                        <VBox spacing="8.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS" onMouseClicked="#handleCoursNav">
+                                            <padding>
+                                                <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="metric-title" text="Courses" />
+                                                <Label styleClass="home-feature-value" text="Coming Soon" />
+                                                <Label styleClass="dashboard-panel-subtitle" text="Browse your learning path in one place." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="8.0" styleClass="metric-card-green" HBox.hgrow="ALWAYS" onMouseClicked="#handleQuizNav">
+                                            <padding>
+                                                <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="metric-title" text="Quiz" />
+                                                <Label styleClass="home-feature-value,home-feature-value-green" text="Coming Soon" />
+                                                <Label styleClass="dashboard-panel-subtitle" text="Track progress with playful evaluations." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
+                                            <padding>
+                                                <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="metric-title" text="Events" />
+                                                <Label styleClass="home-feature-value,home-feature-value-gold" text="Coming Soon" />
+                                                <Label styleClass="dashboard-panel-subtitle" text="Stay close to community activities." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="18.0">
+                                    <children>
+                                        <VBox spacing="12.0" styleClass="dashboard-spotlight-card" HBox.hgrow="ALWAYS">
+                                            <padding>
+                                                <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="hero-badge" text="Same visual language" />
+                                                <Label styleClass="hero-title" text="A calmer, cleaner EduKids space for every role." wrapText="true" />
+                                                <Label styleClass="hero-text" text="The navigation, cards, and page rhythm now match the course interface so the whole app feels like one product instead of separate modules." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                        <VBox prefWidth="360.0" spacing="12.0" styleClass="admin-table-card">
+                                            <padding>
+                                                <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+                                            </padding>
+                                            <children>
+                                                <Label styleClass="dashboard-panel-title" text="Next Sections" />
+                                                <Label styleClass="dashboard-panel-subtitle" text="These modules are ready to adopt the same shared shell." wrapText="true" />
+                                                <Label styleClass="home-feature-copy" text="Courses" />
+                                                <Label styleClass="home-feature-copy" text="Quiz" />
+                                                <Label styleClass="home-feature-copy" text="Events" />
+                                                <Label styleClass="home-feature-copy" text="Chat" />
+                                                <Label styleClass="home-feature-copy" text="Shop" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </children>
+        </VBox>
+    </children>
+</HBox>
