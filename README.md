@@ -14,6 +14,17 @@ EduKids JavaFX est une application desktop developpee avec JavaFX et Maven pour 
 - Services IA pour aide au contenu, traduction, generation d'images et chatbot.
 - Notifications par email, SMS selon configuration, PDF et QR codes.
 
+## Repartition des gestions
+
+| Gestion | Responsable |
+| --- | --- |
+| Gestion des cours | Rania Selmi |
+| Gestion des quiz | Mohamed Aziz Latrech |
+| Gestion du chat | Mohamed Aziz Bougacha |
+| Gestion des utilisateurs | Rami Ben Mohamed |
+| E-commerce | Marwen Hamrouni |
+| Gestion des evenements | Feriel Souissi |
+
 ## Technologies utilisees
 
 - Java 19
