@@ -1,5 +1,7 @@
 package com.edukids.edukids3a.persistence;
 
+import com.edukids.edukids3a.utils.DatabaseConfig;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -43,7 +45,7 @@ public final class DatabaseManager {
             initialized = true;
         } catch (Exception e) {
             rollbackQuietly(connection);
-            throw new IllegalStateException("Impossible d'initialiser la base de donnees.", e);
+            throw new IllegalStateException("Impossible d'initialiser la base de donnees. Cause: " + e.getMessage(), e);
         } finally {
             closeQuietly(connection);
         }
@@ -283,10 +285,12 @@ public final class DatabaseManager {
 
         String dbType = readSetting(properties, "db.type", "DB_TYPE", "mysql");
         if ("mysql".equalsIgnoreCase(dbType) || "mariadb".equalsIgnoreCase(dbType)) {
-            String defaultMySqlUrl = "jdbc:mysql://localhost:3308/edukids?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+            String defaultMySqlUrl = DatabaseConfig.databaseUrl()
+                    + "?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                    + "&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=5000";
             String jdbcUrl = readSetting(properties, "db.url", "DB_URL", defaultMySqlUrl);
-            String username = readSetting(properties, "db.user", "DB_USER", "root");
-            String password = readSetting(properties, "db.password", "DB_PASSWORD", "");
+            String username = readSetting(properties, "db.user", "DB_USER", DatabaseConfig.user());
+            String password = readSetting(properties, "db.password", "DB_PASSWORD", DatabaseConfig.password());
             return new DatabaseSettings("mysql", jdbcUrl, username, password);
         }
 

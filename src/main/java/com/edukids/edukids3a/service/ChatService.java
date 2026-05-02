@@ -177,6 +177,32 @@ public class ChatService {
         }
     }
 
+    public Optional<User> findFirstAdminUser(long excludedUserId) {
+        String sql = """
+                SELECT id, email, roles, password, first_name, last_name, is_active
+                FROM `user`
+                WHERE is_active = 1
+                  AND id <> ?
+                  AND LOWER(roles) LIKE '%admin%'
+                ORDER BY id
+                LIMIT 1
+                """;
+
+        try (Connection connection = MyConnection.getInstance().getCnx();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, excludedUserId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(readUser(rs));
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Impossible de trouver un administrateur pour la conversation.", e);
+        }
+    }
+
     public Optional<ConversationParticipant> findParticipant(long conversationId, long userId) {
         String sql = """
                 SELECT id, conversation_id, user_id, role, deleted_at, last_read_at, joined_at, hidden_at

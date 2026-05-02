@@ -4,10 +4,14 @@ import com.edukids.edukids3a.controller.QuestionController;
 import com.edukids.edukids3a.controller.QuizController;
 import com.edukids.edukids3a.controller.QuizResultController;
 import com.edukids.edukids3a.persistence.DatabaseManager;
+import com.edukids.edukids3a.security.AuthSession;
 import com.edukids.edukids3a.service.QuestionService;
 import com.edukids.edukids3a.service.QuizResultService;
 import com.edukids.edukids3a.service.QuizService;
 import com.edukids.edukids3a.ui.QuizBackOfficeView;
+import com.edukids.enums.Role;
+import com.edukids.entities.User;
+import com.edukids.utils.SessionManager;
 import tn.esprit.MainFX;
 import tn.esprit.models.Course;
 import tn.esprit.models.Lesson;
@@ -19,6 +23,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 
@@ -36,7 +41,13 @@ public class StudentShellController {
     private Button myCoursesButton;
 
     @FXML
+    private Button shopButton;
+
+    @FXML
     private Button quizButton;
+
+    @FXML
+    private Button chatButton;
 
     @FXML
     private Button profileButton;
@@ -76,6 +87,15 @@ public class StudentShellController {
     }
 
     @FXML
+    public void showShop() {
+        loadCenterView("/fxml/main-view.fxml", loader -> {
+            com.ecom.ui.MainController controller = loader.getController();
+            controller.openStudentMode();
+        }, true);
+        setActiveNavigation(shopButton);
+    }
+
+    @FXML
     public void showProfile() {
         loadCenterView("/tn/esprit/fxml/student/profile.fxml", null);
         setActiveNavigation(profileButton);
@@ -101,6 +121,27 @@ public class StudentShellController {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Quiz");
             alert.setHeaderText("Impossible d'ouvrir les quiz");
+            alert.setContentText(exception.getMessage());
+            alert.showAndWait();
+            exception.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void showChat() {
+        try {
+            User user = SessionManager.getCurrentUser();
+            if (user == null) {
+                throw new IllegalStateException("Aucun utilisateur connecte.");
+            }
+
+            AuthSession.setCurrentUser(toChatUser(user));
+            loadCenterView("/tn/esprit/fxml/chat/ChatView.fxml", null);
+            setActiveNavigation(chatButton);
+        } catch (RuntimeException exception) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Chat");
+            alert.setHeaderText("Impossible d'ouvrir la messagerie");
             alert.setContentText(exception.getMessage());
             alert.showAndWait();
             exception.printStackTrace();
@@ -135,6 +176,10 @@ public class StudentShellController {
 
     // 🔥 BONUS FIX
     private void loadCenterView(String fxmlPath, LoaderCallback callback) {
+        loadCenterView(fxmlPath, callback, false);
+    }
+
+    private void loadCenterView(String fxmlPath, LoaderCallback callback, boolean scrollable) {
         try {
             FXMLLoader loader = new FXMLLoader(MainFX.class.getResource(fxmlPath));
             Parent view = loader.load();
@@ -143,7 +188,16 @@ public class StudentShellController {
                 callback.accept(loader);
             }
 
-            contentPane.getChildren().setAll(view);
+            if (scrollable) {
+                ScrollPane scrollPane = new ScrollPane(view);
+                scrollPane.setFitToWidth(true);
+                scrollPane.setFitToHeight(false);
+                scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.getStyleClass().add("scroll-pane-transparent");
+                contentPane.getChildren().setAll(scrollPane);
+            } else {
+                contentPane.getChildren().setAll(view);
+            }
 
         } catch (Exception e) {  // ✅ FIX
             e.printStackTrace();
@@ -178,7 +232,7 @@ public class StudentShellController {
     }
 
     private void clearNavigationState() {
-        Button[] buttons = {catalogButton, myCoursesButton, quizButton, profileButton};
+        Button[] buttons = {catalogButton, myCoursesButton, shopButton, quizButton, chatButton, profileButton};
 
         for (Button button : buttons) {
             if (button != null) {
@@ -207,6 +261,18 @@ public class StudentShellController {
         }
 
         return clean.isBlank() ? "ST" : clean.toUpperCase();
+    }
+
+    private com.edukids.edukids3a.model.User toChatUser(User user) {
+        com.edukids.edukids3a.model.User chatUser = new com.edukids.edukids3a.model.User();
+        chatUser.setId(user.getId());
+        chatUser.setEmail(user.getEmail());
+        chatUser.setFirstName(user.getFirstName());
+        chatUser.setLastName(user.getLastName());
+        chatUser.setActive(user.isActive());
+        Role primaryRole = user.getPrimaryRole();
+        chatUser.setRole(primaryRole != null ? primaryRole.getDbValue() : "user");
+        return chatUser;
     }
 
     @FunctionalInterface

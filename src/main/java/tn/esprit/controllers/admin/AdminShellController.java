@@ -35,6 +35,9 @@ public class AdminShellController {
     private Button coursesButton;
 
     @FXML
+    private Button ecommerceButton;
+
+    @FXML
     private Button createCourseButton;
 
     @FXML
@@ -76,6 +79,17 @@ public class AdminShellController {
         setActiveNavigation(coursesButton);
         setActiveCourseSubNavigation(null);
         loadCenterView("/tn/esprit/fxml/admin/courses.fxml", null);
+    }
+
+    @FXML
+    public void showEcommerce() {
+        setContext("Shop management", "E-commerce");
+        setActiveNavigation(ecommerceButton);
+        setActiveCourseSubNavigation(null);
+        loadCenterView("/fxml/main-view.fxml", loader -> {
+            com.ecom.ui.MainController controller = loader.getController();
+            controller.openAdminMode();
+        });
     }
 
     @FXML
@@ -171,7 +185,8 @@ public class AdminShellController {
         List<Button> buttons = List.of(
                 dashboardButton,
                 usersButton,
-                coursesButton
+                coursesButton,
+                ecommerceButton
         );
 
         for (Button button : buttons) {

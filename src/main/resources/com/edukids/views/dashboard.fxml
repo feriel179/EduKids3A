@@ -74,7 +74,16 @@
                     </children>
                 </VBox>
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
-                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Produits" />
+                <Button fx:id="produitsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button" text="Produits" />
+                <VBox fx:id="produitsSubmenuBox" managed="false" spacing="6.0" visible="false">
+                    <children>
+                        <Button fx:id="produitsCommandesButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsCommandesNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Liste des commandes" />
+                        <Button fx:id="produitsListButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsListNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Liste des produits" />
+                        <Button fx:id="produitsFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer ou modifier un produit" />
+                        <Button fx:id="produitsCategoriesButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsCategoriesNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Liste des categories" />
+                        <Button fx:id="produitsCategoryFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsCategoryFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer ou modifier une categorie" />
+                    </children>
+                </VBox>
                 <Button fx:id="chatButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button" text="Chat" />
                 <VBox fx:id="chatSubmenuBox" managed="false" spacing="6.0" visible="false">
                     <children>

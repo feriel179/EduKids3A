@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="820.0" prefWidth="1320.0" styleClass="app-root" stylesheets="@../css/app.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ecom.ui.MainController">
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="78.0" styleClass="topbar" spacing="16.0">
+            <padding>
+                <Insets bottom="18.0" left="28.0" right="28.0" top="18.0" />
+            </padding>
+            <Label styleClass="brand-title" text="EduKids" />
+            <Label fx:id="sessionModeLabel" styleClass="result-label" text="" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="frontOfficeToggleButton" mnemonicParsing="false" onAction="#showFrontOffice" styleClass="primary-button" text="Front office" />
+            <Button fx:id="backOfficeToggleButton" mnemonicParsing="false" onAction="#showBackOffice" styleClass="ghost-button" text="Back office" />
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane fx:id="contentArea">
+            <VBox fx:id="frontOfficeView" spacing="0.0" visible="false" managed="false">
+                <HBox alignment="CENTER_LEFT" styleClass="front-subnav" spacing="16.0">
+                    <padding>
+                        <Insets bottom="14.0" left="28.0" right="28.0" top="14.0" />
+                    </padding>
+                    <Button fx:id="frontAccueilNavButton" mnemonicParsing="false" onAction="#showFrontHome" styleClass="front-nav-button" text="Accueil" />
+                    <Button fx:id="frontProduitsNavButton" mnemonicParsing="false" onAction="#showFrontList" styleClass="front-nav-button" text="Produits" />
+                    <Button fx:id="frontCategoriesNavButton" mnemonicParsing="false" onAction="#showFrontCategoryList" styleClass="front-nav-button" text="Categories" />
+                    <Button fx:id="frontCommandesNavButton" mnemonicParsing="false" onAction="#showFrontCommandes" styleClass="front-nav-button" text="Mes commandes" />
+                </HBox>
+
+                <VBox styleClass="front-hero" spacing="10.0">
+                    <padding>
+                        <Insets bottom="36.0" left="28.0" right="28.0" top="36.0" />
+                    </padding>
+                    <Label styleClass="front-hero-title" text="Boutique EduKids" />
+                    <Label styleClass="front-hero-subtitle" text="Produits, categories et commandes" />
+                </VBox>
+
+                <VBox fx:id="frontHomeSection" managed="false" spacing="22.0" styleClass="front-content" visible="false" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <HBox spacing="22.0">
+                        <VBox HBox.hgrow="ALWAYS" spacing="14.0" styleClass="front-card">
+                            <Label styleClass="front-category-badge" text="Bienvenue" />
+                            <Label styleClass="front-detail-title" text="Passez vos commandes en ligne" wrapText="true" />
+                            <Label styleClass="front-detail-description" text="Parcourez les produits, ouvrez une fiche detail, saisissez la quantite puis envoyez votre commande." wrapText="true" />
+                            <Button mnemonicParsing="false" onAction="#showFrontList" styleClass="primary-button" text="Voir les produits" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="14.0" styleClass="front-card">
+                            <Label styleClass="front-category-badge" text="Suivi" />
+                            <Label styleClass="front-card-title" text="Vos commandes" wrapText="true" />
+                            <Label styleClass="front-card-description" text="Consultez vos demandes en attente, validees ou refusees depuis un seul tableau." wrapText="true" />
+                            <Button mnemonicParsing="false" onAction="#showFrontCommandes" styleClass="primary-button" text="Voir mes commandes" />
+                        </VBox>
+                    </HBox>
+                    <VBox spacing="16.0" styleClass="panel-card">
+                        <Label styleClass="section-title" text="Apercu rapide" />
+                        <HBox spacing="20.0">
+                            <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="front-card">
+                                <Label styleClass="front-card-title" text="Produits" />
+                                <Label fx:id="frontResultCountLabel" styleClass="front-detail-description" text="0 produit(s)" />
+                            </VBox>
+                            <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="front-card">
+                                <Label styleClass="front-card-title" text="Categories" />
+                                <Label fx:id="frontCategoryResultCountLabel" styleClass="front-detail-description" text="0 categorie(s)" />
+                            </VBox>
+                            <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="front-card">
+                                <Label styleClass="front-card-title" text="Commandes" />
+                                <Label fx:id="frontPendingOrdersLabel" styleClass="front-detail-description" text="0 en attente" />
+                                <Label fx:id="frontValidatedOrdersLabel" styleClass="result-label" text="0 validee(s)" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <VBox fx:id="frontListSection" spacing="22.0" styleClass="front-content" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="16.0">
+                        <TextField fx:id="frontSearchField" promptText="Rechercher un produit..." styleClass="dark-field front-search-field" />
+                        <ComboBox fx:id="frontSortCombo" promptText="Tri" styleClass="dark-combo front-sort-combo" />
+                        <Button mnemonicParsing="false" onAction="#resetFrontFilters" styleClass="ghost-button" text="Reinitialiser" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="result-label" text="Catalogue" />
+                    </HBox>
+                    <ScrollPane fitToWidth="true" styleClass="front-scroll" VBox.vgrow="ALWAYS">
+                        <content>
+                            <FlowPane fx:id="frontProductContainer" hgap="22.0" prefWrapLength="1180.0" vgap="22.0">
+                                <padding>
+                                    <Insets bottom="8.0" top="8.0" />
+                                </padding>
+                            </FlowPane>
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox fx:id="frontDetailSection" managed="false" spacing="22.0" styleClass="front-content" visible="false" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="16.0">
+                        <Button mnemonicParsing="false" onAction="#showFrontList" styleClass="ghost-button" text="Retour" />
+                    </HBox>
+                    <ScrollPane fitToWidth="true" styleClass="front-scroll" VBox.vgrow="ALWAYS">
+                        <content>
+                            <HBox spacing="24.0">
+                                <StackPane fx:id="frontDetailImageContainer" prefHeight="340.0" prefWidth="480.0" styleClass="front-detail-image-holder" />
+                                <VBox spacing="18.0" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="frontDetailCategory" styleClass="front-category-badge" text="Categorie" />
+                                    <Label fx:id="frontDetailTitle" styleClass="front-detail-title" text="Nom produit" wrapText="true" />
+                                    <Label fx:id="frontDetailDescription" styleClass="front-detail-description" text="Description produit" wrapText="true" />
+                                    <Label fx:id="frontDetailPrice" styleClass="front-price-badge" text="0.00 DT" />
+                                    <Label fx:id="frontDetailStock" styleClass="front-stock-badge" text="Stock disponible: 0" />
+                                    <VBox spacing="14.0" styleClass="panel-card">
+                                        <Label styleClass="section-title" text="Passer une commande" />
+                                        <HBox spacing="16.0">
+                                            <VBox spacing="8.0">
+                                                <Label styleClass="field-label" text="Quantite" />
+                                                <TextField fx:id="commandeQuantiteField" promptText="1" styleClass="dark-field" />
+                                            </VBox>
+                                            <VBox spacing="8.0">
+                                                <Label styleClass="field-label" text="Code promo" />
+                                                <TextField fx:id="commandePromoCodeField" promptText="Ex: EDU-AB12CD34" styleClass="dark-field" />
+                                            </VBox>
+                                        </HBox>
+                                        <VBox spacing="8.0">
+                                            <Label styleClass="field-label" text="Commentaire" />
+                                            <TextArea fx:id="commandeCommentaireArea" prefRowCount="3" promptText="Message optionnel pour l'admin" styleClass="dark-area" wrapText="true" />
+                                        </VBox>
+                                        <Label fx:id="commandeClientFeedbackLabel" styleClass="result-label" text="" wrapText="true" />
+                                        <Label fx:id="commandePromoFeedbackLabel" managed="false" styleClass="promo-code-feedback" text="" visible="false" wrapText="true" />
+                                        <Button fx:id="submitCommandeButton" mnemonicParsing="false" onAction="#createCommande" styleClass="primary-button" text="Commander ce produit" />
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox fx:id="frontCategoryListSection" managed="false" spacing="22.0" styleClass="front-content" visible="false" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="16.0">
+                        <TextField fx:id="frontCategorySearchField" promptText="Rechercher une categorie..." styleClass="dark-field front-search-field" />
+                        <ComboBox fx:id="frontCategorySortCombo" promptText="Tri" styleClass="dark-combo front-sort-combo" />
+                        <Button mnemonicParsing="false" onAction="#resetFrontCategoryFilters" styleClass="ghost-button" text="Reinitialiser" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="result-label" text="Categories" />
+                    </HBox>
+                    <ScrollPane fitToWidth="true" styleClass="front-scroll" VBox.vgrow="ALWAYS">
+                        <content>
+                            <FlowPane fx:id="frontCategoryContainer" hgap="22.0" prefWrapLength="1180.0" vgap="22.0">
+                                <padding>
+                                    <Insets bottom="8.0" top="8.0" />
+                                </padding>
+                            </FlowPane>
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox fx:id="frontCategoryDetailSection" managed="false" spacing="22.0" styleClass="front-content" visible="false" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="16.0">
+                        <Button mnemonicParsing="false" onAction="#showFrontCategoryList" styleClass="ghost-button" text="Retour" />
+                    </HBox>
+                    <VBox spacing="18.0" styleClass="panel-card">
+                        <Label styleClass="front-category-badge" text="Categorie" />
+                        <Label fx:id="frontCategoryDetailTitle" styleClass="front-detail-title" text="Nom categorie" wrapText="true" />
+                        <Label fx:id="frontCategoryDetailDescription" styleClass="front-detail-description" text="Description categorie" wrapText="true" />
+                        <Label fx:id="frontCategoryDetailCount" styleClass="front-stock-badge" text="0 produit(s) dans cette categorie" />
+                    </VBox>
+                </VBox>
+
+                <VBox fx:id="frontCommandeSection" managed="false" spacing="22.0" styleClass="front-content" visible="false" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="24.0" left="28.0" right="28.0" top="24.0" />
+                    </padding>
+                    <VBox styleClass="hero-panel" spacing="10.0">
+                        <Label styleClass="page-title" text="Mes commandes" />
+                        <Label styleClass="page-subtitle" text="Suivez vos demandes de commande et leur statut." />
+                    </VBox>
+                    <VBox spacing="16.0" styleClass="panel-card">
+                        <HBox alignment="CENTER_LEFT" spacing="16.0">
+                            <Label styleClass="section-title" text="Historique" />
+                            <ComboBox fx:id="frontCommandeStatusFilterCombo" promptText="Statut" styleClass="dark-combo sort-combo" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="frontCommandeResultCountLabel" styleClass="result-label" text="0 commande(s)" />
+                        </HBox>
+                        <TableView fx:id="frontCommandeTable" prefHeight="420.0">
+                            <columns>
+                                <TableColumn fx:id="frontCommandeColId" prefWidth="60.0" text="ID" />
+                                <TableColumn fx:id="frontCommandeColProduit" prefWidth="220.0" text="Produit" />
+                                <TableColumn fx:id="frontCommandeColQuantite" prefWidth="90.0" text="Quantite" />
+                                <TableColumn fx:id="frontCommandeColTotalAvant" prefWidth="135.0" text="Prix avant promo" />
+                                <TableColumn fx:id="frontCommandeColTotal" prefWidth="135.0" text="Prix apres promo" />
+                                <TableColumn fx:id="frontCommandeColStatut" prefWidth="130.0" text="Statut" />
+                                <TableColumn fx:id="frontCommandeColDate" prefWidth="170.0" text="Date" />
+                            </columns>
+                        </TableView>
+                        <HBox alignment="CENTER_LEFT" spacing="16.0">
+                            <Button fx:id="cancelCommandeButton" mnemonicParsing="false" onAction="#cancelSelectedCommande" styleClass="danger-button" text="Annuler la commande selectionnee" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+
+            <BorderPane fx:id="backOfficeView" visible="false" managed="false">
+                <left>
+                    <VBox prefWidth="250.0" styleClass="sidebar" spacing="18.0">
+                        <padding>
+                            <Insets bottom="24.0" left="24.0" right="24.0" top="26.0" />
+                        </padding>
+                        <Label styleClass="sidebar-title" text="Administration" />
+                        <Label styleClass="sidebar-subtitle" text="Pages" />
+                        <Button fx:id="sidebarCommandeListButton" mnemonicParsing="false" onAction="#showCommandeList" styleClass="menu-button" text="Liste des commandes" />
+                        <Button fx:id="sidebarListButton" mnemonicParsing="false" onAction="#showProduitList" styleClass="menu-button" text="Liste des produits" />
+                        <Button fx:id="sidebarFormButton" mnemonicParsing="false" onAction="#showProduitForm" styleClass="menu-button" text="Creer ou modifier un produit" wrapText="true" />
+                        <Button fx:id="sidebarCategoryListButton" mnemonicParsing="false" onAction="#showCategoryList" styleClass="menu-button" text="Liste des categories" />
+                        <Button fx:id="sidebarCategoryFormButton" mnemonicParsing="false" onAction="#showCategoryForm" styleClass="menu-button" text="Creer ou modifier une categorie" wrapText="true" />
+                    </VBox>
+                </left>
+                <center>
+                    <StackPane styleClass="content-wrapper">
+                        <VBox fx:id="commandeListView" maxWidth="980.0" spacing="24.0" visible="false" managed="false">
+                            <padding>
+                                <Insets bottom="28.0" left="28.0" right="28.0" top="28.0" />
+                            </padding>
+                            <VBox styleClass="hero-panel" spacing="10.0">
+                                <Label fx:id="pageTitle" styleClass="page-title" text="Liste des commandes" />
+                                <Label styleClass="page-subtitle" text="Validez ou refusez les commandes en attente." />
+                                <HBox spacing="18.0">
+                                    <VBox spacing="6.0" styleClass="front-card">
+                                        <Label styleClass="field-label" text="Commandes en attente" />
+                                        <Label fx:id="adminPendingOrdersLabel" styleClass="front-card-title" text="0 en attente" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="front-card">
+                                        <Label styleClass="field-label" text="Chiffre valide" />
+                                        <Label fx:id="adminValidatedRevenueLabel" styleClass="front-card-title" text="0.00 DT" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="front-card">
+                                        <Label styleClass="field-label" text="Stock faible" />
+                                        <Label fx:id="adminLowStockLabel" styleClass="front-card-title" text="0 stock(s) faible(s)" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                            <VBox styleClass="panel-card" spacing="16.0">
+                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                    <Label styleClass="section-title" text="Commandes clients" />
+                                    <ComboBox fx:id="commandeStatusFilterCombo" promptText="Statut" styleClass="dark-combo sort-combo" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="commandeResultCountLabel" styleClass="result-label" text="0 commande(s)" />
+                                </HBox>
+                                <TableView fx:id="commandeTable" prefHeight="420.0">
+                                    <columns>
+                                        <TableColumn fx:id="commandeColId" prefWidth="55.0" text="ID" />
+                                        <TableColumn fx:id="commandeColProduit" prefWidth="160.0" text="Produit" />
+                                        <TableColumn fx:id="commandeColClient" prefWidth="145.0" text="Client" />
+                                        <TableColumn fx:id="commandeColQuantite" prefWidth="80.0" text="Quantite" />
+                                        <TableColumn fx:id="commandeColTotalAvant" prefWidth="125.0" text="Prix avant promo" />
+                                        <TableColumn fx:id="commandeColTotal" prefWidth="125.0" text="Prix apres promo" />
+                                        <TableColumn fx:id="commandeColStatut" prefWidth="120.0" text="Statut" />
+                                        <TableColumn fx:id="commandeColDate" prefWidth="150.0" text="Date" />
+                                    </columns>
+                                </TableView>
+                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                    <Button mnemonicParsing="false" onAction="#validateSelectedCommande" styleClass="primary-button" text="Valider" />
+                                    <Button mnemonicParsing="false" onAction="#refuseSelectedCommande" styleClass="danger-button" text="Refuser" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <VBox fx:id="produitListView" maxWidth="980.0" spacing="24.0">
+                            <padding>
+                                <Insets bottom="28.0" left="28.0" right="28.0" top="28.0" />
+                            </padding>
+                            <VBox styleClass="hero-panel" spacing="10.0">
+                                <Label styleClass="page-title" text="Liste des produits" />
+                                <Label styleClass="page-subtitle" text="Consultez, modifiez et supprimez les produits." />
+                            </VBox>
+                            <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                <TextField fx:id="produitSearchField" promptText="Rechercher par titre ou description..." styleClass="dark-field search-field" />
+                                <ComboBox fx:id="produitSortCombo" promptText="Tri" styleClass="dark-combo sort-combo" />
+                                <Button mnemonicParsing="false" onAction="#resetProduitFilters" styleClass="ghost-button" text="Reinitialiser" />
+                                <Label fx:id="resultCountLabel" styleClass="result-label" text="0 resultat(s)" />
+                            </HBox>
+                            <VBox styleClass="panel-card" spacing="16.0">
+                                <Label styleClass="section-title" text="Liste des produits" />
+                                <TableView fx:id="produitTable" prefHeight="360.0">
+                                    <columns>
+                                        <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
+                                        <TableColumn fx:id="colNom" prefWidth="170.0" text="Nom" />
+                                        <TableColumn fx:id="colDescription" prefWidth="270.0" text="Description" />
+                                        <TableColumn fx:id="colPrix" prefWidth="110.0" text="Prix" />
+                                        <TableColumn fx:id="colStock" prefWidth="100.0" text="Stock" />
+                                        <TableColumn fx:id="colCategorie" prefWidth="180.0" text="Categorie" />
+                                    </columns>
+                                </TableView>
+                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                    <Button mnemonicParsing="false" onAction="#showProduitForm" styleClass="ghost-button" text="+ Nouveau produit" />
+                                    <Button mnemonicParsing="false" onAction="#editSelectedProduit" styleClass="ghost-button" text="Modifier la selection" />
+                                    <Button mnemonicParsing="false" onAction="#deleteSelectedProduit" styleClass="danger-button" text="Supprimer la selection" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <VBox fx:id="produitFormView" maxWidth="980.0" spacing="24.0" visible="false" managed="false">
+                            <padding>
+                                <Insets bottom="28.0" left="28.0" right="28.0" top="28.0" />
+                            </padding>
+                            <VBox styleClass="hero-panel" spacing="10.0">
+                                <Label fx:id="formTitle" styleClass="page-title" text="Creer ou modifier un produit" />
+                                <Label styleClass="page-subtitle" text="Ajoutez ou modifiez un produit." />
+                            </VBox>
+                            <VBox styleClass="panel-card" spacing="20.0">
+                                <HBox spacing="20.0">
+                                    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+                                        <Label styleClass="field-label" text="Nom du produit" />
+                                        <TextField fx:id="nomField" promptText="Ex: Souris gamer RGB" styleClass="dark-field" />
+                                    </VBox>
+                                    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+                                        <Label styleClass="field-label" text="Categorie" />
+                                        <ComboBox fx:id="categoryCombo" promptText="Choisir une categorie" styleClass="dark-combo" />
+                                    </VBox>
+                                </HBox>
+                                <VBox spacing="10.0">
+                                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                        <Label styleClass="field-label" text="Description" />
+                                        <Button fx:id="generateDescriptionButton" mnemonicParsing="false" onAction="#generateDescriptionWithAi" styleClass="ghost-button" text="Generer description IA" />
+                                    </HBox>
+                                    <TextArea fx:id="descriptionArea" prefRowCount="5" promptText="Description du produit..." styleClass="dark-area" wrapText="true" />
+                                </VBox>
+                                <VBox spacing="10.0">
+                                    <Label styleClass="field-label" text="Image produit" />
+                                    <HBox spacing="12.0">
+                                        <TextField fx:id="imageUrlField" editable="false" HBox.hgrow="ALWAYS" promptText="Choisir une image" styleClass="dark-field" />
+                                        <Button fx:id="generateImageButton" mnemonicParsing="false" onAction="#generateImageWithAi" styleClass="ghost-button" text="Generer image IA" />
+                                        <Button mnemonicParsing="false" onAction="#chooseImage" styleClass="primary-button" text="Parcourir" />
+                                    </HBox>
+                                </VBox>
+                                <HBox spacing="20.0">
+                                    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+                                        <Label styleClass="field-label" text="Prix" />
+                                        <TextField fx:id="prixField" promptText="Ex: 199.99" styleClass="dark-field" />
+                                    </VBox>
+                                    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+                                        <Label styleClass="field-label" text="Stock" />
+                                        <TextField fx:id="stockField" promptText="Ex: 25" styleClass="dark-field" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                            <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="panel-card">
+                                <Button mnemonicParsing="false" onAction="#showProduitList" styleClass="ghost-button" text="Retour a la liste" />
+                                <Button mnemonicParsing="false" onAction="#saveProduit" styleClass="primary-button" text="Enregistrer" />
+                                <Button mnemonicParsing="false" onAction="#clearForm" styleClass="danger-button" text="Reinitialiser" />
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="categoryListView" maxWidth="980.0" spacing="24.0" visible="false" managed="false">
+                            <padding>
+                                <Insets bottom="28.0" left="28.0" right="28.0" top="28.0" />
+                            </padding>
+                            <VBox styleClass="hero-panel" spacing="10.0">
+                                <Label styleClass="page-title" text="Liste des categories" />
+                                <Label styleClass="page-subtitle" text="Consultez, modifiez et supprimez les categories." />
+                            </VBox>
+                            <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                <TextField fx:id="categorySearchField" promptText="Rechercher par nom ou description..." styleClass="dark-field search-field" />
+                                <ComboBox fx:id="categorySortCombo" promptText="Tri" styleClass="dark-combo sort-combo" />
+                                <Button mnemonicParsing="false" onAction="#resetCategoryFilters" styleClass="ghost-button" text="Reinitialiser" />
+                                <Label fx:id="categoryResultCountLabel" styleClass="result-label" text="0 resultat(s)" />
+                            </HBox>
+                            <VBox styleClass="panel-card" spacing="16.0">
+                                <Label styleClass="section-title" text="Liste des categories" />
+                                <TableView fx:id="categoryTable" prefHeight="360.0">
+                                    <columns>
+                                        <TableColumn fx:id="categoryColId" prefWidth="80.0" text="ID" />
+                                        <TableColumn fx:id="categoryColNom" prefWidth="260.0" text="Nom" />
+                                        <TableColumn fx:id="categoryColDescription" prefWidth="520.0" text="Description" />
+                                    </columns>
+                                </TableView>
+                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                    <Button mnemonicParsing="false" onAction="#showCategoryForm" styleClass="ghost-button" text="+ Nouvelle categorie" />
+                                    <Button mnemonicParsing="false" onAction="#editSelectedCategory" styleClass="ghost-button" text="Modifier la selection" />
+                                    <Button mnemonicParsing="false" onAction="#deleteSelectedCategory" styleClass="danger-button" text="Supprimer la selection" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <VBox fx:id="categoryFormView" maxWidth="980.0" spacing="24.0" visible="false" managed="false">
+                            <padding>
+                                <Insets bottom="28.0" left="28.0" right="28.0" top="28.0" />
+                            </padding>
+                            <VBox styleClass="hero-panel" spacing="10.0">
+                                <Label fx:id="categoryFormTitle" styleClass="page-title" text="Creer ou modifier une categorie" />
+                                <Label styleClass="page-subtitle" text="Ajoutez ou modifiez une categorie." />
+                            </VBox>
+                            <VBox styleClass="panel-card" spacing="20.0">
+                                <VBox spacing="10.0">
+                                    <Label styleClass="field-label" text="Nom de la categorie" />
+                                    <TextField fx:id="categoryNomField" promptText="Ex: Electronique" styleClass="dark-field" />
+                                </VBox>
+                                <VBox spacing="10.0">
+                                    <Label styleClass="field-label" text="Description" />
+                                    <TextArea fx:id="categoryDescriptionArea" prefRowCount="6" promptText="Description de la categorie..." styleClass="dark-area" wrapText="true" />
+                                </VBox>
+                            </VBox>
+                            <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="panel-card">
+                                <Button mnemonicParsing="false" onAction="#showCategoryList" styleClass="ghost-button" text="Retour a la liste" />
+                                <Button mnemonicParsing="false" onAction="#saveCategory" styleClass="primary-button" text="Enregistrer" />
+                                <Button mnemonicParsing="false" onAction="#clearCategoryForm" styleClass="danger-button" text="Reinitialiser" />
+                            </HBox>
+                        </VBox>
+                    </StackPane>
+                </center>
+            </BorderPane>
+            <VBox fx:id="chatbotPopup" managed="false" spacing="0.0" styleClass="chatbot-popup" visible="false" StackPane.alignment="BOTTOM_RIGHT">
+                <StackPane.margin>
+                    <Insets bottom="92.0" right="22.0" />
+                </StackPane.margin>
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="chatbot-mini-header">
+                    <Label styleClass="chatbot-popup-title" text="Assistant" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button mnemonicParsing="false" onAction="#hideChatbotPopup" styleClass="chatbot-popup-window-button" text="-" />
+                    <Button mnemonicParsing="false" onAction="#hideChatbotPopup" styleClass="chatbot-popup-close" text="x" />
+                </HBox>
+
+                <VBox spacing="8.0" styleClass="chatbot-mini-content" VBox.vgrow="ALWAYS">
+                    <HBox alignment="TOP_LEFT" spacing="8.0">
+                        <Label styleClass="chatbot-avatar" text="AI" />
+                        <VBox spacing="6.0" styleClass="chatbot-bubble">
+                            <Label styleClass="chatbot-bubble-text" text="Bonjour, je suis votre assistant virtuel." wrapText="true" />
+                            <Label styleClass="chatbot-bubble-text" text="Posez vos questions sur les produits et commandes." wrapText="true" />
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="6.0" styleClass="chatbot-options-card">
+                        <Label styleClass="chatbot-options-title" text="Options rapides" />
+                        <Button mnemonicParsing="false" onAction="#useChatbotQuickPrompt" styleClass="chatbot-option-button" text="> Produits disponibles" userData="Quels sont les produits disponibles actuellement ?" />
+                        <Button mnemonicParsing="false" onAction="#useChatbotQuickPrompt" styleClass="chatbot-option-button" text="> Statut de commande" userData="Comment verifier le statut de ma commande ?" />
+                        <Button mnemonicParsing="false" onAction="#useChatbotQuickPrompt" styleClass="chatbot-option-button" text="> Moyens de paiement" userData="Quels moyens de paiement sont acceptes ?" />
+                        <Button mnemonicParsing="false" onAction="#useChatbotQuickPrompt" styleClass="chatbot-option-button" text="> Delai de livraison" userData="Quel est le delai de livraison habituel ?" />
+                    </VBox>
+
+                    <ScrollPane fx:id="chatbotMessagesScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="chatbot-messages-scroll" VBox.vgrow="ALWAYS">
+                        <content>
+                            <VBox fx:id="chatbotMessagesBox" spacing="8.0" styleClass="chatbot-messages-box" />
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <HBox spacing="8.0" styleClass="chatbot-mini-inputbar">
+                    <TextField fx:id="chatbotInputField" HBox.hgrow="ALWAYS" onAction="#sendChatbotMessage" promptText="Enter your question" styleClass="chatbot-mini-input" />
+                    <Button fx:id="chatbotSendButton" mnemonicParsing="false" onAction="#sendChatbotMessage" styleClass="chatbot-mini-send" text=">" />
+                </HBox>
+            </VBox>
+            <Button fx:id="chatbotFloatingButton" managed="false" mnemonicParsing="false" onAction="#showFrontChatbot" styleClass="chatbot-fab-button" text="..." visible="false" StackPane.alignment="BOTTOM_RIGHT">
+                <StackPane.margin>
+                    <Insets bottom="26.0" right="26.0" />
+                </StackPane.margin>
+            </Button>
+        </StackPane>
+    </center>
+</BorderPane>

@@ -470,8 +470,9 @@ public class ChatController {
             return;
         }
         if (currentConversation == null || currentConversation.getId() == null) {
-            erreur("Sélectionnez une conversation.");
-            return;
+            if (!openDefaultConversationForCurrentUser()) {
+                return;
+            }
         }
 
         String draft = Optional.ofNullable(taMessageDraft.getText()).orElse("").trim();
@@ -1010,9 +1011,36 @@ public class ChatController {
         lblMessagesEmpty.setText("Sélectionnez une conversation dans la colonne de gauche.");
         lblMessagesEmpty.setVisible(true);
         lblMessagesEmpty.setManaged(true);
-        btnSendMessage.setDisable(true);
+        btnSendMessage.setDisable(currentUser == null);
         lvMessages.getSelectionModel().clearSelection();
         updateConversationMenuState();
+    }
+
+    private boolean openDefaultConversationForCurrentUser() {
+        if (currentUser == null || currentUser.getId() == null) {
+            erreur("Aucun utilisateur connecté.");
+            return false;
+        }
+
+        try {
+            Optional<User> admin = chatService.findFirstAdminUser(currentUser.getId().longValue());
+            if (admin.isEmpty() || admin.get().getId() == null) {
+                info("Aucun administrateur disponible. Cliquez sur Nouvelle conversation et recherchez un utilisateur.");
+                showCreatePane(true);
+                return false;
+            }
+
+            Conversation created = chatService.createPrivateConversation(
+                    currentUser.getId().longValue(),
+                    admin.get().getId().longValue()
+            );
+            refreshAll();
+            selectConversationById(created.getId());
+            return currentConversation != null && currentConversation.getId() != null;
+        } catch (RuntimeException exception) {
+            erreur("Impossible de préparer la conversation : " + exception.getMessage());
+            return false;
+        }
     }
 
     private void setupConversationMenu() {

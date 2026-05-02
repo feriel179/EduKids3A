@@ -68,7 +68,8 @@ public class MyConnection {
         }
 
         throw new IllegalStateException(
-                "Impossible de se connecter a la base EduKids. Verifie MySQL/MariaDB sur localhost:3308 et la base `edukids`.",
+                "Impossible de se connecter a la base EduKids. Verifie MySQL/MariaDB et la configuration EDUKIDS_DB_*. "
+                        + "Cause: " + (lastException == null ? "inconnue" : lastException.getMessage()),
                 lastException
         );
     }
@@ -136,19 +137,22 @@ public class MyConnection {
     private record DatabaseCandidate(String host, int port, String databaseName) {
         private String databaseUrl() {
             return "jdbc:mysql://" + host + ":" + port + "/" + databaseName
-                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                    + "&connectTimeout=3000&socketTimeout=5000";
         }
     }
 
     private record ServerCandidate(String host, int port) {
         private String serverUrl() {
             return "jdbc:mysql://" + host + ":" + port
-                    + "/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    + "/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                    + "&connectTimeout=3000&socketTimeout=5000";
         }
 
         private String databaseUrl(String databaseName) {
             return "jdbc:mysql://" + host + ":" + port + "/" + databaseName
-                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                    + "&connectTimeout=3000&socketTimeout=5000";
         }
     }
 }

@@ -1,16 +1,13 @@
 package com.edukids.edukids3a.persistence;
 
+import com.edukids.edukids3a.utils.DatabaseConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class JpaUtil {
 
-    private static final String HOST = "localhost";
-    private static final int PORT = 3308;
-    private static final String DATABASE = "edukids";
     private static volatile EntityManagerFactory emf;
     private static final Object EMF_LOCK = new Object();
 
@@ -36,18 +33,7 @@ public final class JpaUtil {
     }
 
     private static Map<String, Object> getJpaProperties() {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("jakarta.persistence.jdbc.driver", "com.mysql.cj.jdbc.Driver");
-        properties.put("jakarta.persistence.jdbc.url", "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8&connectTimeout=8000&socketTimeout=45000&autoReconnect=true&maxReconnects=3");
-        properties.put("jakarta.persistence.jdbc.user", "root");
-        properties.put("jakarta.persistence.jdbc.password", "");
-        properties.put("hibernate.hbm2ddl.auto", "update");
-        properties.put("hibernate.show_sql", "false");
-        properties.put("hibernate.format_sql", "true");
-        properties.put("hibernate.jdbc.time_zone", "UTC");
-        properties.put("hibernate.connection.autocommit", "true");
-        properties.put("hibernate.connection.pool_size", "10");
-        return properties;
+        return DatabaseConfig.jpaOverrides();
     }
 
     public static EntityManager createEntityManager() {

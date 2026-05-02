@@ -1,5 +1,7 @@
 package com.edukids.edukids3a.persistence;
 
+import com.edukids.edukids3a.utils.DatabaseConfig;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -11,24 +13,13 @@ import java.util.Properties;
  */
 public class DatabaseInitializer {
 
-    private static final String BASE_URL = "jdbc:mysql://localhost:3308";
-    private static final String DB_NAME = "edukids";
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
-
     public static void initializeDatabase() {
         try {
             // Charger le driver
             Class.forName("com.mysql.cj.jdbc.Driver");
             
             // Créer les propriétés
-            Properties props = new Properties();
-            props.setProperty("user", USER);
-            props.setProperty("password", PASSWORD);
-            props.setProperty("useSSL", "false");
-            props.setProperty("allowPublicKeyRetrieval", "true");
-            props.setProperty("serverTimezone", "UTC");
-            props.setProperty("connectTimeout", "8000");
+            Properties props = DatabaseConfig.jdbcProperties();
             
             // Créer la base de données
             createDatabase(props);
@@ -49,13 +40,13 @@ public class DatabaseInitializer {
     }
 
     private static void createDatabase(Properties props) throws SQLException {
-        try (Connection conn = DriverManager.getConnection(BASE_URL, props);
+        try (Connection conn = DriverManager.getConnection(DatabaseConfig.baseUrl(), props);
              Statement stmt = conn.createStatement()) {
             
-            String sql = "CREATE DATABASE IF NOT EXISTS " + DB_NAME + 
+            String sql = "CREATE DATABASE IF NOT EXISTS " + DatabaseConfig.databaseName() +
                          " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
             stmt.executeUpdate(sql);
-            System.out.println("✓ Database '" + DB_NAME + "' ensured.");
+            System.out.println("Database '" + DatabaseConfig.databaseName() + "' ensured.");
             
         } catch (SQLException e) {
             System.err.println("✗ Failed to create database: " + e.getMessage());
@@ -64,7 +55,7 @@ public class DatabaseInitializer {
     }
 
     private static void createTables(Properties props) throws SQLException {
-        String dbUrl = BASE_URL + "/" + DB_NAME;
+        String dbUrl = DatabaseConfig.databaseUrl();
         try (Connection conn = DriverManager.getConnection(dbUrl, props);
              Statement stmt = conn.createStatement()) {
             

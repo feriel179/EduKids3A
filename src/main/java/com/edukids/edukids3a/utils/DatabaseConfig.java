@@ -6,9 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Centralise les parametres MySQL pour eviter les ecarts entre JDBC et JPA.
- */
 public final class DatabaseConfig {
 
     public static final String DEFAULT_HOST = "localhost";

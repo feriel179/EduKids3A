@@ -46,6 +46,13 @@ public class DashboardController implements Initializable {
     @FXML private Button dashboardButton;
     @FXML private Button allUsersButton;
     @FXML private Button coursButton;
+    @FXML private Button produitsButton;
+    @FXML private VBox produitsSubmenuBox;
+    @FXML private Button produitsCommandesButton;
+    @FXML private Button produitsListButton;
+    @FXML private Button produitsFormButton;
+    @FXML private Button produitsCategoriesButton;
+    @FXML private Button produitsCategoryFormButton;
     @FXML private VBox userSubmenuBox;
     @FXML private VBox courseSubmenuBox;
     @FXML private VBox quizSubmenuBox;
@@ -143,6 +150,7 @@ public class DashboardController implements Initializable {
         userManagementView.setManaged(false);
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showProduitsSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -291,9 +299,62 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleProduitsNav() {
+        boolean expanded = produitsSubmenuBox != null && produitsSubmenuBox.isVisible();
+        if (expanded) {
+            showProduitsSubmenu(false);
+            return;
+        }
+        showProduitsCommandes();
+    }
+
+    @FXML
+    private void handleProduitsCommandesNav() {
+        showProduitsCommandes();
+    }
+
+    @FXML
+    private void handleProduitsListNav() {
+        openProduitsModule("Shop management", "Liste des produits", produitsListButton, com.ecom.ui.MainController::showProduitList);
+    }
+
+    @FXML
+    private void handleProduitsFormNav() {
+        openProduitsModule("Shop management", "Creer ou modifier un produit", produitsFormButton, com.ecom.ui.MainController::showProduitForm);
+    }
+
+    @FXML
+    private void handleProduitsCategoriesNav() {
+        openProduitsModule("Shop management", "Liste des categories", produitsCategoriesButton, com.ecom.ui.MainController::showCategoryList);
+    }
+
+    @FXML
+    private void handleProduitsCategoryFormNav() {
+        openProduitsModule("Shop management", "Creer ou modifier une categorie", produitsCategoryFormButton, com.ecom.ui.MainController::showCategoryForm);
+    }
+
+    private void showProduitsCommandes() {
+        openProduitsModule("Shop management", "Liste des commandes", produitsCommandesButton, com.ecom.ui.MainController::showCommandeList);
+    }
+
+    private void openProduitsModule(String kicker, String title, Button activeSubButton, EcomModuleAction action) {
+        showUserSubmenu(false);
         showCourseSubmenu(false);
+        showProduitsSubmenu(true);
+        showChatSubmenu(false);
         showQuizSubmenu(false);
-        // TODO: Navigate to Produits management
+        setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveProduitsSubNavigation(activeSubButton);
+        setActiveChatSubNavigation(null);
+        setActiveQuizSubNavigation(null);
+        setActiveNavigation(produitsButton);
+        setTopbarContext(kicker, title);
+        showView("module");
+        loadModuleView("/fxml/main-view.fxml", loader -> {
+            com.ecom.ui.MainController controller = loader.getController();
+            controller.openAdminMode();
+            action.apply(controller);
+        });
     }
 
     @FXML
@@ -974,6 +1035,7 @@ public class DashboardController implements Initializable {
                 dashboardButton,
                 allUsersButton,
                 coursButton,
+                produitsButton,
                 chatButton,
                 quizButton
         );
@@ -1034,6 +1096,24 @@ public class DashboardController implements Initializable {
         }
     }
 
+    private void setActiveProduitsSubNavigation(Button activeButton) {
+        List<Button> buttons = List.of(
+                produitsCommandesButton,
+                produitsListButton,
+                produitsFormButton,
+                produitsCategoriesButton,
+                produitsCategoryFormButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-sub-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-sub-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-sub-button-active");
+        }
+    }
+
     private void setActiveQuizSubNavigation(Button activeButton) {
         List<Button> buttons = List.of(
                 quizListButton,
@@ -1062,6 +1142,11 @@ public class DashboardController implements Initializable {
         courseSubmenuBox.setManaged(visible);
     }
 
+    private void showProduitsSubmenu(boolean visible) {
+        produitsSubmenuBox.setVisible(visible);
+        produitsSubmenuBox.setManaged(visible);
+    }
+
     private void showChatSubmenu(boolean visible) {
         chatSubmenuBox.setVisible(visible);
         chatSubmenuBox.setManaged(visible);
@@ -1080,6 +1165,11 @@ public class DashboardController implements Initializable {
     @FunctionalInterface
     private interface LoaderCallback {
         void accept(FXMLLoader loader);
+    }
+
+    @FunctionalInterface
+    private interface EcomModuleAction {
+        void apply(com.ecom.ui.MainController controller);
     }
 
     private String buildInitials(User user) {
