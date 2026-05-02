@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneFrontPageResa" spacing="0"
+      styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
+    <VBox styleClass="front-hero">
+        <Label text="Mes réservations" styleClass="hero-title"/>
+        <Label text="Vos participations aux événements" styleClass="hero-breadcrumb" wrapText="true"/>
+    </VBox>
+    <VBox spacing="0" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets bottom="16.0" left="20.0" right="20.0" top="16.0"/>
+        </padding>
+        <Label fx:id="lblFrontResaVide" managed="false" visible="false" styleClass="detail-description"
+               text="Connectez-vous pour voir vos réservations." wrapText="true"/>
+        <ScrollPane fitToWidth="true" styleClass="cards-scroll" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tableFrontMesReservations" minHeight="280.0" styleClass="table-view-dark"
+                       prefWidth="920.0">
+                <columns>
+                    <TableColumn fx:id="colFrontResEv" prefWidth="320.0" text="Événement"/>
+                    <TableColumn fx:id="colFrontResPlaces" prefWidth="120.0" text="Places"/>
+                    <TableColumn fx:id="colFrontResDate" prefWidth="180.0" text="Date de réservation"/>
+                    <TableColumn fx:id="colFrontResPass" prefWidth="120.0" text="Pass"/>
+                </columns>
+            </TableView>
+        </ScrollPane>
+    </VBox>
+</VBox>

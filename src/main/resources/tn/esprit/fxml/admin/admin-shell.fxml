@@ -47,6 +47,7 @@
                 <Button fx:id="usersButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showUsers" styleClass="shell-nav-button" text="Users" />
                 <Button fx:id="coursesButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCourses" styleClass="shell-nav-button" text="Courses" />
                 <Button fx:id="ecommerceButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showEcommerce" styleClass="shell-nav-button" text="E-commerce" />
+                <Button fx:id="eventsButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showEvents" styleClass="shell-nav-button" text="Events" />
                 <VBox spacing="8.0" styleClass="shell-submenu-box">
                     <children>
                         <Button fx:id="createCourseButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCreateCourse" styleClass="shell-nav-button,shell-nav-sub-button" text="Create Course" />

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneFrontPageAccueil" spacing="20.0" styleClass="front-root" alignment="TOP_CENTER">
+    <padding>
+        <Insets bottom="32.0" left="32.0" right="32.0" top="40.0"/>
+    </padding>
+    <Label text="Bienvenue sur EduKids" styleClass="hero-title"/>
+    <Label text="Retrouvez ici un aperçu du catalogue : chiffres clés et accès rapide aux événements et aux programmes."
+           styleClass="detail-description" wrapText="true" maxWidth="640.0" textAlignment="CENTER"/>
+    <GridPane hgap="28.0" vgap="8.0" maxWidth="520.0">
+        <Label text="Événements publiés" styleClass="stats-card-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Label fx:id="lblAccueilNbEvenements" text="—" styleClass="stats-card-value" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Label text="Programmes" styleClass="stats-card-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label fx:id="lblAccueilNbProgrammes" text="—" styleClass="stats-card-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <Label text="Événements liés à un programme" styleClass="stats-card-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+        <Label fx:id="lblAccueilNbAvecProgramme" text="—" styleClass="stats-card-value" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+    </GridPane>
+    <HBox spacing="14.0" alignment="CENTER">
+        <Button mnemonicParsing="false" text="Voir les événements" onAction="#onAccueilVersEvenements" styleClass="button,button-primary"/>
+        <Button mnemonicParsing="false" text="Voir les programmes" onAction="#onAccueilVersProgrammes" styleClass="button,button-secondary"/>
+    </HBox>
+    <Label text="Astuce : F5 rafraîchit les données (front et administration)." styleClass="front-counter" wrapText="true" maxWidth="560.0" textAlignment="CENTER"/>
+</VBox>

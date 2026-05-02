@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.controller.MainController"
+      fx:id="paneBackPageEvListe"
+      spacing="16.0"
+      fillWidth="true"
+      styleClass="tab-content-dark"
+      VBox.vgrow="ALWAYS">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <children>
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="page-kicker" text="Event management"/>
+                        <Label styleClass="page-hero-title" text="Events"/>
+                        <Label styleClass="page-hero-subtitle" text="Manage events with the same admin layout used for courses and lessons." wrapText="true"/>
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button minWidth="126.0" mnemonicParsing="false" onAction="#onRafraichirEvenements" prefWidth="126.0" styleClass="toolbar-refresh-button" text="Refresh"/>
+                <Button minWidth="196.0" mnemonicParsing="false" onAction="#onBackEvNouveauVersFormulaire" prefWidth="196.0" styleClass="toolbar-create-button" text="Create an Event"/>
+            </children>
+        </HBox>
+
+        <HBox spacing="14.0">
+            <children>
+                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-blue" HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="18.0" left="22.0" right="22.0" top="18.0"/>
+                    </padding>
+                    <children>
+                        <Label styleClass="metric-title" text="Total Events"/>
+                        <Label fx:id="totalEventsMetricLabel" styleClass="metric-value-blue" text="0"/>
+                    </children>
+                </VBox>
+                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-green" HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="18.0" left="22.0" right="22.0" top="18.0"/>
+                    </padding>
+                    <children>
+                        <Label styleClass="metric-title" text="With Programme"/>
+                        <Label fx:id="eventsWithProgramMetricLabel" styleClass="metric-value-green" text="0"/>
+                    </children>
+                </VBox>
+                <VBox alignment="CENTER" spacing="8.0" styleClass="metric-card-gold" HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets bottom="18.0" left="22.0" right="22.0" top="18.0"/>
+                    </padding>
+                    <children>
+                        <Label styleClass="metric-title" text="Reservations"/>
+                        <Label fx:id="eventReservationsMetricLabel" styleClass="metric-value-gold" text="0"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <VBox spacing="14.0" styleClass="admin-table-card" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets bottom="16.0" left="18.0" right="18.0" top="16.0"/>
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="table-toolbar">
+                    <children>
+                        <TextField fx:id="tfBackEvSearch" promptText="Search by title, description, location, or type" styleClass="toolbar-search-field" HBox.hgrow="ALWAYS"/>
+                        <Button minWidth="132.0" mnemonicParsing="false" onAction="#onBackEvResetFiltre" prefWidth="132.0" styleClass="toolbar-refresh-button" text="Reset"/>
+                        <Button minWidth="150.0" mnemonicParsing="false" onAction="#onBackEvModifierVersFormulaire" prefWidth="150.0" styleClass="table-edit-button" text="Edit Selected"/>
+                        <Button minWidth="176.0" mnemonicParsing="false" onAction="#onSupprimerEvenement" prefWidth="176.0" styleClass="table-delete-button" text="Delete Selected"/>
+                    </children>
+                </HBox>
+
+                <Label fx:id="lblEmptyBackEvenements" managed="false" visible="false" styleClass="empty-state-banner" wrapText="true"/>
+
+                <TableView fx:id="tableEvenements" styleClass="admin-table,table-view-dark" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colEvEvenement" prefWidth="240.0" text="Event"/>
+                        <TableColumn fx:id="colEvDescription" prefWidth="280.0" text="Description"/>
+                        <TableColumn fx:id="colEvDateAff" prefWidth="110.0" text="Date"/>
+                        <TableColumn fx:id="colEvHorairesAff" prefWidth="150.0" text="Time"/>
+                        <TableColumn fx:id="colEvProgrammeAff" prefWidth="120.0" text="Programme"/>
+                        <TableColumn fx:id="colEvActions" prefWidth="200.0" text="Action"/>
+                    </columns>
+                </TableView>
+
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <children>
+                        <Label fx:id="lblBackEvResultCount" styleClass="pagination-summary" text="Showing 0 of 0 entries"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

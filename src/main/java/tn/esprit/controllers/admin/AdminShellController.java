@@ -6,6 +6,7 @@ import tn.esprit.models.Lesson;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -38,6 +39,9 @@ public class AdminShellController {
     private Button ecommerceButton;
 
     @FXML
+    private Button eventsButton;
+
+    @FXML
     private Button createCourseButton;
 
     @FXML
@@ -53,6 +57,10 @@ public class AdminShellController {
     @FXML
     private void initialize() {
         instance = this;
+        if (eventsButton != null) {
+            eventsButton.setDisable(false);
+            eventsButton.setOpacity(1.0);
+        }
         showDashboard();
     }
 
@@ -90,6 +98,14 @@ public class AdminShellController {
             com.ecom.ui.MainController controller = loader.getController();
             controller.openAdminMode();
         });
+    }
+
+    @FXML
+    public void showEvents() {
+        setContext("Event management", "Events");
+        setActiveNavigation(eventsButton);
+        setActiveCourseSubNavigation(null);
+        loadEventsView(true);
     }
 
     @FXML
@@ -186,7 +202,8 @@ public class AdminShellController {
                 dashboardButton,
                 usersButton,
                 coursesButton,
-                ecommerceButton
+                ecommerceButton,
+                eventsButton
         );
 
         for (Button button : buttons) {
@@ -227,6 +244,41 @@ public class AdminShellController {
 
         } catch (Exception e) {  // 🔥 CORRECTION BONUS
             e.printStackTrace();
+        }
+    }
+
+    private void loadEventsView(boolean adminMode) {
+        try {
+            com.edukids.edukids3a.controller.MainController controller =
+                    new com.edukids.edukids3a.controller.MainController();
+            FXMLLoader loader = new FXMLLoader(MainFX.class.getResource("/fxml/MainView.fxml"));
+            loader.setController(controller);
+            loader.setControllerFactory(type -> {
+                if (type == com.edukids.edukids3a.controller.MainController.class) {
+                    return controller;
+                }
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (ReflectiveOperationException exception) {
+                    throw new IllegalStateException("Controleur FXML inattendu: " + type.getName(), exception);
+                }
+            });
+
+            Parent view = loader.load();
+            controller.initialiserApresChargementFxml();
+            if (adminMode) {
+                controller.openAdminMode();
+            } else {
+                controller.openStudentMode();
+            }
+            contentPane.getChildren().setAll(view);
+        } catch (Exception exception) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Events");
+            alert.setHeaderText("Impossible d'ouvrir le module Events");
+            alert.setContentText(exception.getMessage());
+            alert.showAndWait();
+            exception.printStackTrace();
         }
     }
 

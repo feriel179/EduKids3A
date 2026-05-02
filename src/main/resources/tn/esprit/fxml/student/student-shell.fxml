@@ -43,6 +43,7 @@
                         <Button fx:id="catalogButton" mnemonicParsing="false" onAction="#showCatalog" styleClass="student-nav-button" text="Courses" />
                         <Button fx:id="myCoursesButton" mnemonicParsing="false" onAction="#showMyCourses" styleClass="student-nav-button" text="My Courses" />
                         <Button fx:id="shopButton" mnemonicParsing="false" onAction="#showShop" styleClass="student-nav-button" text="Shop" />
+                        <Button fx:id="eventsButton" mnemonicParsing="false" onAction="#showEvents" styleClass="student-nav-button" text="Events" />
                         <Button fx:id="quizButton" mnemonicParsing="false" onAction="#showQuiz" styleClass="student-nav-button" text="Quiz" />
                         <Button fx:id="chatButton" mnemonicParsing="false" onAction="#showChat" styleClass="student-nav-button" text="Chat" />
                         <Button fx:id="profileButton" mnemonicParsing="false" onAction="#showProfile" styleClass="student-nav-button" text="Profile" />

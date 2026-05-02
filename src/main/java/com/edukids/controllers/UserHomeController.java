@@ -61,7 +61,9 @@ public class UserHomeController implements Initializable {
 
     @FXML
     private void handleEventsNav() {
-        // TODO: Navigate to Events section
+        navigate(() -> MainFX.getInstance().showStudentEventsForUser(SessionManager.getCurrentUser()),
+                "Events",
+                "Impossible d'ouvrir la section events.");
     }
 
     @FXML

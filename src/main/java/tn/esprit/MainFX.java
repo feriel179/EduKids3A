@@ -122,6 +122,22 @@ public class MainFX extends Application {
         }
     }
 
+    public void showStudentEventsForUser(User user) throws Exception {
+        showStudentShellForUser(user);
+        var controller = tn.esprit.controllers.student.StudentShellController.getInstance();
+        if (controller != null) {
+            controller.showEvents();
+        }
+    }
+
+    public void showEventsManagement() throws Exception {
+        showUserDashboard();
+        var controller = com.edukids.controllers.DashboardController.getInstance();
+        if (controller != null) {
+            controller.showEvents();
+        }
+    }
+
     public void showChatViewForUser(User user) throws Exception {
         if (user == null) {
             throw new IllegalArgumentException("Aucun utilisateur connecte.");

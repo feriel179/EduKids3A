@@ -21,7 +21,7 @@ public class Programme {
     private Integer id;
 
     @OneToOne(optional = false)
-    @JoinColumn(name = "evenement_id", referencedColumnName = "id_evenement", nullable = false, unique = true)
+    @JoinColumn(name = "evenement_id", referencedColumnName = "id", nullable = false, unique = true)
     private Evenement evenement;
 
     @Column(name = "pause_debut", nullable = false)

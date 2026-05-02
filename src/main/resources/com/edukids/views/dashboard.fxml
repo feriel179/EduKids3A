@@ -73,7 +73,17 @@
                         <Button fx:id="createLessonButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateLessonNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Create Lesson" />
                     </children>
                 </VBox>
-                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
+                <Button fx:id="eventsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button" text="Events" />
+                <VBox fx:id="eventSubmenuBox" managed="false" spacing="6.0" visible="false">
+                    <children>
+                        <Button fx:id="eventListButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventListNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Liste des evenements" />
+                        <Button fx:id="eventFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer un evenement" />
+                        <Button fx:id="eventProgrammesButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventProgrammesNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Programmes" />
+                        <Button fx:id="eventProgrammeFormButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventProgrammeFormNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Creer un programme" />
+                        <Button fx:id="eventReservationsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventReservationsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Reservations" />
+                        <Button fx:id="eventStatsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventStatsNav" styleClass="shell-nav-button,shell-nav-sub-button" text="Statistiques" />
+                    </children>
+                </VBox>
                 <Button fx:id="produitsButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProduitsNav" styleClass="shell-nav-button" text="Produits" />
                 <VBox fx:id="produitsSubmenuBox" managed="false" spacing="6.0" visible="false">
                     <children>

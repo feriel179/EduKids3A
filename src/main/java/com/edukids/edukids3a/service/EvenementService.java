@@ -11,6 +11,9 @@ import java.util.List;
 
 public class EvenementService {
 
+    public record StatsInteractions(long totalEvents, long totalLikes, long totalDislikes, long totalFavorites) {
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(EvenementService.class);
 
     /** Limite de lignes pour les listes (évite de charger des millions de lignes par mégarde). */
@@ -61,10 +64,80 @@ public class EvenementService {
         }
     }
 
+    public StatsInteractions getStatsInteractions() {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            long totalEv = em.createQuery("select count(e) from Evenement e", Long.class).getSingleResult();
+            Long likes = em.createQuery("select coalesce(sum(e.likesCount), 0) from Evenement e", Long.class).getSingleResult();
+            Long dislikes = em.createQuery("select coalesce(sum(e.dislikesCount), 0) from Evenement e", Long.class).getSingleResult();
+            Long favs = em.createQuery("select coalesce(sum(e.favoritesCount), 0) from Evenement e", Long.class).getSingleResult();
+            return new StatsInteractions(totalEv, likes != null ? likes : 0L, dislikes != null ? dislikes : 0L, favs != null ? favs : 0L);
+        }
+    }
+
+    public List<Evenement> topParLikes(int limit) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            return em.createQuery("select e from Evenement e order by e.likesCount desc, e.titre", Evenement.class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        }
+    }
+
+    public List<Evenement> topParDislikes(int limit) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            return em.createQuery("select e from Evenement e order by e.dislikesCount desc, e.titre", Evenement.class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        }
+    }
+
+    public List<Evenement> topParFavoris(int limit) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            return em.createQuery("select e from Evenement e order by e.favoritesCount desc, e.titre", Evenement.class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        }
+    }
+
+    /**
+     * Somme des places réservées (adultes + enfants) pour un événement.
+     */
+    public int sommePlacesReserveesPourEvenement(int evenementId) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            Long sum = em.createQuery(
+                            "select coalesce(sum(r.nbAdultes + r.nbEnfants), 0) from Reservation r where r.evenement.id = :id",
+                            Long.class)
+                    .setParameter("id", evenementId)
+                    .getSingleResult();
+            return sum != null ? sum.intValue() : 0;
+        }
+    }
+
+    public List<Evenement> listerEvenementsFavorisPourUtilisateur(int userId, int max) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            return em.createQuery(
+                            "select e from UserEvenementInteraction i join i.evenement e left join fetch e.programme "
+                                    + "where i.utilisateur.id = :u and i.typeInteraction = :t order by i.createdAt desc",
+                            Evenement.class)
+                    .setParameter("u", userId)
+                    .setParameter("t", com.edukids.edukids3a.model.UserEvenementInteraction.TYPE_FAVORITE)
+                    .setMaxResults(max)
+                    .getResultList();
+        }
+    }
+
     public void supprimer(Evenement evenement) {
         EntityManager em = JpaUtil.createEntityManager();
         em.getTransaction().begin();
         try {
+            Integer id = evenement.getId();
+            if (id != null) {
+                em.createQuery("delete from UserEvenementInteraction i where i.evenement.id = :id")
+                        .setParameter("id", id)
+                        .executeUpdate();
+                em.createQuery("delete from Reservation r where r.evenement.id = :id")
+                        .setParameter("id", id)
+                        .executeUpdate();
+            }
             Evenement managed = em.merge(evenement);
             em.remove(managed);
             em.getTransaction().commit();

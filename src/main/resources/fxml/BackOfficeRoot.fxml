@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controller.MainController"
+      spacing="0" VBox.vgrow="ALWAYS">
+    <VBox styleClass="back-sidebar" prefWidth="0.0" minWidth="0.0" maxWidth="0.0" spacing="10.0" visible="false" managed="false">
+        <padding>
+            <Insets bottom="20.0" left="14.0" right="14.0" top="20.0"/>
+        </padding>
+        <Label text="Administration" styleClass="back-sidebar-title"/>
+        <Label text="Pages" styleClass="back-sidebar-subtitle"/>
+        <ToggleButton fx:id="toggleBackNavEvListe" mnemonicParsing="false" text="Liste des événements"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" selected="true" styleClass="back-sidebar-nav"/>
+        <ToggleButton fx:id="toggleBackNavEvForm" mnemonicParsing="false" text="Créer ou modifier un événement"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+        <Separator/>
+        <ToggleButton fx:id="toggleBackNavPrListe" mnemonicParsing="false" text="Liste des programmes"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+        <ToggleButton fx:id="toggleBackNavPrForm" mnemonicParsing="false" text="Créer ou modifier un programme"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+        <Separator/>
+        <ToggleButton fx:id="toggleBackNavStats" mnemonicParsing="false" text="Statistiques"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+        <Separator/>
+        <ToggleButton fx:id="toggleBackNavResListe" mnemonicParsing="false" text="Réservations"
+                      maxWidth="1.7976931348623157E308" alignment="CENTER_LEFT" styleClass="back-sidebar-nav"/>
+    </VBox>
+    <StackPane HBox.hgrow="ALWAYS" styleClass="back-office-main" VBox.vgrow="ALWAYS">
+        <fx:include source="BackPageListeEvenements.fxml"/>
+        <fx:include source="BackPageFicheEvenement.fxml"/>
+        <fx:include source="BackPageDetailEvenement.fxml"/>
+        <fx:include source="BackPageListeProgrammes.fxml"/>
+        <fx:include source="BackPageFicheProgramme.fxml"/>
+        <fx:include source="BackPageStatistiques.fxml"/>
+        <fx:include source="BackPageListeReservations.fxml"/>
+    </StackPane>
+</HBox>
+
+
+

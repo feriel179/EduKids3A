@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneBackPageResListe"
+      spacing="12.0" fillWidth="true" styleClass="tab-content-dark" visible="false" managed="false"
+      VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets bottom="20.0" left="24.0" right="24.0" top="16.0"/>
+    </padding>
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="back-list-toolbar">
+        <TextField fx:id="tfBackResSearch" promptText="Rechercher (événement, e-mail, nom…)"
+                   styleClass="search-field" HBox.hgrow="ALWAYS" minWidth="200.0"/>
+        <Button mnemonicParsing="false" onAction="#onBackResResetFiltre" text="Réinitialiser"
+                styleClass="button-ghost"/>
+        <Region HBox.hgrow="SOMETIMES" minWidth="12.0"/>
+        <Label fx:id="lblBackResResultCount" text="0 résultat(s)" styleClass="back-list-count"/>
+    </HBox>
+    <Label fx:id="lblEmptyBackReservations" managed="false" visible="false"
+           text="Aucune réservation." styleClass="empty-state-banner" wrapText="true"/>
+    <TableView fx:id="tableReservations" minHeight="200.0" styleClass="table-view-dark" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colResId" prefWidth="56.0" text="#"/>
+            <TableColumn fx:id="colResEvenement" prefWidth="200.0" text="Événement"/>
+            <TableColumn fx:id="colResUserEmail" prefWidth="180.0" text="Compte"/>
+            <TableColumn fx:id="colResNom" prefWidth="140.0" text="Nom / prénom"/>
+            <TableColumn fx:id="colResEmail" prefWidth="180.0" text="E-mail (résa)"/>
+            <TableColumn fx:id="colResTelephone" prefWidth="110.0" text="Tél."/>
+            <TableColumn fx:id="colResPlaces" prefWidth="90.0" text="Places"/>
+            <TableColumn fx:id="colResDate" prefWidth="140.0" text="Date résa."/>
+            <TableColumn fx:id="colResActions" prefWidth="168.0" text="Actions"/>
+        </columns>
+    </TableView>
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="form-actions-bar">
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button mnemonicParsing="false" onAction="#onRafraichirReservationsBack"
+                text="Rafraîchir" styleClass="button-ghost"/>
+    </HBox>
+</VBox>

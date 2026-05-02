@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            styleClass="app-root"
+            stylesheets="@../css/edukids.css">
+    <center>
+        <StackPane styleClass="main-center-stack" BorderPane.alignment="CENTER" maxWidth="1.7976931348623157E308" maxHeight="1.7976931348623157E308">
+            <VBox fx:id="paneBackOffice" visible="false" managed="false" spacing="0" styleClass="front-root">
+                <fx:include source="BackOfficeRoot.fxml" VBox.vgrow="ALWAYS"/>
+            </VBox>
+            <VBox fx:id="paneFrontOffice" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS">
+                <fx:include source="FrontOfficeRoot.fxml" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>
+
+

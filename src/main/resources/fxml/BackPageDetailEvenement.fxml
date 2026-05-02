@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneBackPageEvDetail" spacing="14.0" fillWidth="true" visible="false"
+      managed="false" styleClass="tab-content-dark" VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets bottom="12.0" left="24.0" right="24.0" top="16.0"/>
+    </padding>
+    <ScrollPane fitToWidth="true" styleClass="form-scroll-dark" VBox.vgrow="ALWAYS"
+                minHeight="120.0">
+        <VBox styleClass="back-form-panel" spacing="16.0">
+            <Button mnemonicParsing="false" onAction="#onBackEvRetourListe"
+                    text="← Retour à la liste" styleClass="button-ghost"/>
+            <VBox spacing="6.0">
+                <Label text="Détail événement" styleClass="back-form-subtitle"/>
+                <Label fx:id="lblBackEvDetailTitre" styleClass="back-detail-main-title"
+                       wrapText="true"/>
+            </VBox>
+            <VBox styleClass="form-section-card" spacing="10.0">
+                <Label text="Description" styleClass="form-section-title"/>
+                <Label fx:id="lblBackEvDetailDescription" wrapText="true"
+                       styleClass="back-detail-body"/>
+            </VBox>
+            <VBox styleClass="form-section-card" spacing="10.0">
+                <Label text="Informations" styleClass="form-section-title"/>
+                <GridPane styleClass="form-grid-dark" hgap="16.0" vgap="10.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="140.0"
+                                         prefWidth="160.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="200.0"/>
+                    </columnConstraints>
+                    <Label text="Date" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label fx:id="lblBackEvDetailDate" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="0"/>
+                    <Label text="Horaires" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Label fx:id="lblBackEvDetailHoraires" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="1"/>
+                    <Label text="Type" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <Label fx:id="lblBackEvDetailType" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="2"/>
+                    <Label text="Lieu" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <Label fx:id="lblBackEvDetailLieu" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="3"/>
+                    <Label text="Places" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <Label fx:id="lblBackEvDetailPlaces" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="4"/>
+                    <Label text="Programme" styleClass="back-detail-key"
+                           GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                    <Label fx:id="lblBackEvDetailProgramme" styleClass="back-detail-val"
+                           wrapText="true" GridPane.columnIndex="1"
+                           GridPane.rowIndex="5"/>
+                </GridPane>
+            </VBox>
+            <VBox styleClass="form-section-card" spacing="10.0">
+                <Label text="Image" styleClass="form-section-title"/>
+                <Label fx:id="lblBackEvDetailImageChemin" wrapText="true"
+                       styleClass="back-detail-val"/>
+                <StackPane fx:id="backEvDetailImgWrap"
+                           styleClass="back-office-img-preview-wrap" minHeight="180.0"
+                           prefHeight="200.0" maxWidth="560.0">
+                    <ImageView fx:id="imgBackEvDetailEvenement" fitWidth="480.0"
+                               fitHeight="200.0" preserveRatio="true" smooth="true"/>
+                    <Label fx:id="lblBackEvDetailImagePlaceholder"
+                           text="Pas d'aperçu" styleClass="back-office-img-placeholder"
+                           wrapText="true" maxWidth="400.0" textAlignment="CENTER"
+                           mouseTransparent="true" StackPane.alignment="CENTER"/>
+                </StackPane>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

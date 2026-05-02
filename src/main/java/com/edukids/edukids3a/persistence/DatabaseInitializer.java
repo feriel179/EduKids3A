@@ -62,8 +62,10 @@ public class DatabaseInitializer {
             // Créer les tables
             createUserTable(stmt);
             createTypeEvenementTable(stmt);
-            createProgrammeTable(stmt);
             createEvenementTable(stmt);
+            createProgrammeTable(stmt);
+            createReservationTable(stmt);
+            createUserEvenementInteractionTable(stmt);
             createConversationTable(stmt);
             createConversationParticipantTable(stmt);
             createMessageTable(stmt);
@@ -110,24 +112,82 @@ public class DatabaseInitializer {
     private static void createProgrammeTable(Statement stmt) throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS programme (" +
                 "    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
-                "    name VARCHAR(255) NOT NULL," +
-                "    description LONGTEXT," +
-                "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                "    evenement_id INT NOT NULL UNIQUE," +
+                "    pause_debut TIME NULL," +
+                "    pause_fin TIME NULL," +
+                "    activites LONGTEXT NULL," +
+                "    documents LONGTEXT NULL," +
+                "    materiels LONGTEXT NULL," +
+                "    CONSTRAINT fk_programme_evenement FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE CASCADE" +
                 ")";
         stmt.executeUpdate(sql);
+        addColumnIfMissing(stmt, "programme", "evenement_id", "INT NULL UNIQUE");
+        addColumnIfMissing(stmt, "programme", "pause_debut", "TIME NULL");
+        addColumnIfMissing(stmt, "programme", "pause_fin", "TIME NULL");
+        addColumnIfMissing(stmt, "programme", "activites", "LONGTEXT NULL");
+        addColumnIfMissing(stmt, "programme", "documents", "LONGTEXT NULL");
+        addColumnIfMissing(stmt, "programme", "materiels", "LONGTEXT NULL");
     }
 
     private static void createEvenementTable(Statement stmt) throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS evenement (" +
                 "    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
-                "    title VARCHAR(255) NOT NULL," +
-                "    description LONGTEXT," +
-                "    date_start DATETIME NOT NULL," +
-                "    date_end DATETIME," +
-                "    location VARCHAR(255)," +
-                "    type_id INT," +
-                "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                "    CONSTRAINT fk_evenement_type FOREIGN KEY (type_id) REFERENCES type_evenement(id) ON DELETE SET NULL" +
+                "    titre VARCHAR(255) NOT NULL," +
+                "    description TEXT NOT NULL," +
+                "    date_evenement DATE NOT NULL," +
+                "    heure_debut TIME NOT NULL," +
+                "    heure_fin TIME NOT NULL," +
+                "    type_evenement VARCHAR(50) NULL," +
+                "    image TEXT NULL," +
+                "    localisation VARCHAR(500) NULL," +
+                "    nb_places_disponibles INT NULL," +
+                "    likes_count INT NOT NULL DEFAULT 0," +
+                "    dislikes_count INT NOT NULL DEFAULT 0," +
+                "    favorites_count INT NOT NULL DEFAULT 0" +
+                ")";
+        stmt.executeUpdate(sql);
+        addColumnIfMissing(stmt, "evenement", "titre", "VARCHAR(255) NOT NULL");
+        addColumnIfMissing(stmt, "evenement", "description", "TEXT NOT NULL");
+        addColumnIfMissing(stmt, "evenement", "date_evenement", "DATE NOT NULL");
+        addColumnIfMissing(stmt, "evenement", "heure_debut", "TIME NOT NULL");
+        addColumnIfMissing(stmt, "evenement", "heure_fin", "TIME NOT NULL");
+        addColumnIfMissing(stmt, "evenement", "type_evenement", "VARCHAR(50) NULL");
+        addColumnIfMissing(stmt, "evenement", "image", "TEXT NULL");
+        addColumnIfMissing(stmt, "evenement", "localisation", "VARCHAR(500) NULL");
+        addColumnIfMissing(stmt, "evenement", "nb_places_disponibles", "INT NULL");
+        addColumnIfMissing(stmt, "evenement", "likes_count", "INT NOT NULL DEFAULT 0");
+        addColumnIfMissing(stmt, "evenement", "dislikes_count", "INT NOT NULL DEFAULT 0");
+        addColumnIfMissing(stmt, "evenement", "favorites_count", "INT NOT NULL DEFAULT 0");
+    }
+
+    private static void createReservationTable(Statement stmt) throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS reservation (" +
+                "    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+                "    user_id INT NOT NULL," +
+                "    id_evenement INT NOT NULL," +
+                "    nom VARCHAR(255) NOT NULL," +
+                "    prenom VARCHAR(255) NOT NULL," +
+                "    email VARCHAR(255) NOT NULL," +
+                "    telephone VARCHAR(255) NULL," +
+                "    nb_adultes INT NOT NULL DEFAULT 0," +
+                "    nb_enfants INT NOT NULL DEFAULT 0," +
+                "    date_reservation DATETIME NOT NULL," +
+                "    CONSTRAINT fk_reservation_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE," +
+                "    CONSTRAINT fk_reservation_evenement FOREIGN KEY (id_evenement) REFERENCES evenement(id) ON DELETE CASCADE" +
+                ")";
+        stmt.executeUpdate(sql);
+    }
+
+    private static void createUserEvenementInteractionTable(Statement stmt) throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS user_evenement_interaction (" +
+                "    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+                "    user_id INT NOT NULL," +
+                "    evenement_id INT NOT NULL," +
+                "    type_interaction VARCHAR(20) NOT NULL," +
+                "    created_at DATETIME NOT NULL," +
+                "    CONSTRAINT fk_uei_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE," +
+                "    CONSTRAINT fk_uei_evenement FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE CASCADE," +
+                "    CONSTRAINT unique_user_evenement_type UNIQUE (user_id, evenement_id, type_interaction)" +
                 ")";
         stmt.executeUpdate(sql);
     }

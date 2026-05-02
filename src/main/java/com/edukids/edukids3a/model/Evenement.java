@@ -6,11 +6,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -19,7 +23,7 @@ public class Evenement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_evenement")
+    @Column(name = "id")
     private Integer id;
 
     @Column(nullable = false, length = 255)
@@ -40,7 +44,8 @@ public class Evenement {
     @Column(name = "type_evenement", length = 50)
     private String typeEvenement;
 
-    @Column(length = 255)
+    /** URL longue (ex. image IA), chemins locaux ou liens web — {@code TEXT} pour éviter la troncature MySQL. */
+    @Column(name = "image", columnDefinition = "TEXT")
     private String image;
 
     @Column(length = 500)
@@ -49,8 +54,21 @@ public class Evenement {
     @Column(name = "nb_places_disponibles")
     private Integer nbPlacesDisponibles;
 
+    @Column(name = "likes_count", nullable = false)
+    private int likesCount = 0;
+
+    @Column(name = "dislikes_count", nullable = false)
+    private int dislikesCount = 0;
+
+    @Column(name = "favorites_count", nullable = false)
+    private int favoritesCount = 0;
+
     @OneToOne(mappedBy = "evenement", cascade = CascadeType.ALL, orphanRemoval = true)
     private Programme programme;
+
+    /** Côté inverse : une réservation référence toujours l’événement ({@code mappedBy = "evenement"}). */
+    @OneToMany(mappedBy = "evenement")
+    private List<Reservation> reservations = new ArrayList<>();
 
     public Evenement() {
     }
@@ -135,6 +153,68 @@ public class Evenement {
         this.nbPlacesDisponibles = nbPlacesDisponibles;
     }
 
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public void incrementLikes() {
+        this.likesCount++;
+    }
+
+    public void decrementLikes() {
+        if (this.likesCount > 0) {
+            this.likesCount--;
+        }
+    }
+
+    public int getDislikesCount() {
+        return dislikesCount;
+    }
+
+    public void setDislikesCount(int dislikesCount) {
+        this.dislikesCount = dislikesCount;
+    }
+
+    public void incrementDislikes() {
+        this.dislikesCount++;
+    }
+
+    public void decrementDislikes() {
+        if (this.dislikesCount > 0) {
+            this.dislikesCount--;
+        }
+    }
+
+    public int getFavoritesCount() {
+        return favoritesCount;
+    }
+
+    public void setFavoritesCount(int favoritesCount) {
+        this.favoritesCount = favoritesCount;
+    }
+
+    public void incrementFavorites() {
+        this.favoritesCount++;
+    }
+
+    public void decrementFavorites() {
+        if (this.favoritesCount > 0) {
+            this.favoritesCount--;
+        }
+    }
+
+    /** Durée de l’événement le jour J (entre heure début et fin). */
+    public Duration getDureeEvenement() {
+        if (heureDebut == null || heureFin == null) {
+            return Duration.ZERO;
+        }
+        return Duration.between(heureDebut, heureFin);
+    }
+
     public Programme getProgramme() {
         return programme;
     }
@@ -142,6 +222,9 @@ public class Evenement {
     /** Met à jour le côté inverse (sans persister). À utiliser après sauvegarde du {@link Programme}. */
     public void linkProgramme(Programme p) {
         this.programme = p;
+    }
+    public List<Reservation> getReservations() {
+        return reservations;
     }
 
     @Override

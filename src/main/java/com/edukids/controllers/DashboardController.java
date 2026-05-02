@@ -55,6 +55,14 @@ public class DashboardController implements Initializable {
     @FXML private Button produitsCategoryFormButton;
     @FXML private VBox userSubmenuBox;
     @FXML private VBox courseSubmenuBox;
+    @FXML private Button eventsButton;
+    @FXML private VBox eventSubmenuBox;
+    @FXML private Button eventListButton;
+    @FXML private Button eventFormButton;
+    @FXML private Button eventProgrammesButton;
+    @FXML private Button eventProgrammeFormButton;
+    @FXML private Button eventReservationsButton;
+    @FXML private Button eventStatsButton;
     @FXML private VBox quizSubmenuBox;
     @FXML private Button adminsButton;
     @FXML private Button studentsButton;
@@ -121,6 +129,8 @@ public class DashboardController implements Initializable {
     private Role currentRoleFilter = null; // null = all users
     private BorderPane quizBackOfficeRoot;
     private QuizBackOfficeView quizBackOfficeView;
+    private com.edukids.edukids3a.controller.MainController eventsController;
+    private Parent eventsRoot;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -152,6 +162,7 @@ public class DashboardController implements Initializable {
         showCourseSubmenu(false);
         showProduitsSubmenu(false);
         showChatSubmenu(false);
+        showEventSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
         setActiveCourseSubNavigation(null);
@@ -182,6 +193,7 @@ public class DashboardController implements Initializable {
     private void handleDashboardNav() {
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -201,6 +213,7 @@ public class DashboardController implements Initializable {
         roleFilterCombo.setValue("All Roles");
         showUserSubmenu(true);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -220,6 +233,7 @@ public class DashboardController implements Initializable {
         roleFilterCombo.setValue("Admin");
         showUserSubmenu(true);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(adminsButton);
@@ -239,6 +253,7 @@ public class DashboardController implements Initializable {
         roleFilterCombo.setValue("Student (Eleve)");
         showUserSubmenu(true);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(studentsButton);
@@ -258,6 +273,7 @@ public class DashboardController implements Initializable {
         roleFilterCombo.setValue("Parent");
         showUserSubmenu(true);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(parentsButton);
@@ -292,9 +308,42 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleEventsNav() {
-        showCourseSubmenu(false);
-        showQuizSubmenu(false);
-        // TODO: Navigate to Events management
+        showEventList();
+    }
+
+    @FXML
+    private void handleEventListNav() {
+        showEventList();
+    }
+
+    @FXML
+    private void handleEventFormNav() {
+        openEventsModule("Event management", "Creer un evenement", eventFormButton,
+                com.edukids.edukids3a.controller.MainController::showBackEventForm);
+    }
+
+    @FXML
+    private void handleEventProgrammesNav() {
+        openEventsModule("Event management", "Programmes", eventProgrammesButton,
+                com.edukids.edukids3a.controller.MainController::showBackProgramList);
+    }
+
+    @FXML
+    private void handleEventProgrammeFormNav() {
+        openEventsModule("Event management", "Creer un programme", eventProgrammeFormButton,
+                com.edukids.edukids3a.controller.MainController::showBackProgramForm);
+    }
+
+    @FXML
+    private void handleEventReservationsNav() {
+        openEventsModule("Event management", "Reservations", eventReservationsButton,
+                com.edukids.edukids3a.controller.MainController::showBackReservations);
+    }
+
+    @FXML
+    private void handleEventStatsNav() {
+        openEventsModule("Event management", "Statistiques", eventStatsButton,
+                com.edukids.edukids3a.controller.MainController::showBackStats);
     }
 
     @FXML
@@ -339,6 +388,7 @@ public class DashboardController implements Initializable {
     private void openProduitsModule(String kicker, String title, Button activeSubButton, EcomModuleAction action) {
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showProduitsSubmenu(true);
         showChatSubmenu(false);
         showQuizSubmenu(false);
@@ -360,6 +410,7 @@ public class DashboardController implements Initializable {
     @FXML
     private void handleChatNav() {
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showQuizSubmenu(false);
         boolean expanded = chatSubmenuBox != null && chatSubmenuBox.isVisible();
         showChatSubmenu(!expanded);
@@ -403,6 +454,7 @@ public class DashboardController implements Initializable {
         AuthSession.setCurrentUser(toChatUser(currentUser));
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(true);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -418,6 +470,7 @@ public class DashboardController implements Initializable {
     private void showChatStatisticsModule() {
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showChatSubmenu(true);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -463,6 +516,7 @@ public class DashboardController implements Initializable {
     private QuizBackOfficeView openQuizModule(String kicker, String title, Button activeSubButton) {
         showUserSubmenu(false);
         showCourseSubmenu(false);
+        showEventSubmenu(false);
         showQuizSubmenu(true);
         setActiveUserFilter(null);
         setActiveCourseSubNavigation(null);
@@ -638,6 +692,7 @@ public class DashboardController implements Initializable {
     private void setModuleContext(String kicker, String title) {
         showUserSubmenu(false);
         showCourseSubmenu(true);
+        showEventSubmenu(false);
         showChatSubmenu(false);
         showQuizSubmenu(false);
         setActiveUserFilter(null);
@@ -646,6 +701,80 @@ public class DashboardController implements Initializable {
         setActiveNavigation(coursButton);
         setTopbarContext(kicker, title);
         showView("module");
+    }
+
+    public void showEvents() {
+        showEventList();
+    }
+
+    public void showEventList() {
+        openEventsModule("Event management", "Events", eventListButton,
+                com.edukids.edukids3a.controller.MainController::showBackEventList);
+    }
+
+    private void openEventsModule(String kicker, String title, Button activeSubButton, EventsModuleAction action) {
+        showUserSubmenu(false);
+        showCourseSubmenu(false);
+        showProduitsSubmenu(false);
+        showChatSubmenu(false);
+        showEventSubmenu(true);
+        showQuizSubmenu(false);
+        setActiveUserFilter(null);
+        setActiveCourseSubNavigation(null);
+        setActiveProduitsSubNavigation(null);
+        setActiveChatSubNavigation(null);
+        setActiveEventSubNavigation(activeSubButton);
+        setActiveQuizSubNavigation(null);
+        setActiveNavigation(eventsButton);
+        setTopbarContext(kicker, title);
+        showView("module");
+        com.edukids.edukids3a.controller.MainController controller = loadEventsModule();
+        if (controller != null) {
+            action.apply(controller);
+        }
+    }
+
+    private com.edukids.edukids3a.controller.MainController loadEventsModule() {
+        try {
+            if (eventsController != null && eventsRoot != null) {
+                if (!moduleView.getChildren().contains(eventsRoot)) {
+                    moduleView.getChildren().setAll(eventsRoot);
+                }
+                return eventsController;
+            }
+            eventsController = new com.edukids.edukids3a.controller.MainController();
+            FXMLLoader loader = new FXMLLoader(MainFX.class.getResource("/fxml/MainView.fxml"));
+            loader.setController(eventsController);
+            loader.setControllerFactory(type -> {
+                if (type == com.edukids.edukids3a.controller.MainController.class) {
+                    return eventsController;
+                }
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (ReflectiveOperationException exception) {
+                    throw new IllegalStateException("Controleur FXML inattendu: " + type.getName(), exception);
+                }
+            });
+
+            eventsRoot = loader.load();
+            eventsController.initialiserApresChargementFxml();
+            eventsController.openAdminMode();
+            moduleView.getChildren().setAll(eventsRoot);
+            return eventsController;
+        } catch (Exception exception) {
+            eventsController = null;
+            eventsRoot = null;
+            String detail = exception.getMessage();
+            if (detail == null || detail.isBlank()) {
+                Throwable cause = exception.getCause();
+                detail = cause != null && cause.getMessage() != null && !cause.getMessage().isBlank()
+                        ? cause.getMessage()
+                        : exception.getClass().getSimpleName();
+            }
+            showAlert(Alert.AlertType.ERROR, "Navigation", "Unable to open the Events module.\n" + detail);
+            exception.printStackTrace();
+            return null;
+        }
     }
 
     private void loadModuleView(String fxmlPath, LoaderCallback callback) {
@@ -1035,6 +1164,7 @@ public class DashboardController implements Initializable {
                 dashboardButton,
                 allUsersButton,
                 coursButton,
+                eventsButton,
                 produitsButton,
                 chatButton,
                 quizButton
@@ -1114,6 +1244,25 @@ public class DashboardController implements Initializable {
         }
     }
 
+    private void setActiveEventSubNavigation(Button activeButton) {
+        List<Button> buttons = List.of(
+                eventListButton,
+                eventFormButton,
+                eventProgrammesButton,
+                eventProgrammeFormButton,
+                eventReservationsButton,
+                eventStatsButton
+        );
+
+        for (Button button : buttons) {
+            button.getStyleClass().remove("shell-nav-sub-button-active");
+        }
+
+        if (activeButton != null && !activeButton.getStyleClass().contains("shell-nav-sub-button-active")) {
+            activeButton.getStyleClass().add("shell-nav-sub-button-active");
+        }
+    }
+
     private void setActiveQuizSubNavigation(Button activeButton) {
         List<Button> buttons = List.of(
                 quizListButton,
@@ -1152,6 +1301,11 @@ public class DashboardController implements Initializable {
         chatSubmenuBox.setManaged(visible);
     }
 
+    private void showEventSubmenu(boolean visible) {
+        eventSubmenuBox.setVisible(visible);
+        eventSubmenuBox.setManaged(visible);
+    }
+
     private void showQuizSubmenu(boolean visible) {
         quizSubmenuBox.setVisible(visible);
         quizSubmenuBox.setManaged(visible);
@@ -1170,6 +1324,11 @@ public class DashboardController implements Initializable {
     @FunctionalInterface
     private interface EcomModuleAction {
         void apply(com.ecom.ui.MainController controller);
+    }
+
+    @FunctionalInterface
+    private interface EventsModuleAction {
+        void apply(com.edukids.edukids3a.controller.MainController controller);
     }
 
     private String buildInitials(User user) {

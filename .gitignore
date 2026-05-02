@@ -1,4 +1,5 @@
 .idea/
+.external/
 .m2/
 .m2repo/
 target/

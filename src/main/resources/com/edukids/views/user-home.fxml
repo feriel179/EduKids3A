@@ -47,7 +47,7 @@
                 <Button fx:id="homeButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHome" styleClass="shell-nav-button,shell-nav-button-active" text="Home" />
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCoursNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Cours" />
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleQuizNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Quiz" />
-                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Events" />
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEventsNav" styleClass="shell-nav-button" text="Events" />
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleChatNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Chat" />
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleShopNav" styleClass="shell-nav-button,shell-nav-button-disabled" text="Shop" />
 

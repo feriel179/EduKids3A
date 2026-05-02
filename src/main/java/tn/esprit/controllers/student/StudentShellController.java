@@ -44,6 +44,9 @@ public class StudentShellController {
     private Button shopButton;
 
     @FXML
+    private Button eventsButton;
+
+    @FXML
     private Button quizButton;
 
     @FXML
@@ -70,6 +73,10 @@ public class StudentShellController {
     @FXML
     private void initialize() {
         instance = this;
+        if (eventsButton != null) {
+            eventsButton.setDisable(false);
+            eventsButton.setOpacity(1.0);
+        }
         populateStudentHeader();
         showCatalog();
     }
@@ -93,6 +100,12 @@ public class StudentShellController {
             controller.openStudentMode();
         }, true);
         setActiveNavigation(shopButton);
+    }
+
+    @FXML
+    public void showEvents() {
+        loadEventsView(false);
+        setActiveNavigation(eventsButton);
     }
 
     @FXML
@@ -204,6 +217,47 @@ public class StudentShellController {
         }
     }
 
+    private void loadEventsView(boolean adminMode) {
+        try {
+            com.edukids.edukids3a.controller.MainController controller =
+                    new com.edukids.edukids3a.controller.MainController();
+            FXMLLoader loader = new FXMLLoader(MainFX.class.getResource("/fxml/MainView.fxml"));
+            loader.setController(controller);
+            loader.setControllerFactory(type -> {
+                if (type == com.edukids.edukids3a.controller.MainController.class) {
+                    return controller;
+                }
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (ReflectiveOperationException exception) {
+                    throw new IllegalStateException("Controleur FXML inattendu: " + type.getName(), exception);
+                }
+            });
+
+            Parent view = loader.load();
+            controller.initialiserApresChargementFxml();
+            if (adminMode) {
+                controller.openAdminMode();
+            } else {
+                controller.openStudentMode();
+            }
+
+            ScrollPane scrollPane = new ScrollPane(view);
+            scrollPane.setFitToWidth(true);
+            scrollPane.setFitToHeight(false);
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.getStyleClass().add("scroll-pane-transparent");
+            contentPane.getChildren().setAll(scrollPane);
+        } catch (Exception exception) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Events");
+            alert.setHeaderText("Impossible d'ouvrir le module Events");
+            alert.setContentText(exception.getMessage());
+            alert.showAndWait();
+            exception.printStackTrace();
+        }
+    }
+
     private void populateStudentHeader() {
         Student student = studentService.getCurrentStudent();
 
@@ -232,7 +286,7 @@ public class StudentShellController {
     }
 
     private void clearNavigationState() {
-        Button[] buttons = {catalogButton, myCoursesButton, shopButton, quizButton, chatButton, profileButton};
+        Button[] buttons = {catalogButton, myCoursesButton, shopButton, eventsButton, quizButton, chatButton, profileButton};
 
         for (Button button : buttons) {
             if (button != null) {

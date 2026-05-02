@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneFrontPageFavoris" spacing="0"
+      styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
+    <VBox styleClass="front-hero">
+        <Label text="Mes favoris" styleClass="hero-title"/>
+        <Label text="Événements que vous avez marqués en favori" styleClass="hero-breadcrumb" wrapText="true"/>
+    </VBox>
+    <VBox spacing="0" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets bottom="16.0" left="20.0" right="20.0" top="16.0"/>
+        </padding>
+        <Label fx:id="lblFrontFavorisVide" managed="false" visible="false" styleClass="detail-description"
+               text="Connectez-vous et ajoutez des favoris depuis la fiche d'un événement." wrapText="true"/>
+        <ScrollPane fitToWidth="true" styleClass="cards-scroll" VBox.vgrow="ALWAYS">
+            <FlowPane fx:id="flowFrontFavorisCards" styleClass="cards-flow"/>
+        </ScrollPane>
+    </VBox>
+</VBox>
