@@ -2,18 +2,23 @@ package com.edukids.controllers;
 
 import com.edukids.entities.User;
 import com.edukids.enums.Role;
+import com.edukids.services.GoogleAuthService;
 import com.edukids.services.UserService;
 import com.edukids.utils.Navigator;
+import com.edukids.utils.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import tn.esprit.MainFX;
 
 import java.net.URL;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 public class RegisterController implements Initializable {
 
@@ -30,8 +35,10 @@ public class RegisterController implements Initializable {
     @FXML private CheckBox termsCheckBox;
     @FXML private VBox rootPane;
     @FXML private Button togglePasswordBtn;
+    @FXML private Button googleSignUpButton;
 
     private final UserService userService = new UserService();
+    private final GoogleAuthService googleAuthService = new GoogleAuthService();
     private boolean passwordVisible = false;
 
     @Override
@@ -48,6 +55,7 @@ public class RegisterController implements Initializable {
 
         roleComboBox.getItems().addAll("Admin", "Student (Eleve)", "Parent");
         roleComboBox.setValue("Student (Eleve)");
+        configureGoogleSignUp();
     }
 
     @FXML
@@ -163,6 +171,68 @@ public class RegisterController implements Initializable {
     @FXML
     private void handleGoToLogin() {
         Navigator.navigateTo("login.fxml", Navigator.getStageFromNode(rootPane));
+    }
+
+    @FXML
+    private void handleGoogleSignUp() {
+        if (!googleAuthService.isConfigured()) {
+            showError("Google sign-up is not configured yet.");
+            return;
+        }
+
+        errorLabel.setVisible(false);
+
+        new Thread(() -> {
+            try {
+                GoogleAuthService.GoogleUserInfo googleUser = googleAuthService.authorizeAndFetchUser();
+                User user = userService.getByEmail(googleUser.email());
+
+                if (user == null) {
+                    user = new User();
+                    user.setEmail(googleUser.email());
+                    user.setFirstName(googleUser.givenName() == null ? "" : googleUser.givenName());
+                    user.setLastName(googleUser.familyName() == null ? "" : googleUser.familyName());
+                    user.setPassword(UUID.randomUUID().toString());
+                    user.setRoles(List.of(Role.ROLE_ELEVE));
+                    user.setVerified(true);
+                    user.setActive(true);
+                    userService.addOAuthUser(user);
+                } else if (!user.isActive()) {
+                    Platform.runLater(() -> showError("Your account has been banned. Please contact administrator for support."));
+                    return;
+                }
+
+                User finalUser = user;
+                Platform.runLater(() -> redirectUser(finalUser));
+            } catch (Exception exception) {
+                Platform.runLater(() -> showError("Google sign-up failed: " + exception.getMessage()));
+            }
+        }, "google-sign-up").start();
+    }
+
+    private void configureGoogleSignUp() {
+        if (googleSignUpButton != null) {
+            googleSignUpButton.setVisible(true);
+            googleSignUpButton.setManaged(true);
+            googleSignUpButton.setDisable(false);
+        }
+    }
+
+    private void redirectUser(User user) {
+        SessionManager.setCurrentUser(user);
+
+        try {
+            if (user.getPrimaryRole() == Role.ROLE_ADMIN) {
+                MainFX.getInstance().showUserDashboard();
+            } else if (user.getPrimaryRole() == Role.ROLE_ELEVE) {
+                MainFX.getInstance().showStudentShellForUser(user);
+            } else {
+                MainFX.getInstance().showParentHome();
+            }
+        } catch (Exception exception) {
+            showError("Unable to open the requested screen.");
+            exception.printStackTrace();
+        }
     }
 
     private String generateSecurePassword(int length) {

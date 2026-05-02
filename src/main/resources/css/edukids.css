@@ -696,31 +696,38 @@
 
 /* Front-office : navbar secondaire (Accueil / Événements / Programmes) */
 .front-navbar {
-    -fx-background-color: #1a1a1a;
-    -fx-border-color: #2a2a2a;
+    -fx-background-color: #fbfcff;
+    -fx-background-radius: 0 0 24px 24px;
+    -fx-border-color: #dce8f8;
+    -fx-border-radius: 0 0 24px 24px;
     -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(37, 78, 132, 0.12), 18, 0.18, 0, 6);
 }
 
 .front-nav-item {
     -fx-background-color: transparent;
-    -fx-text-fill: #a3a3a3;
-    -fx-background-radius: 8px;
-    -fx-padding: 8px 18px;
-    -fx-font-weight: 600;
+    -fx-text-fill: #51617d;
+    -fx-background-radius: 18px;
+    -fx-padding: 14px 24px;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
     -fx-cursor: hand;
 }
 
 .front-nav-item:selected {
-    -fx-background-color: #007bff;
+    -fx-background-color: #2f7df4;
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(47, 125, 244, 0.45), 14, 0.24, 0, 6);
 }
 
 .front-nav-item:hover {
-    -fx-background-color: #2a2a2a;
+    -fx-background-color: #edf4ff;
+    -fx-text-fill: #1f73ff;
 }
 
 .front-nav-item:selected:hover {
-    -fx-background-color: #0066dd;
+    -fx-background-color: #256ee8;
+    -fx-text-fill: white;
 }
 
 .nav-favoris-badge {
@@ -1057,17 +1064,22 @@
     -fx-border-color: #d8e3f4;
     -fx-border-radius: 14px;
     -fx-background-radius: 14px;
+    -fx-min-height: 54px;
 }
 
 .spinner-time-dark .text-field {
     -fx-background-color: #ffffff;
     -fx-text-fill: #102447;
     -fx-border-color: transparent;
+    -fx-font-size: 15px;
+    -fx-padding: 0 14px 0 16px;
+    -fx-alignment: center;
 }
 
 .spinner-time-dark .increment-arrow-button,
 .spinner-time-dark .decrement-arrow-button {
     -fx-background-color: #eef4ff;
+    -fx-padding: 0 12px;
 }
 
 /* ——— Back office ——— */
@@ -1805,17 +1817,22 @@
     -fx-border-color: #d8e3f4;
     -fx-border-radius: 14px;
     -fx-background-radius: 14px;
+    -fx-min-height: 54px;
 }
 
 .spinner-time-dark .text-field {
     -fx-background-color: #ffffff;
     -fx-text-fill: #102447;
     -fx-border-color: transparent;
+    -fx-font-size: 15px;
+    -fx-padding: 0 14px 0 16px;
+    -fx-alignment: center;
 }
 
 .spinner-time-dark .increment-arrow-button,
 .spinner-time-dark .decrement-arrow-button {
     -fx-background-color: #eef4ff;
+    -fx-padding: 0 12px;
 }
 
 .table-view-dark {

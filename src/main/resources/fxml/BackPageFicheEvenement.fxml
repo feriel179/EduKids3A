@@ -74,28 +74,28 @@
                                     GridPane.rowIndex="0"/>
                         <Label text="Horaires *" GridPane.columnIndex="0"
                                GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-                        <VBox spacing="10.0" GridPane.columnIndex="1"
+                        <VBox spacing="14.0" GridPane.columnIndex="1"
                                GridPane.rowIndex="1">
-                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                            <HBox spacing="12.0" alignment="CENTER_LEFT"
                                   styleClass="form-time-spin-row">
                                 <Label text="Début" styleClass="form-inline-label"
-                                       minWidth="42.0"/>
+                                       minWidth="56.0"/>
                                 <Spinner fx:id="spEvDebutHeure" editable="false"
-                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                         prefWidth="90.0" styleClass="spinner-time-dark"/>
                                 <Label text="h" styleClass="form-inline-label"/>
                                 <Spinner fx:id="spEvDebutMinute" editable="false"
-                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                         prefWidth="90.0" styleClass="spinner-time-dark"/>
                                 <Label text="min" styleClass="form-inline-label"/>
                             </HBox>
-                            <HBox spacing="8.0" alignment="CENTER_LEFT"
+                            <HBox spacing="12.0" alignment="CENTER_LEFT"
                                   styleClass="form-time-spin-row">
                                 <Label text="Fin" styleClass="form-inline-label"
-                                       minWidth="42.0"/>
+                                       minWidth="56.0"/>
                                 <Spinner fx:id="spEvFinHeure" editable="false"
-                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                         prefWidth="90.0" styleClass="spinner-time-dark"/>
                                 <Label text="h" styleClass="form-inline-label"/>
                                 <Spinner fx:id="spEvFinMinute" editable="false"
-                                         prefWidth="72.0" styleClass="spinner-time-dark"/>
+                                         prefWidth="90.0" styleClass="spinner-time-dark"/>
                                 <Label text="min" styleClass="form-inline-label"/>
                             </HBox>
                         </VBox>

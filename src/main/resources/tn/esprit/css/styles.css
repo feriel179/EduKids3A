@@ -1178,10 +1178,12 @@
 
 .student-brand-wrap {
     -fx-padding: 2 0 2 0;
+    -fx-alignment: center-left;
 }
 
 .student-brand-flow {
     -fx-line-spacing: 0px;
+    -fx-text-alignment: left;
 }
 
 .student-brand-accent {
@@ -1201,7 +1203,7 @@
     -fx-background-radius: 999px;
     -fx-border-color: #dbe6f4;
     -fx-border-radius: 999px;
-    -fx-padding: 6 8 6 8;
+    -fx-padding: 6 10 6 10;
 }
 
 .student-nav-button {
@@ -1212,7 +1214,8 @@
     -fx-text-fill: #637794;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
-    -fx-padding: 10 18 10 18;
+    -fx-padding: 10 12 10 12;
+    -fx-alignment: center;
     -fx-cursor: hand;
 }
 

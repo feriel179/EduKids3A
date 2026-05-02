@@ -15,19 +15,19 @@
 
 <VBox prefHeight="900.0" prefWidth="1440.0" styleClass="student-shell-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.student.StudentShellController">
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="18.0" styleClass="student-topbar">
+        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="student-topbar">
             <padding>
-                <Insets bottom="16.0" left="28.0" right="28.0" top="16.0" />
+                <Insets bottom="14.0" left="24.0" right="24.0" top="14.0" />
             </padding>
             <children>
-                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="student-brand-wrap">
+                <HBox alignment="CENTER_LEFT" minWidth="236.0" prefWidth="236.0" spacing="12.0" styleClass="student-brand-wrap">
                     <children>
-                        <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                        <ImageView fitHeight="58.0" fitWidth="58.0" pickOnBounds="true" preserveRatio="true" smooth="true">
                             <image>
                                 <Image url="@/tn/esprit/images/edukids-logo.png" />
                             </image>
                         </ImageView>
-                        <TextFlow styleClass="student-brand-flow" translateY="4.0">
+                        <TextFlow minWidth="150.0" prefWidth="150.0" styleClass="student-brand-flow" translateY="0.0">
                             <children>
                                 <Text styleClass="student-brand-accent" text="Edu" />
                                 <Text styleClass="student-brand-light" text="Kids" />
@@ -38,21 +38,21 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="student-nav-shell">
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="student-nav-shell">
                     <children>
-                        <Button fx:id="catalogButton" mnemonicParsing="false" onAction="#showCatalog" styleClass="student-nav-button" text="Courses" />
-                        <Button fx:id="myCoursesButton" mnemonicParsing="false" onAction="#showMyCourses" styleClass="student-nav-button" text="My Courses" />
-                        <Button fx:id="shopButton" mnemonicParsing="false" onAction="#showShop" styleClass="student-nav-button" text="Shop" />
-                        <Button fx:id="eventsButton" mnemonicParsing="false" onAction="#showEvents" styleClass="student-nav-button" text="Events" />
-                        <Button fx:id="quizButton" mnemonicParsing="false" onAction="#showQuiz" styleClass="student-nav-button" text="Quiz" />
-                        <Button fx:id="chatButton" mnemonicParsing="false" onAction="#showChat" styleClass="student-nav-button" text="Chat" />
-                        <Button fx:id="profileButton" mnemonicParsing="false" onAction="#showProfile" styleClass="student-nav-button" text="Profile" />
+                        <Button fx:id="catalogButton" minWidth="92.0" mnemonicParsing="false" onAction="#showCatalog" prefWidth="92.0" styleClass="student-nav-button" text="Courses" />
+                        <Button fx:id="myCoursesButton" minWidth="122.0" mnemonicParsing="false" onAction="#showMyCourses" prefWidth="122.0" styleClass="student-nav-button" text="My Courses" />
+                        <Button fx:id="shopButton" minWidth="78.0" mnemonicParsing="false" onAction="#showShop" prefWidth="78.0" styleClass="student-nav-button" text="Shop" />
+                        <Button fx:id="eventsButton" minWidth="94.0" mnemonicParsing="false" onAction="#showEvents" prefWidth="94.0" styleClass="student-nav-button" text="Events" />
+                        <Button fx:id="quizButton" minWidth="76.0" mnemonicParsing="false" onAction="#showQuiz" prefWidth="76.0" styleClass="student-nav-button" text="Quiz" />
+                        <Button fx:id="chatButton" minWidth="78.0" mnemonicParsing="false" onAction="#showChat" prefWidth="78.0" styleClass="student-nav-button" text="Chat" />
+                        <Button fx:id="profileButton" minWidth="88.0" mnemonicParsing="false" onAction="#showProfile" prefWidth="88.0" styleClass="student-nav-button" text="Profile" />
                     </children>
                 </HBox>
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="topbar-profile-chip">
+                <HBox alignment="CENTER_LEFT" maxWidth="236.0" prefWidth="236.0" spacing="10.0" styleClass="topbar-profile-chip">
                     <children>
                         <VBox spacing="2.0">
                             <children>
@@ -69,7 +69,7 @@
                     </children>
                 </HBox>
 
-                <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="ghost-button" text="Sign Out" />
+                <Button minWidth="112.0" mnemonicParsing="false" onAction="#handleLogout" prefWidth="112.0" styleClass="ghost-button" text="Sign Out" />
             </children>
         </HBox>
 
