@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <VBox fx:id="rootPane" alignment="CENTER" spacing="0" xmlns="http://javafx.com/javafx"
@@ -13,6 +14,11 @@
         <!-- Left Panel - Branding -->
         <VBox alignment="CENTER" spacing="20" styleClass="login-brand-panel" HBox.hgrow="ALWAYS"
               prefWidth="450">
+            <ImageView fitHeight="310" fitWidth="380" preserveRatio="true" smooth="true" styleClass="login-brand-logo">
+                <image>
+                    <Image url="@/tn/esprit/images/edukids-logo.png"/>
+                </image>
+            </ImageView>
             <Label text="EduKids" styleClass="brand-title"/>
             <Label text="Welcome back!" styleClass="brand-subtitle"/>
             <Label text="Educational Platform for Children" styleClass="brand-tagline"/>
