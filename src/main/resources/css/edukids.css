@@ -1287,32 +1287,32 @@
 
 /* Vignettes album IA (choix unique → champ image) */
 .album-ia-thumb {
-    -fx-background-color: #2a2a2a;
+    -fx-background-color: #ffffff;
     -fx-background-radius: 10px;
-    -fx-border-color: #555555;
+    -fx-border-color: #d8e3f4;
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
     -fx-padding: 4px;
 }
 
 .album-ia-thumb:hover {
-    -fx-border-color: #888888;
+    -fx-border-color: #1f73ff;
 }
 
 .album-ia-thumb-selected {
-    -fx-border-color: #9b6bd4;
+    -fx-border-color: #1f73ff;
     -fx-border-width: 3px;
 }
 
 .album-ia-thumb-wait {
-    -fx-text-fill: #888888;
+    -fx-text-fill: #71809a;
     -fx-font-size: 22px;
 }
 
 /* Aperçu image — back office */
 .back-office-img-preview-wrap {
-    -fx-background-color: #262626;
-    -fx-border-color: #404040;
+    -fx-background-color: #f7faff;
+    -fx-border-color: #d8e3f4;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
     -fx-border-width: 1px;
@@ -1324,11 +1324,11 @@
 }
 
 .back-office-img-preview-wrap .image-view {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(31, 115, 255, 0.10), 12, 0.18, 0, 3);
 }
 
 .back-office-img-placeholder {
-    -fx-text-fill: #5c5c5c;
+    -fx-text-fill: #71809a;
     -fx-font-size: 12px;
     -fx-wrap-text: true;
     -fx-text-alignment: center;
@@ -1339,33 +1339,37 @@
 .text-area-dark,
 .form-section-card .combo-box-base,
 .form-section-card .date-picker > .text-field {
-    -fx-background-color: #262626;
-    -fx-border-color: #3f3f3f;
-    -fx-text-fill: #e5e5e5;
-    -fx-prompt-text-fill: #5c5c5c;
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8e3f4;
+    -fx-text-fill: #102447;
+    -fx-prompt-text-fill: #8a97ad;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
     -fx-padding: 10px 14px;
 }
 
 /* Texte affiché dans le ComboBox (cellule du bouton) — ne hérite pas du -fx-text-fill du parent */
 .form-section-card .combo-box-base > .list-cell {
-    -fx-text-fill: #e5e5e5;
+    -fx-text-fill: #102447;
     -fx-background-color: transparent;
 }
 
 /* Popup ComboBox : n’est pas enfant du formulaire dans la scène JavaFX */
 .combo-box-popup > .list-view {
-    -fx-background-color: #262626;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8e3f4;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
 }
 
 .combo-box-popup > .list-view .list-cell {
-    -fx-text-fill: #e5e5e5;
-    -fx-background-color: #262626;
+    -fx-text-fill: #102447;
+    -fx-background-color: #ffffff;
 }
 
 .combo-box-popup > .list-view .list-cell:hover {
-    -fx-background-color: #333333;
+    -fx-background-color: #edf4ff;
+    -fx-text-fill: #102447;
 }
 
 .combo-box-popup > .list-view .list-cell:selected {
@@ -1386,8 +1390,9 @@
 .text-area-dark:focused,
 .form-section-card .combo-box-base:focused,
 .form-section-card .date-picker:focused > .text-field {
-    -fx-border-color: #007bff;
-    -fx-background-color: #2a2a2a;
+    -fx-border-color: #1f73ff;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(31, 115, 255, 0.16), 14, 0.2, 0, 4);
 }
 
 .form-section-card .date-picker {
@@ -1402,16 +1407,16 @@
 
 /* Zone éditable interne du TextArea (sinon fond clair par défaut + hauteur fantôme) */
 .text-area-dark .content {
-    -fx-background-color: #262626;
-    -fx-text-fill: #e5e5e5;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #102447;
 }
 
 .text-area-dark .scroll-pane {
-    -fx-background-color: #262626;
+    -fx-background-color: #ffffff;
 }
 
 .text-area-dark .scroll-pane .viewport {
-    -fx-background-color: #262626;
+    -fx-background-color: #ffffff;
 }
 
 .programme-activites-preview {
@@ -1833,6 +1838,47 @@
 .spinner-time-dark .decrement-arrow-button {
     -fx-background-color: #eef4ff;
     -fx-padding: 0 12px;
+}
+
+.form-section-card .date-picker,
+.form-section-card .date-picker > .arrow-button {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8e3f4;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+}
+
+.form-section-card .date-picker > .arrow-button {
+    -fx-background-color: #eef4ff;
+    -fx-padding: 0 12px;
+}
+
+.form-section-card .date-picker > .arrow-button:hover,
+.spinner-time-dark .increment-arrow-button:hover,
+.spinner-time-dark .decrement-arrow-button:hover {
+    -fx-background-color: #dceaff;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8e3f4;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+.combo-box-popup > .list-view .list-cell {
+    -fx-text-fill: #102447;
+    -fx-background-color: #ffffff;
+}
+
+.combo-box-popup > .list-view .list-cell:hover {
+    -fx-background-color: #edf4ff;
+    -fx-text-fill: #102447;
+}
+
+.combo-box-popup > .list-view .list-cell:selected {
+    -fx-background-color: #1f73ff;
+    -fx-text-fill: #ffffff;
 }
 
 .table-view-dark {

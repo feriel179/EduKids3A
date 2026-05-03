@@ -3,7 +3,9 @@ package com.edukids.edukids3a.persistence;
 import com.edukids.edukids3a.utils.DatabaseConfig;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -70,6 +72,8 @@ public class DatabaseInitializer {
             createConversationParticipantTable(stmt);
             createMessageTable(stmt);
             ensureUserColumns(stmt);
+            ensureEvenementLegacySchemaCompatibility(conn, stmt);
+            ensureProgrammeSchemaCompatibility(conn, stmt);
             
             System.out.println("✓ All tables ensured.");
             
@@ -125,8 +129,37 @@ public class DatabaseInitializer {
         addColumnIfMissing(stmt, "programme", "pause_debut", "TIME NULL");
         addColumnIfMissing(stmt, "programme", "pause_fin", "TIME NULL");
         addColumnIfMissing(stmt, "programme", "activites", "LONGTEXT NULL");
-        addColumnIfMissing(stmt, "programme", "documents", "LONGTEXT NULL");
-        addColumnIfMissing(stmt, "programme", "materiels", "LONGTEXT NULL");
+        addColumnIfMissing(stmt, "programme", "documents_requis", "LONGTEXT NULL");
+        addColumnIfMissing(stmt, "programme", "materiels_requis", "LONGTEXT NULL");
+    }
+
+    private static void ensureProgrammeSchemaCompatibility(Connection conn, Statement stmt) throws SQLException {
+        makeColumnNullableIfExists(conn, stmt, "programme", "name", "VARCHAR(255)");
+        makeColumnNullableIfExists(conn, stmt, "programme", "description", "LONGTEXT");
+        makeColumnNullableIfExists(conn, stmt, "programme", "created_at", "TIMESTAMP");
+
+        executeIgnoringErrors(stmt, """
+                UPDATE programme p
+                JOIN evenement e ON e.id = p.evenement_id
+                SET p.name = e.titre
+                WHERE (p.name IS NULL OR TRIM(p.name) = '')
+                  AND e.titre IS NOT NULL
+                  AND TRIM(e.titre) <> ''
+                """);
+        executeIgnoringErrors(stmt, """
+                UPDATE programme
+                SET documents_requis = documents
+                WHERE (documents_requis IS NULL OR TRIM(documents_requis) = '')
+                  AND documents IS NOT NULL
+                  AND TRIM(documents) <> ''
+                """);
+        executeIgnoringErrors(stmt, """
+                UPDATE programme
+                SET materiels_requis = materiels
+                WHERE (materiels_requis IS NULL OR TRIM(materiels_requis) = '')
+                  AND materiels IS NOT NULL
+                  AND TRIM(materiels) <> ''
+                """);
     }
 
     private static void createEvenementTable(Statement stmt) throws SQLException {
@@ -158,6 +191,58 @@ public class DatabaseInitializer {
         addColumnIfMissing(stmt, "evenement", "likes_count", "INT NOT NULL DEFAULT 0");
         addColumnIfMissing(stmt, "evenement", "dislikes_count", "INT NOT NULL DEFAULT 0");
         addColumnIfMissing(stmt, "evenement", "favorites_count", "INT NOT NULL DEFAULT 0");
+    }
+
+    private static void ensureEvenementLegacySchemaCompatibility(Connection conn, Statement stmt) throws SQLException {
+        if (columnExists(conn, "evenement", "titre")) {
+            executeIgnoringErrors(stmt, """
+                    UPDATE evenement
+                    SET titre = title
+                    WHERE (titre IS NULL OR TRIM(titre) = '')
+                      AND title IS NOT NULL
+                      AND TRIM(title) <> ''
+                    """);
+        }
+
+        makeColumnNullableIfExists(conn, stmt, "evenement", "title", "VARCHAR(255)");
+        executeIgnoringErrors(stmt, """
+                UPDATE evenement
+                SET title = titre
+                WHERE (title IS NULL OR TRIM(title) = '')
+                  AND titre IS NOT NULL
+                  AND TRIM(titre) <> ''
+                """);
+
+        executeIgnoringErrors(stmt, """
+                UPDATE evenement
+                SET date_evenement = DATE(date_start)
+                WHERE date_evenement IS NULL
+                  AND date_start IS NOT NULL
+                """);
+        executeIgnoringErrors(stmt, """
+                UPDATE evenement
+                SET heure_debut = TIME(date_start)
+                WHERE heure_debut IS NULL
+                  AND date_start IS NOT NULL
+                """);
+        executeIgnoringErrors(stmt, """
+                UPDATE evenement
+                SET heure_fin = TIME(date_end)
+                WHERE heure_fin IS NULL
+                  AND date_end IS NOT NULL
+                """);
+        executeIgnoringErrors(stmt, """
+                UPDATE evenement
+                SET localisation = location
+                WHERE (localisation IS NULL OR TRIM(localisation) = '')
+                  AND location IS NOT NULL
+                  AND TRIM(location) <> ''
+                """);
+
+        makeColumnNullableIfExists(conn, stmt, "evenement", "date_start", "DATETIME");
+        makeColumnNullableIfExists(conn, stmt, "evenement", "date_end", "DATETIME");
+        makeColumnNullableIfExists(conn, stmt, "evenement", "location", "VARCHAR(255)");
+        makeColumnNullableIfExists(conn, stmt, "evenement", "type_id", "INT");
     }
 
     private static void createReservationTable(Statement stmt) throws SQLException {
@@ -240,6 +325,40 @@ public class DatabaseInitializer {
             stmt.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + definition);
         } catch (SQLException ignored) {
             // The column already exists or the SQL variant is unsupported.
+        }
+    }
+
+    private static boolean columnExists(Connection conn, String tableName, String columnName) throws SQLException {
+        DatabaseMetaData metadata = conn.getMetaData();
+        try (ResultSet resultSet = metadata.getColumns(conn.getCatalog(), null, tableName, columnName)) {
+            while (resultSet.next()) {
+                if (columnName.equalsIgnoreCase(resultSet.getString("COLUMN_NAME"))) {
+                    return true;
+                }
+            }
+        }
+        try (ResultSet resultSet = metadata.getColumns(conn.getCatalog(), null, tableName.toUpperCase(), columnName.toUpperCase())) {
+            while (resultSet.next()) {
+                if (columnName.equalsIgnoreCase(resultSet.getString("COLUMN_NAME"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void executeIgnoringErrors(Statement stmt, String sql) {
+        try {
+            stmt.executeUpdate(sql);
+        } catch (SQLException ignored) {
+            // Compatibility fixes are best-effort because older local schemas vary.
+        }
+    }
+
+    private static void makeColumnNullableIfExists(Connection conn, Statement stmt, String tableName,
+                                                   String columnName, String definition) throws SQLException {
+        if (columnExists(conn, tableName, columnName)) {
+            executeIgnoringErrors(stmt, "ALTER TABLE " + tableName + " MODIFY COLUMN " + columnName + " " + definition + " NULL");
         }
     }
 }
