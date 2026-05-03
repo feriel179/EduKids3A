@@ -10,11 +10,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.Normalizer;
@@ -26,9 +28,13 @@ import java.util.Map;
 import java.util.Properties;
 
 public class OpenAiChatService {
-    private static final String API_URL = "https://api.openai.com/v1/responses";
-    private static final String DEFAULT_MODEL = "gpt-5-mini";
+    private static final String DEFAULT_RESPONSES_API_URL = "https://api.openai.com/v1/responses";
+    private static final String DEFAULT_CHAT_COMPLETIONS_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    private static final String DEFAULT_OPENAI_MODEL = "gpt-5-mini";
+    private static final String DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini";
+    private static final String RESOURCE_CONFIG_PATH = "/config/openai.properties";
     private static final Path LOCAL_CONFIG_PATH = Path.of("data", "openai.properties");
+    private static final List<String> DOT_ENV_FILES = List.of(".env.local", ".env");
 
     private final HttpClient httpClient;
     private final Gson gson;
@@ -43,27 +49,35 @@ public class OpenAiChatService {
     }
 
     public String resolveApiKey() {
-        String envKey = normalizeApiKeyValue(System.getenv("OPENAI_API_KEY"));
+        String envKey = firstNonBlank(
+                normalizeApiKeyValue(System.getenv("OPENROUTER_API_KEY")),
+                normalizeApiKeyValue(System.getenv("OPENAI_API_KEY"))
+        );
         if (!envKey.isBlank()) {
             return envKey;
         }
 
-        String systemPropertyKey = normalizeApiKeyValue(System.getProperty("openai.api.key"));
+        String systemPropertyKey = firstNonBlank(
+                normalizeApiKeyValue(System.getProperty("openrouter.api.key")),
+                normalizeApiKeyValue(System.getProperty("openai.api.key"))
+        );
         if (!systemPropertyKey.isBlank()) {
             return systemPropertyKey;
         }
 
-        if (!Files.exists(LOCAL_CONFIG_PATH)) {
-            return "";
+        Properties properties = loadOpenAiProperties();
+        String propertyKey = firstNonBlank(
+                normalizeApiKeyValue(properties.getProperty("openrouter.api.key", "")),
+                normalizeApiKeyValue(properties.getProperty("openai.api.key", ""))
+        );
+        if (!propertyKey.isBlank()) {
+            return propertyKey;
         }
 
-        Properties properties = new Properties();
-        try (Reader reader = Files.newBufferedReader(LOCAL_CONFIG_PATH)) {
-            properties.load(reader);
-            return normalizeApiKeyValue(properties.getProperty("openai.api.key", ""));
-        } catch (IOException ignored) {
-            return "";
-        }
+        return firstNonBlank(
+                normalizeApiKeyValue(readDotEnvValue("OPENROUTER_API_KEY")),
+                normalizeApiKeyValue(readDotEnvValue("OPENAI_API_KEY"))
+        );
     }
 
     public boolean hasApiKeyConfigured() {
@@ -660,14 +674,23 @@ public class OpenAiChatService {
     }
 
     private String requestText(String apiKey, String instructions, String input, int maxOutputTokens) throws IOException, InterruptedException {
+        String endpoint = resolveTextEndpoint();
+        if (isChatCompletionsEndpoint(endpoint)) {
+            return requestChatCompletionText(apiKey, endpoint, instructions, input, maxOutputTokens);
+        }
+
+        return requestResponsesText(apiKey, endpoint, instructions, input, maxOutputTokens);
+    }
+
+    private String requestResponsesText(String apiKey, String endpoint, String instructions, String input, int maxOutputTokens) throws IOException, InterruptedException {
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("model", DEFAULT_MODEL);
+        requestBody.put("model", resolveTextModel(endpoint));
         requestBody.put("instructions", instructions);
         requestBody.put("input", input);
         requestBody.put("max_output_tokens", maxOutputTokens);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(API_URL))
+                .uri(URI.create(endpoint))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apiKey.trim())
                 .timeout(Duration.ofSeconds(45))
@@ -681,18 +704,166 @@ public class OpenAiChatService {
         return extractAssistantText(response.body());
     }
 
+    private String requestChatCompletionText(String apiKey, String endpoint, String instructions, String input, int maxOutputTokens) throws IOException, InterruptedException {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", resolveTextModel(endpoint));
+        requestBody.put("max_tokens", maxOutputTokens);
+        requestBody.put("temperature", 0.2);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content", instructions));
+        messages.add(Map.of("role", "user", "content", input));
+        requestBody.put("messages", messages);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer " + apiKey.trim())
+                .header("HTTP-Referer", resolveConfigValue("openai.http.referer", "OPENAI_HTTP_REFERER", "http://localhost"))
+                .header("X-Title", resolveConfigValue("openai.http.title", "OPENAI_HTTP_TITLE", "EduKids"))
+                .timeout(Duration.ofSeconds(60))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(requestBody), StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        if (response.statusCode() >= 400) {
+            throw new IOException(extractErrorMessage(response.body(), response.statusCode()));
+        }
+        return extractChatCompletionText(response.body());
+    }
+
+    private String extractChatCompletionText(String responseBody) throws IOException {
+        JsonObject json = gson.fromJson(responseBody, JsonObject.class);
+        if (json == null || !json.has("choices") || !json.get("choices").isJsonArray()) {
+            throw new IOException("Reponse OpenRouter invalide.");
+        }
+
+        JsonArray choices = json.getAsJsonArray("choices");
+        if (choices.isEmpty() || !choices.get(0).isJsonObject()) {
+            throw new IOException("Aucune reponse texte n'a ete retournee par OpenRouter.");
+        }
+
+        JsonObject firstChoice = choices.get(0).getAsJsonObject();
+        if (!firstChoice.has("message") || !firstChoice.get("message").isJsonObject()) {
+            throw new IOException("Reponse OpenRouter invalide: choices[0].message est manquant.");
+        }
+
+        JsonObject message = firstChoice.getAsJsonObject("message");
+        if (!message.has("content") || message.get("content").isJsonNull()) {
+            throw new IOException("Reponse OpenRouter invalide: choices[0].message.content est manquant.");
+        }
+
+        String content = message.get("content").getAsString().trim();
+        if (content.isBlank()) {
+            throw new IOException("Aucune reponse texte n'a ete retournee par OpenRouter.");
+        }
+        return content;
+    }
+
     private String extractErrorMessage(String responseBody, int statusCode) {
         try {
             JsonObject json = gson.fromJson(responseBody, JsonObject.class);
             if (json != null && json.has("error")) {
                 JsonObject error = json.getAsJsonObject("error");
                 if (error.has("message")) {
-                    return "OpenAI API error " + statusCode + ": " + error.get("message").getAsString();
+                    return "AI API error " + statusCode + ": " + error.get("message").getAsString();
                 }
             }
         } catch (Exception ignored) {
         }
-        return "OpenAI API error " + statusCode + ".";
+        return "AI API error " + statusCode + ".";
+    }
+
+    private String resolveTextEndpoint() {
+        return resolveConfigValue("openai.text.endpoint", "OPENAI_TEXT_ENDPOINT", DEFAULT_CHAT_COMPLETIONS_API_URL);
+    }
+
+    private String resolveTextModel(String endpoint) {
+        String defaultModel = isChatCompletionsEndpoint(endpoint) ? DEFAULT_OPENROUTER_MODEL : DEFAULT_OPENAI_MODEL;
+        return resolveConfigValue("openai.text.model", "OPENAI_TEXT_MODEL", defaultModel);
+    }
+
+    private String resolveConfigValue(String propertyName, String envName, String defaultValue) {
+        String envValue = normalizeConfigValue(System.getenv(envName));
+        if (!envValue.isBlank()) {
+            return envValue;
+        }
+
+        String systemPropertyValue = normalizeConfigValue(System.getProperty(propertyName));
+        if (!systemPropertyValue.isBlank()) {
+            return systemPropertyValue;
+        }
+
+        Properties properties = loadOpenAiProperties();
+        String propertyValue = normalizeConfigValue(properties.getProperty(propertyName, ""));
+        if (!propertyValue.isBlank()) {
+            return propertyValue;
+        }
+
+        return defaultValue;
+    }
+
+    private boolean isChatCompletionsEndpoint(String endpoint) {
+        return endpoint != null && endpoint.contains("/chat/completions");
+    }
+
+    private Properties loadOpenAiProperties() {
+        Properties properties = new Properties();
+        try (InputStream inputStream = OpenAiChatService.class.getResourceAsStream(RESOURCE_CONFIG_PATH)) {
+            if (inputStream != null) {
+                properties.load(inputStream);
+            }
+        } catch (IOException ignored) {
+        }
+
+        if (Files.exists(LOCAL_CONFIG_PATH)) {
+            try (Reader reader = Files.newBufferedReader(LOCAL_CONFIG_PATH)) {
+                properties.load(reader);
+            } catch (IOException ignored) {
+            }
+        }
+        return properties;
+    }
+
+    private String readDotEnvValue(String key) {
+        Path current = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
+        while (current != null) {
+            for (String fileName : DOT_ENV_FILES) {
+                Path dotEnvPath = current.resolve(fileName);
+                if (!Files.isRegularFile(dotEnvPath)) {
+                    continue;
+                }
+
+                try {
+                    List<String> lines = Files.readAllLines(dotEnvPath, StandardCharsets.UTF_8);
+                    for (String line : lines) {
+                        String trimmed = line.trim();
+                        if (trimmed.isBlank() || trimmed.startsWith("#") || !trimmed.startsWith(key + "=")) {
+                            continue;
+                        }
+                        return trimmed.substring((key + "=").length()).trim();
+                    }
+                } catch (IOException ignored) {
+                }
+            }
+            current = current.getParent();
+        }
+        return "";
+    }
+
+    private String normalizeConfigValue(String rawValue) {
+        String value = normalizeApiKeyValue(rawValue);
+        return value == null ? "" : value.trim();
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
     }
 
     private List<String> getAnswerChoices(Question currentQuestion) {

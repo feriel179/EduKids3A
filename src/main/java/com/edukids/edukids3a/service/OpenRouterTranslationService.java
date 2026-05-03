@@ -29,7 +29,7 @@ public class OpenRouterTranslationService {
     private static final String PDF_SUMMARY_MODEL = "openai/gpt-oss-120b:free";
     private static final String API_KEY_ENV = "OPENROUTER_API_KEY";
     private static final String API_KEY_PROPERTY = "openrouter.api.key";
-    private static final String DOT_ENV_FILE = ".env";
+    private static final List<String> DOT_ENV_FILES = List.of(".env.local", ".env");
 
     private static final Gson GSON = new Gson();
 
@@ -173,24 +173,26 @@ public class OpenRouterTranslationService {
     private String readApiKeyFromDotEnv() {
         Path current = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
         while (current != null) {
-            Path dotEnvPath = current.resolve(DOT_ENV_FILE);
-            if (Files.isRegularFile(dotEnvPath)) {
-                try {
-                    List<String> lines = Files.readAllLines(dotEnvPath, StandardCharsets.UTF_8);
-                    for (String line : lines) {
-                        String trimmed = line.trim();
-                        if (trimmed.isBlank() || trimmed.startsWith("#") || !trimmed.startsWith(API_KEY_ENV + "=")) {
-                            continue;
-                        }
+            for (String fileName : DOT_ENV_FILES) {
+                Path dotEnvPath = current.resolve(fileName);
+                if (Files.isRegularFile(dotEnvPath)) {
+                    try {
+                        List<String> lines = Files.readAllLines(dotEnvPath, StandardCharsets.UTF_8);
+                        for (String line : lines) {
+                            String trimmed = line.trim();
+                            if (trimmed.isBlank() || trimmed.startsWith("#") || !trimmed.startsWith(API_KEY_ENV + "=")) {
+                                continue;
+                            }
 
-                        String value = trimmed.substring((API_KEY_ENV + "=").length()).trim();
-                        if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
-                            value = value.substring(1, value.length() - 1);
+                            String value = trimmed.substring((API_KEY_ENV + "=").length()).trim();
+                            if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+                                value = value.substring(1, value.length() - 1);
+                            }
+                            return value;
                         }
-                        return value;
+                    } catch (IOException e) {
+                        throw new IllegalStateException("Impossible de lire le fichier " + fileName + ": " + e.getMessage(), e);
                     }
-                } catch (IOException e) {
-                    throw new IllegalStateException("Impossible de lire le fichier .env: " + e.getMessage(), e);
                 }
             }
             current = current.getParent();
