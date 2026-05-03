@@ -129,6 +129,21 @@
     -fx-padding: 12 14 12 14;
 }
 
+.copy-promo-button {
+    -fx-background-color: #2fb45a;
+    -fx-background-radius: 12px;
+    -fx-border-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 12 16 12 16;
+    -fx-cursor: hand;
+}
+
+.copy-promo-button:hover {
+    -fx-background-color: #23994a;
+}
+
 .menu-button,
 .primary-button,
 .ghost-button,

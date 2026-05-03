@@ -146,7 +146,10 @@
                                             <TextArea fx:id="commandeCommentaireArea" prefRowCount="3" promptText="Message optionnel pour l'admin" styleClass="dark-area" wrapText="true" />
                                         </VBox>
                                         <Label fx:id="commandeClientFeedbackLabel" styleClass="result-label" text="" wrapText="true" />
-                                        <Label fx:id="commandePromoFeedbackLabel" managed="false" styleClass="promo-code-feedback" text="" visible="false" wrapText="true" />
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <Label fx:id="commandePromoFeedbackLabel" managed="false" styleClass="promo-code-feedback" text="" visible="false" wrapText="true" />
+                                            <Button fx:id="copyPromoCodeButton" managed="false" mnemonicParsing="false" onAction="#copyLastPromoCode" styleClass="copy-promo-button" text="Copier" visible="false" />
+                                        </HBox>
                                         <Button fx:id="submitCommandeButton" mnemonicParsing="false" onAction="#createCommande" styleClass="primary-button" text="Commander ce produit" />
                                     </VBox>
                                 </VBox>

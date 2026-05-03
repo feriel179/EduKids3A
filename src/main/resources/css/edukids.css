@@ -532,6 +532,12 @@
     -fx-text-fill: #60a5fa;
 }
 
+.detail-map-frame {
+    -fx-background-color: transparent;
+    -fx-min-height: 280px;
+    -fx-pref-height: 360px;
+}
+
 .detail-description {
     -fx-text-fill: #d4d4d4;
     -fx-font-size: 14px;

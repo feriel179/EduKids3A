@@ -73,7 +73,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.scene.web.WebView;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -81,6 +80,12 @@ import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.BasicStroke;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -128,6 +133,10 @@ public class MainController {
     private static final String SORT_RECENT = "Plus récent";
     private static final String SORT_ANCIEN = "Plus ancien";
     private static final String SORT_TITRE = "Titre (A-Z)";
+    private static final int MAP_ZOOM = 15;
+    private static final int MAP_WIDTH = 1024;
+    private static final int MAP_HEIGHT = 360;
+    private static final int TILE_SIZE = 256;
 
     private YearMonth frontEvenementsCalMonth = YearMonth.now();
     private boolean frontEvVueListe = true;
@@ -422,7 +431,11 @@ public class MainController {
     @FXML
     private VBox boxFrontDetailMapWrap;
     @FXML
-    private WebView webFrontDetailMap;
+    private Label lblFrontDetailMapLocation;
+    @FXML
+    private StackPane detailMapFrame;
+    @FXML
+    private ImageView imgFrontDetailMap;
 
     @FXML
     private TableView<Evenement> tableEvenements;
@@ -617,6 +630,8 @@ public class MainController {
         if (toggleFrontEvListe != null && toggleFrontEvCalendrier != null) {
             toggleFrontEvListe.setToggleGroup(frontEvViewGroup);
             toggleFrontEvCalendrier.setToggleGroup(frontEvViewGroup);
+            toggleFrontEvListe.setOnAction(event -> afficherVueEvenementsFront(false));
+            toggleFrontEvCalendrier.setOnAction(event -> afficherVueEvenementsFront(true));
             frontEvViewGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
                 if (newT == null) {
                     Platform.runLater(() -> {
@@ -626,19 +641,7 @@ public class MainController {
                     });
                     return;
                 }
-                frontEvVueListe = newT == toggleFrontEvListe;
-                if (boxFrontEvList != null) {
-                    boxFrontEvList.setVisible(frontEvVueListe);
-                    boxFrontEvList.setManaged(frontEvVueListe);
-                }
-                if (boxFrontEvCalendar != null) {
-                    boolean cal = !frontEvVueListe;
-                    boxFrontEvCalendar.setVisible(cal);
-                    boxFrontEvCalendar.setManaged(cal);
-                    if (cal) {
-                        rafraichirCalendrierEvenementsFront();
-                    }
-                }
+                afficherVueEvenementsFront(newT == toggleFrontEvCalendrier);
             });
         }
         if (gridFrontEvenementsCalendar != null) {
@@ -742,6 +745,10 @@ public class MainController {
         if (spFrontEvDetail != null && boxFrontDetailScrollContent != null) {
             spFrontEvDetail.setFitToWidth(true);
             boxFrontDetailScrollContent.prefWidthProperty().bind(spFrontEvDetail.widthProperty().subtract(12));
+        }
+        if (detailMapFrame != null && imgFrontDetailMap != null) {
+            imgFrontDetailMap.fitWidthProperty().bind(detailMapFrame.widthProperty());
+            imgFrontDetailMap.fitHeightProperty().bind(detailMapFrame.heightProperty());
         }
 
         apercuImageDebounce = new PauseTransition(Duration.millis(350));
@@ -1666,16 +1673,19 @@ public class MainController {
             long minutes = d.toMinutes();
             lblFrontDetailDuree.setText("Durée (début → fin) : " + minutes + " minute(s).");
         }
-        if (boxFrontDetailMapWrap != null && webFrontDetailMap != null) {
+        if (boxFrontDetailMapWrap != null && imgFrontDetailMap != null) {
             String lieu = e.getLocalisation();
             if (lieu == null || lieu.isBlank()) {
                 boxFrontDetailMapWrap.setVisible(false);
                 boxFrontDetailMapWrap.setManaged(false);
-                webFrontDetailMap.getEngine().load("about:blank");
+                imgFrontDetailMap.setImage(null);
             } else {
                 boxFrontDetailMapWrap.setVisible(true);
                 boxFrontDetailMapWrap.setManaged(true);
-                chargerCarteEmbedGoogleMaps(lieu.trim());
+                if (lblFrontDetailMapLocation != null) {
+                    lblFrontDetailMapLocation.setText("Lieu : " + lieu.trim());
+                }
+                chargerCarteImage(lieu.trim());
             }
         }
     }
@@ -1683,23 +1693,136 @@ public class MainController {
     /**
      * Carte centrée sur le lieu, comme le site Symfony (iframe {@code output=embed}), sans la page Maps « recherche ».
      */
-    private void chargerCarteEmbedGoogleMaps(String lieu) {
-        if (webFrontDetailMap == null || lieu == null || lieu.isBlank()) {
+    private void chargerCarteImage(String lieu) {
+        if (imgFrontDetailMap == null || lieu == null || lieu.isBlank()) {
             return;
         }
+        imgFrontDetailMap.setImage(createMapPlaceholder("Chargement de la carte..."));
+
+        CompletableFuture
+                .supplyAsync(() -> genererImageCarte(lieu))
+                .thenAccept(image -> Platform.runLater(() -> imgFrontDetailMap.setImage(
+                        image == null ? createMapPlaceholder("Carte indisponible pour ce lieu.") : image
+                )));
+    }
+
+    private Image genererImageCarte(String lieu) {
+        try {
+            MapPoint point = geocoderLieu(lieu);
+            if (point == null) {
+                return null;
+            }
+
+            BufferedImage map = composerCarte(point.latitude(), point.longitude());
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ImageIO.write(map, "png", output);
+            return new Image(new ByteArrayInputStream(output.toByteArray()));
+        } catch (Exception exception) {
+            LOG.warn("Carte indisponible pour {}: {}", lieu, exception.getMessage());
+            return null;
+        }
+    }
+
+    private MapPoint geocoderLieu(String lieu) throws Exception {
         String q = URLEncoder.encode(lieu, StandardCharsets.UTF_8);
-        String src = "https://www.google.com/maps?q=" + q + "&output=embed&z=15";
-        String html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/>"
-                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
-                + "<style>html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;background:#1a1a1a}"
-                + "iframe{border:0;width:100%;height:100%;display:block}</style>"
-                + "</head><body>"
-                + "<iframe title=\"Carte\" width=\"100%\" height=\"100%\" "
-                + "src=\"" + src + "\" "
-                + "allowfullscreen=\"true\" "
-                + "referrerpolicy=\"no-referrer-when-downgrade\"></iframe>"
-                + "</body></html>";
-        webFrontDetailMap.getEngine().loadContent(html);
+        HttpRequest request = HttpRequest.newBuilder(URI.create("https://nominatim.openstreetmap.org/search?q=" + q + "&format=json&limit=1"))
+                .timeout(java.time.Duration.ofSeconds(15))
+                .header("User-Agent", "EduKidsJavaFX/1.0")
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> response = HTTP_CLIENT_IMAGE.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            return null;
+        }
+
+        Matcher latMatcher = Pattern.compile("\"lat\"\\s*:\\s*\"([^\"]+)\"").matcher(response.body());
+        Matcher lonMatcher = Pattern.compile("\"lon\"\\s*:\\s*\"([^\"]+)\"").matcher(response.body());
+        if (!latMatcher.find() || !lonMatcher.find()) {
+            return null;
+        }
+        return new MapPoint(Double.parseDouble(latMatcher.group(1)), Double.parseDouble(lonMatcher.group(1)));
+    }
+
+    private BufferedImage composerCarte(double latitude, double longitude) throws Exception {
+        BufferedImage canvas = new BufferedImage(MAP_WIDTH, MAP_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = canvas.createGraphics();
+        graphics.setColor(new java.awt.Color(230, 232, 228));
+        graphics.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+
+        double scale = Math.pow(2, MAP_ZOOM) * TILE_SIZE;
+        double centerX = (longitude + 180.0) / 360.0 * scale;
+        double sinLat = Math.sin(Math.toRadians(latitude));
+        double centerY = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
+        int topLeftX = (int) Math.round(centerX - (MAP_WIDTH / 2.0));
+        int topLeftY = (int) Math.round(centerY - (MAP_HEIGHT / 2.0));
+        int firstTileX = Math.floorDiv(topLeftX, TILE_SIZE);
+        int firstTileY = Math.floorDiv(topLeftY, TILE_SIZE);
+        int lastTileX = Math.floorDiv(topLeftX + MAP_WIDTH, TILE_SIZE);
+        int lastTileY = Math.floorDiv(topLeftY + MAP_HEIGHT, TILE_SIZE);
+        int maxTile = 1 << MAP_ZOOM;
+
+        for (int tileY = firstTileY; tileY <= lastTileY; tileY++) {
+            if (tileY < 0 || tileY >= maxTile) {
+                continue;
+            }
+            for (int tileX = firstTileX; tileX <= lastTileX; tileX++) {
+                BufferedImage tile = telechargerTuileCarte(Math.floorMod(tileX, maxTile), tileY);
+                if (tile != null) {
+                    graphics.drawImage(tile, tileX * TILE_SIZE - topLeftX, tileY * TILE_SIZE - topLeftY, null);
+                }
+            }
+        }
+
+        dessinerMarqueurCarte(graphics);
+        graphics.dispose();
+        return canvas;
+    }
+
+    private BufferedImage telechargerTuileCarte(int tileX, int tileY) throws Exception {
+        String url = "https://tile.openstreetmap.org/" + MAP_ZOOM + "/" + tileX + "/" + tileY + ".png";
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .timeout(java.time.Duration.ofSeconds(15))
+                .header("User-Agent", "EduKidsJavaFX/1.0")
+                .header("Accept", "image/png,image/*")
+                .GET()
+                .build();
+        HttpResponse<byte[]> response = HTTP_CLIENT_IMAGE.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() < 200 || response.statusCode() >= 300 || response.body() == null) {
+            return null;
+        }
+        return ImageIO.read(new ByteArrayInputStream(response.body()));
+    }
+
+    private void dessinerMarqueurCarte(Graphics2D graphics) {
+        int x = MAP_WIDTH / 2;
+        int y = MAP_HEIGHT / 2;
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setColor(new java.awt.Color(214, 41, 62));
+        graphics.fillOval(x - 12, y - 28, 24, 24);
+        graphics.fillPolygon(new int[]{x - 7, x + 7, x}, new int[]{y - 8, y - 8, y + 10}, 3);
+        graphics.setColor(java.awt.Color.WHITE);
+        graphics.setStroke(new BasicStroke(2f));
+        graphics.drawOval(x - 12, y - 28, 24, 24);
+        graphics.fillOval(x - 4, y - 20, 8, 8);
+    }
+
+    private Image createMapPlaceholder(String message) {
+        BufferedImage image = new BufferedImage(MAP_WIDTH, MAP_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setColor(new java.awt.Color(248, 251, 255));
+        graphics.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+        graphics.setColor(new java.awt.Color(23, 43, 77));
+        graphics.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 24));
+        graphics.drawString(message, 32, MAP_HEIGHT / 2);
+        graphics.dispose();
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", output);
+            return new Image(new ByteArrayInputStream(output.toByteArray()));
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     private void allerVueListeEvenements() {
@@ -2562,23 +2685,27 @@ public class MainController {
 
     @FXML
     private void onFrontRetourListeEvenements() {
-        boxFrontEvDetail.setVisible(false);
-        boxFrontEvDetail.setManaged(false);
-        if (frontEvVueListe) {
-            boxFrontEvList.setVisible(true);
-            boxFrontEvList.setManaged(true);
-            if (boxFrontEvCalendar != null) {
-                boxFrontEvCalendar.setVisible(false);
-                boxFrontEvCalendar.setManaged(false);
-            }
+        afficherVueEvenementsFront(!frontEvVueListe);
+    }
+
+    private void afficherVueEvenementsFront(boolean calendrier) {
+        frontEvVueListe = !calendrier;
+        if (boxFrontEvDetail != null) {
+            boxFrontEvDetail.setVisible(false);
+            boxFrontEvDetail.setManaged(false);
+        }
+        if (boxFrontEvList != null) {
+            boxFrontEvList.setVisible(!calendrier);
+            boxFrontEvList.setManaged(!calendrier);
+        }
+        if (boxFrontEvCalendar != null) {
+            boxFrontEvCalendar.setVisible(calendrier);
+            boxFrontEvCalendar.setManaged(calendrier);
+        }
+        if (calendrier) {
+            rafraichirCalendrierEvenementsFront();
         } else {
-            boxFrontEvList.setVisible(false);
-            boxFrontEvList.setManaged(false);
-            if (boxFrontEvCalendar != null) {
-                boxFrontEvCalendar.setVisible(true);
-                boxFrontEvCalendar.setManaged(true);
-                rafraichirCalendrierEvenementsFront();
-            }
+            rafraichirCartesEvenementsFront();
         }
     }
 
@@ -3560,6 +3687,9 @@ public class MainController {
         a.setHeaderText(null);
         Optional<ButtonType> r = a.showAndWait();
         return r.isPresent() && r.get() == ButtonType.YES;
+    }
+
+    private record MapPoint(double latitude, double longitude) {
     }
 
     /** Ligne du tableau des statistiques par type (JavaBean pour {@link PropertyValueFactory}). */

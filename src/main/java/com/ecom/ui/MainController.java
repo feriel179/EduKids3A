@@ -39,6 +39,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -107,6 +109,7 @@ public class MainController {
     @FXML private Button cancelCommandeButton;
     @FXML private Button generateDescriptionButton;
     @FXML private Button generateImageButton;
+    @FXML private Button copyPromoCodeButton;
     @FXML private TableView<Produit> produitTable;
     @FXML private TableView<Category> categoryTable;
     @FXML private TableView<Commande> commandeTable;
@@ -193,6 +196,7 @@ public class MainController {
     private Produit selectedProduit;
     private Category selectedCategory;
     private Produit selectedFrontProduit;
+    private String lastGeneratedPromoCode = "";
     private boolean uiAnimationsInitialized;
 
     @FXML
@@ -473,8 +477,13 @@ public class MainController {
             );
 
             commandeClientFeedbackLabel.setText(feedback.toString());
-            showPromoFeedback(nouveauCodePromoMessage);
-            showAlert(Alert.AlertType.INFORMATION, "Commande envoyee", feedback + "\n\n" + nouveauCodePromoMessage);
+            showPromoFeedback(nouveauCodePromoMessage, result.nouveauCodePromo());
+            copyPromoCodeToClipboard(result.nouveauCodePromo());
+            showAlert(
+                    Alert.AlertType.INFORMATION,
+                    "Commande envoyee",
+                    feedback + "\n\n" + nouveauCodePromoMessage + "\n\nLe code promo a ete copie automatiquement."
+            );
             clearCommandeForm();
             loadData();
             showFrontCommandes();
@@ -1335,16 +1344,40 @@ public class MainController {
         commandeCommentaireArea.clear();
     }
 
-    private void showPromoFeedback(String message) {
+    @FXML
+    private void copyLastPromoCode() {
+        if (copyPromoCodeToClipboard(lastGeneratedPromoCode)) {
+            commandePromoFeedbackLabel.setText("Code promo copie : " + lastGeneratedPromoCode);
+        }
+    }
+
+    private boolean copyPromoCodeToClipboard(String promoCode) {
+        if (promoCode == null || promoCode.isBlank()) {
+            return false;
+        }
+
+        ClipboardContent content = new ClipboardContent();
+        content.putString(promoCode.trim());
+        Clipboard.getSystemClipboard().setContent(content);
+        return true;
+    }
+
+    private void showPromoFeedback(String message, String promoCode) {
+        lastGeneratedPromoCode = promoCode == null ? "" : promoCode.trim();
         commandePromoFeedbackLabel.setText(message);
         commandePromoFeedbackLabel.setManaged(true);
         commandePromoFeedbackLabel.setVisible(true);
+        copyPromoCodeButton.setManaged(!lastGeneratedPromoCode.isBlank());
+        copyPromoCodeButton.setVisible(!lastGeneratedPromoCode.isBlank());
     }
 
     private void hidePromoFeedback() {
+        lastGeneratedPromoCode = "";
         commandePromoFeedbackLabel.setText("");
         commandePromoFeedbackLabel.setManaged(false);
         commandePromoFeedbackLabel.setVisible(false);
+        copyPromoCodeButton.setManaged(false);
+        copyPromoCodeButton.setVisible(false);
     }
 
     private String formatPourcentage(double value) {

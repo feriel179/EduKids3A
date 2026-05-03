@@ -13,7 +13,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.web.WebView?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.edukids.edukids3a.controller.MainController" fx:id="paneFrontPageEv" spacing="0" styleClass="front-root" VBox.vgrow="ALWAYS" visible="false" managed="false">
         <VBox styleClass="front-hero">
@@ -88,9 +87,13 @@
                         </VBox>
                         <VBox fx:id="boxFrontDetailMapWrap" spacing="6.0" styleClass="detail-section">
                             <Label text="Carte (Google Maps)" styleClass="detail-section-title"/>
-                            <Pane maxWidth="980.0">
-                                <WebView fx:id="webFrontDetailMap" prefHeight="360.0" minHeight="280.0" prefWidth="960.0"/>
-                            </Pane>
+                            <Label fx:id="lblFrontDetailMapLocation" wrapText="true" styleClass="detail-description"/>
+                            <StackPane fx:id="detailMapFrame" maxWidth="1.7976931348623157E308" styleClass="detail-map-frame">
+                                <ImageView fx:id="imgFrontDetailMap"
+                                           fitHeight="360.0"
+                                           preserveRatio="false"
+                                           smooth="true"/>
+                            </StackPane>
                         </VBox>
                         <VBox styleClass="detail-section" spacing="10">
                             <Label text="Description de l'événement" styleClass="detail-section-title"/>

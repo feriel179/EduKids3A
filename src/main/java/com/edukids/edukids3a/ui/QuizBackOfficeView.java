@@ -2060,7 +2060,7 @@ public class QuizBackOfficeView {
 
     private VBox createStatisticsLegend(String title, String[] labels, String[] colors) {
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: 800;");
+        titleLabel.setStyle("-fx-text-fill: #172b4d; -fx-font-size: 22px; -fx-font-weight: 800;");
 
         VBox items = new VBox(14);
         for (int i = 0; i < labels.length; i++) {
@@ -2070,7 +2070,7 @@ public class QuizBackOfficeView {
             swatch.setStyle("-fx-background-color: " + colors[i] + ";");
 
             Label text = new Label(labels[i]);
-            text.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: 600;");
+            text.setStyle("-fx-text-fill: #172b4d; -fx-font-size: 16px; -fx-font-weight: 600;");
 
             HBox row = new HBox(14, swatch, text);
             row.setAlignment(Pos.CENTER_LEFT);

@@ -4,6 +4,7 @@ import tn.esprit.util.AppSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -63,7 +64,14 @@ public class ProductAiService {
 
         String apiKey = resolveProperty("openai.api.key", "OPENAI_API_KEY", "");
         if (apiKey == null || apiKey.isBlank()) {
-            return generateDescriptionWithOllama(prompt);
+            try {
+                return generateDescriptionWithOllama(prompt);
+            } catch (IOException exception) {
+                if (isLocalAiUnavailable(exception)) {
+                    return generateLocalProductDescription(productName, category);
+                }
+                throw exception;
+            }
         }
 
         String endpoint = resolveProperty("openai.text.endpoint", "OPENAI_TEXT_ENDPOINT", "https://api.openai.com/v1/chat/completions");
@@ -143,6 +151,40 @@ public class ProductAiService {
             throw new IOException("Ollama a retourne une reponse vide.");
         }
         return generated;
+    }
+
+    private String generateLocalProductDescription(String productName, String categoryName) {
+        String name = productName == null ? "Ce produit" : productName.trim();
+        String category = categoryName == null ? "" : categoryName.trim();
+        String categoryPart = category.isBlank() || category.equalsIgnoreCase("non specifiee")
+                ? "notre selection e-commerce"
+                : "la categorie " + category;
+
+        return "%s est un choix pratique et soigneusement selectionne pour %s. "
+                .formatted(name, categoryPart)
+                + "Sa presentation claire aide vos clients a comprendre rapidement son utilite, "
+                + "ses avantages et la valeur qu'il apporte au quotidien.";
+    }
+
+    private boolean isLocalAiUnavailable(IOException exception) {
+        Throwable current = exception;
+        while (current != null) {
+            if (current instanceof ConnectException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.toLowerCase();
+                if (normalized.contains("connection refused")
+                        || normalized.contains("connexion refusee")
+                        || normalized.contains("connect timed out")
+                        || normalized.contains("ollama")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     public String generateImageFromName(String productName, String categoryName) throws IOException, InterruptedException {
